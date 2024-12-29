@@ -1,20 +1,24 @@
 #!/bin/sh
-BUILD_DIR="/usr/share/nginx/html/assets"
+# @see https://stackoverflow.com/questions/18185305/storing-bash-output-into-a-variable-using-eval
+ROOT_DIR=/usr/share/nginx/html
+          
+# Replace env vars in JavaScript files
+echo "Replacing env constants in JS"
 
-get_env_value() {
-    local VAR_NAME="$1"
-    grep "^${VAR_NAME}=" .env | cut -d '=' -f 2-
-}
-while IFS= read -r line || [ -n "$line" ]; do
-    if [[ $line != \#* ]]; then
-        VAR_NAME=$(echo "$line" | cut -d '=' -f 1)
-        VAR_VALUE=$(get_env_value "$VAR_NAME")
-        if [ ! -z "${!VAR_NAME}" ]; then
-            VAR_VALUE="${!VAR_NAME}"
-        fi
-        for file in $BUILD_DIR/*.js; do
-            sed -i "s|__${VAR_NAME}__|${VAR_VALUE}|g" "$file"
-        done
-    fi
-done < .env
-nginx -g "daemon off;"
+keys="VITE_MQTT_SERVER
+VITE_MQTT_USER
+VITE_MQTT_PASSWORD"
+
+for file in $ROOT_DIR/assets/index*.js* ;
+do
+  echo "Processing $file ...";
+  for key in $keys
+  do
+    value=$(eval echo \$$key)
+    echo "replace $key by $value"
+    sed -i 's#'"$key"'#'"$value"'#g' $file
+  done
+done
+
+echo "Starting Nginx"
+nginx -g 'daemon off;'
