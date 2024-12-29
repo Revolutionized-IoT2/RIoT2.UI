@@ -1,0 +1,54 @@
+.site-content{
+    margin-left: 15px;
+}
+
+.site-content-contextmenu{
+    padding-top: 40px;
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+:disabled {
+    color: #c0c0c0 !important;
+  }
+
+.clickable {
+    cursor: pointer;
+}
+
+.bg-trigger-main {
+    background-color: #007dff;
+    color:white !important;
+}
+
+.bg-trigger-sec {
+    background-color: #cce5ff;
+    color: black !important;
+}
+
+.bg-output-main {
+    background-color: #00ec39;
+    color:white !important;
+}
+
+.bg-output-sec {
+    background-color: #d4edda;
+}
+
+.bg-cond-main {
+    background-color: #f30218;
+    color:white !important;
+}
+
+.bg-cond-sec {
+    background-color: #f8d7da;
+}
+
+.bg-func-main {
+    background-color: #fec203;
+    color:white !important;
+}
+
+.bg-func-sec {
+    background-color: #fff3cd;
+}

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" style="overflow-y: auto;">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>RIoT Bluetooth CMDR</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons">
+  </head>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+    .center {
+      margin: auto;
+      margin-top: 50px;
+      width: 50%;
+      border: 1px solid black;
+      padding: 15px;
+      text-align:center
+    }
+    .input {
+      height: 35px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      width: 90%;
+      font-size: 15px;
+    }
+    .heading {
+      font-weight: bold;
+      font-size: 25px;
+    }
+
+    .button {
+      margin: 20px;
+      background-color:#1E88E5;
+      border-radius:3px;
+      border:1px solid #124d77;
+      display:inline-block;
+      cursor:pointer;
+      color:#ffffff;
+      font-family:Verdana;
+      font-size:13px;
+      font-weight:bold;
+      padding:9px 24px;
+      text-decoration:none;
+      letter-spacing: 0.0892857143em;
+      text-indent: 0.0892857143em;
+      text-transform: uppercase;
+    }
+
+    .button:hover {
+      background-color:#0578ca;
+    }
+
+    .button:active {
+      position:relative;
+      top:1px;
+    }
+  </style>
+  <script>
+    let command = null;
+    let urlCmd = null;
+    let bleDevice = null;
+    let bleServer = null;
+
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      urlCmd = urlParams.get('c');
+      
+      if(urlCmd != null) {
+        var cmdElement = document.getElementById("cmd");
+        cmdElement.style.display = "none";
+    }
+  }
+  
+  function sendCommand() {
+    command = null;
+    
+    if(urlCmd == null) {
+      command = document.getElementById("cmd").value;
+    } else {
+      command = urlCmd;
+    }
+
+    if(command == null || command =='') {
+        alert("Cannot send empty command");
+        return;
+    }
+
+    if(bleDevice == null || bleDevice.gatt == undefined || !bleDevice.gatt.connected) {
+      bleDevice = null;
+      bleServer = null;
+      connectBluetootDevice().then(device => {
+        bleDevice = device;
+        bleDevice.gatt.connect().then(server=> {
+          bleServer = server;
+          getBleCharacteristicsAndSendCmd();
+        });
+      }).catch(error => {
+         alert(error);
+      });
+    } else {
+      getBleCharacteristicsAndSendCmd();
+    } 
+  }
+
+  function getBleCharacteristicsAndSendCmd() {
+    bleServer.getPrimaryService('61b62cd9-b326-4c43-b504-b7cc02b02612').then(service => {
+      service.getCharacteristic('9da3e63f-2b7d-4e84-b642-c1d8be2ca780').then(writeCharasterictic => {
+        let encoder = new TextEncoder();
+
+        let fixedCmd = command;
+        if(command.length < 50)
+          fixedCmd = addSpaces(command, (50 - command.length));
+
+        writeCharasterictic.writeValue(encoder.encode(fixedCmd)).then(() => {
+          alert("Command send to device");
+        });
+      });
+      
+      service.getCharacteristic('d0539c58-9171-4a32-b3e3-c339ac9f9a89').then(notifyCharacteristic => {
+        notifyCharacteristic.startNotifications().then(() => {
+          console.log('> Notifications started');
+          notifyCharacteristic.addEventListener('characteristicvaluechanged', handleNotifications);
+        });
+      });
+    });
+  }
+
+  function addSpaces(str, count){
+    var a = str.split("");
+    for (let i = 0; i < count; i++)
+      a.push(" ");
+
+    return a.join("");
+  }
+  
+
+  function handleNotifications(event) {
+    alert(event.target.value);
+
+    /*
+    let value = event.target.value;
+    let a = [];
+    // Convert raw data bytes to hex values just for the sake of showing something.
+    // In the "real" world, you'd use data.getUint8, data.getUint16 or even
+    // TextDecoder to process raw data bytes.
+    for (let i = 0; i < value.byteLength; i++) {
+      a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
+    }
+    console.log('> ' + a.join(' '));*/
+  }
+
+  function connectBluetootDevice() {
+    return navigator.bluetooth.requestDevice({
+      filters: [{
+        name: 'riotctrl'
+      }],
+      optionalServices: ['61b62cd9-b326-4c43-b504-b7cc02b02612']
+    });
+  }
+
+  </script>
+  <body>
+    <noscript>
+      <strong>We're sorry but riot-ui-2 doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div class="center">
+      <span class="heading">RIoT Bluetooth CMDR</span><br />
+      <hr />
+      <input class="input" type="text" id="cmd" name="cmd">
+      <button class="button" type="button" onclick="sendCommand()">send command</button>
+    </div>
+  </body>
+</html>

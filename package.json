@@ -1,0 +1,39 @@
+{
+  "name": "riot2-ui",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite --force",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview --port 5050",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "material-design-icons-iconfont": "^6.7.0",
+    "pinia": "^2.3.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.3.0",
+    "vuetify": "^3.7.6",
+    "mqtt": "^4.3.7",
+    "axios": "^1.6.7",
+    "vue-chartjs": "^5.3.2",
+    "chart.js":"^4.4.1",
+    "vue-timeago3": "^2.3.2",
+    "uuid": "^9.0.0",
+    "mitt": "^3.0.1",
+    "vue-draggable-next":"^2.2.1",
+    "roboto-fontface": "*"
+  },
+  "devDependencies": {
+    "@babel/types": "^7.26.3",
+    "@tsconfig/node22": "^22.0.0",
+    "@types/node": "^22.9.3",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/tsconfig": "^0.7.0",
+    "npm-run-all2": "^7.0.1",
+    "typescript": "~5.6.3",
+    "vite": "^6.0.1",
+    "vite-plugin-vue-devtools": "^7.6.5",
+    "vue-tsc": "^2.1.10",
+    "@types/uuid": "^9.0.0"
+  }
+}
