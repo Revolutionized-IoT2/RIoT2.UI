@@ -6,10 +6,11 @@ import { InjectionKeys } from '@/models/injectionKeys';
 import AppError from '@/models/appError';
 import { Constants } from '@/models/constants';
 import { useErrorStore } from '@/stores/errorStore';
+import { mqttServer, mqttUser, mqttPassword } from '@/app.config';
 
 let connection = {
     protocol: "ws",
-    host: import.meta.env.VITE_MQTT_SERVER || "__MQTT_SERVER__",
+    host: mqttServer,
     // ws: 8083; wss: 8084
     port: 9001,
     endpoint: "/",
@@ -18,8 +19,8 @@ let connection = {
     reconnectPeriod: 4000, // ms
     clientId: "",
     // auth
-    username: import.meta.env.VITE_MQTT_USER || "__MQTT_USER__",
-    password: import.meta.env.VITE_MQTT_PASSWORD || "__MQTT_PASSWORD__",
+    username: mqttUser,
+    password: mqttPassword,
     will: {
       topic:  "",
       payload: '{ "IsOnline": false }',
