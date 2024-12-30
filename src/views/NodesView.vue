@@ -149,7 +149,7 @@ function AddDevice() {
 }
 
 function nodeStatusColorOrIcon(node: SystemNode, icon: boolean = false) : string {
-  if(node == null || node == undefined || node.deviceStatuses?.length == 0)
+  if(node == null || node == undefined || node.deviceStatuses == null ||  node.deviceStatuses.length == 0)
     return icon ? "help":"yellow";
 
   for (var s of node.deviceStatuses) {
@@ -172,6 +172,9 @@ function getColorOrIconForState(state: DeviceState, icon: boolean = false) {
 }
 
 function showNodeDeviceStatuses(node: SystemNode) {
+  if(node.deviceStatuses == null ||  node.deviceStatuses.length == 0)
+    return;
+
   deviceStatuses.value = node.deviceStatuses;
   deviceStatusDialog.value = true;
 }

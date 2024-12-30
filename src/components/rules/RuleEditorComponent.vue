@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRuleUtils } from '@/composables/ruleUtilsService';
-import { RuleType } from '@/models/enums';
+import { OutputOperation, RuleType } from '@/models/enums';
 import type { IRuleDefination } from '@/models/rules/IRuleDefination';
 import type { IRuleItem } from '@/models/rules/IRuleItem';
 import type connector from '@/models/rules/connector';
@@ -19,11 +19,23 @@ import type CommandTemplate from '@/models/commandTemplate';
 import type FunctionTemplate from '@/models/rules/functionTemplate';
 import type { ReportTemplate } from '@/models/rules/reportTemplate';
 import { Rule } from '@/models/rules/rule';
+import type { ITemplate } from '@/models/itemplate';
 
 //import type { ContextMenuItem } fromv '@/models/contextMenuItem';
 const reportTemplates = inject(InjectionKeys.reportTemplates);
 const functionTemplates = inject(InjectionKeys.functionTemplates);
 const commandTemplates = inject(InjectionKeys.commandTemplates);
+const variableTemplates = inject(InjectionKeys.variableTemplates);
+
+const commandTemplateItems = computed<ITemplate[]>(() => {
+  if(commandTemplates == undefined && variableTemplates == undefined)
+    return [];
+
+  if(commandTemplates == undefined) return (variableTemplates?.value as ITemplate[]);
+  if(variableTemplates == undefined) return (commandTemplates?.value as ITemplate[]);
+    
+  return (commandTemplates.value as ITemplate[]).concat(variableTemplates.value);
+});
 
 const emit = defineEmits<{
     ruleItemListUpdated: [IRuleItem[]],
@@ -214,7 +226,11 @@ function createRuleItem() : IRuleItem | undefined {
           if(selectedCommandTemplate.value == null)
             return;
           
-          return useRuleOutput().create(idx, newRuleStep.value.name, selectedCommandTemplate.value);
+          var oper = OutputOperation.write;
+          if(selectedCommandTemplate.value.device.toLowerCase() == 'variable')
+            oper = OutputOperation.Variable;
+            
+          return useRuleOutput().create(idx, newRuleStep.value.name, selectedCommandTemplate.value, oper);
     }
 }
 
@@ -458,7 +474,7 @@ function exceuteAction(action: string) {
                     v-if="newRuleStep.ruleType == RuleType.output"
                     v-model="selectedCommandTemplate"
                     :rules="templateRule"
-                    :items="commandTemplates"
+                    :items="commandTemplateItems"
                     color="primary"
                     item-title="name"
                     item-value="name"

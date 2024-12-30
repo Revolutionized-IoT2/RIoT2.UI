@@ -43,13 +43,13 @@ export class RuleOutput implements IRuleItem {
 
 export function useRuleOutput() {
 
-    function create(id: number, name: string, template: CommandTemplate): RuleOutput {
+    function create(id: number, name: string, template: CommandTemplate, operation: OutputOperation = OutputOperation.write): RuleOutput {
         let o = new RuleOutput();
         o.id = id;
         o.name = name;
         o.description = template.device +": " + template.name;
         o.commandId = template.id;
-        o.operation = OutputOperation.write; //not currentyly supported
+        o.operation = operation;
         o.model = template.model;
         o.ValueType = template.type;
         o.dataModelMapping = generateMappingObject(template.model); //copy model as base for mapping

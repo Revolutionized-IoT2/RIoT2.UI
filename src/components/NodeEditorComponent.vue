@@ -234,9 +234,10 @@ onMounted(() => {
               label="Device Refresh Schedule" hint="cron: '0 0 * ? * * *' or leave empty if refesh is done automatically." />
           </v-col>
         </v-row>
+        <div v-if="device.deviceParameters != null">
         <p>Additional parameters</p>
         <v-divider class="border-opacity-100 mb-3" color="black" />
-        <v-row v-if="device.deviceParameters != null">
+        <v-row>
           <v-col cols="4" v-for="(p) in Object.keys(device.deviceParameters)">
             <v-text-field v-model="device.deviceParameters[p]" hide-details
               append-inner-icon="delete"
@@ -255,7 +256,7 @@ onMounted(() => {
             <v-icon>add</v-icon>
             new parameter
           </v-btn>
-        
+        </div>
         <v-data-table :hide-default-footer="device.reportTemplates.length < 10" v-if="device.reportTemplates != null" :items="device.reportTemplates" :headers="reportHeaders" density="compact" class="mt-4">
           <template v-slot:top>
             <v-toolbar flat>
@@ -385,6 +386,7 @@ onMounted(() => {
         <div class="font-weight-bold">no command templates</div>
       </template>
       </v-data-table>
+      <v-spacer />
       <v-btn
         size="small"
             class="mt-4"
