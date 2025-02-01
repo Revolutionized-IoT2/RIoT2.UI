@@ -34,6 +34,7 @@ provide(InjectionKeys.reportTemplates, reportTemplates);
 provide(InjectionKeys.functionTemplates, functionTemplates);
 provide(InjectionKeys.commandTemplates, commandTemplates);
 provide(InjectionKeys.variableTemplates, variableTemplates);
+provide(InjectionKeys.templateDataUpdated, loadTemplates); // Call this if templates need to be reloaded
 
 //const error: Ref<AppError | null> = ref(null);
 //const showSnackbar: Ref<boolean> = ref(false);
@@ -54,7 +55,6 @@ function setError(err: AppError): void {
 }*/
 
 function loadTemplates() {
-  console.log("starting to load templates");
   orchestrator.getReportTemplates((data: ReportTemplate [] | null) => {
     if(data != null)
       reportTemplates.value = data;

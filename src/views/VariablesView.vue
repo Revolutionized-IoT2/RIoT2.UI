@@ -17,6 +17,7 @@ const contextMenuItems: ContextMenuItem[] = [
 ];
 
 const emitter = inject(InjectionKeys.emitter);
+const templateDataUpdated = inject(InjectionKeys.templateDataUpdated);
 const orchestrator = useOrchestrator();
 
 const variables = ref<Variable[]>([]);
@@ -61,6 +62,7 @@ function saveVarible() {
   orchestrator.saveVariable(selectedVariable.value, () => {
     editVariableDialog.value = false;
     loadVariables();
+    templateDataUpdated?.(); 
   }, ()=>{
     loading.value = false;
   })

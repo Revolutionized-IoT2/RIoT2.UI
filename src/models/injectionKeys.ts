@@ -12,5 +12,6 @@ export const InjectionKeys = {
     reportTemplates: Symbol() as InjectionKey<Ref<ReportTemplate[]>>,
     functionTemplates: Symbol() as InjectionKey<Ref<FunctionTemplate[]>>,
     commandTemplates: Symbol() as InjectionKey<Ref<CommandTemplate[]>>,
-    variableTemplates: Symbol() as InjectionKey<Ref<VariableTemplate[]>>
+    variableTemplates: Symbol() as InjectionKey<Ref<VariableTemplate[]>>,
+    templateDataUpdated: Symbol() as InjectionKey<() => void>
 } as const;
