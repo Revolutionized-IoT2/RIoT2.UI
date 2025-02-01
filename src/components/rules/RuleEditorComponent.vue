@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRuleUtils } from '@/composables/ruleUtilsService';
-import { OutputOperation, RuleType } from '@/models/enums';
+import { OutputOperation, RuleType, ValueType } from '@/models/enums';
 import type { IRuleDefination } from '@/models/rules/IRuleDefination';
 import type { IRuleItem } from '@/models/rules/IRuleItem';
 import type connector from '@/models/rules/connector';
@@ -457,11 +457,14 @@ function exceuteAction(action: string) {
                     <template v-slot:chip="{ props, item }">
                       <div v-bind="props" v-if="item != null">
                         {{ item.raw.name }} 
-                        <v-chip class="ma-2" label>
+                        <v-chip size="x-small" class="ma-2" label>
                         {{ item.raw.node }}
                         </v-chip>
-                        <v-chip class="ma-2" label>
+                        <v-chip size="x-small" class="ma-2" label>
                         {{ item.raw.device }}
+                        </v-chip>
+                        <v-chip size="x-small" class="ma-2" label>
+                        {{ ValueType[item.raw.type] }}
                         </v-chip>
                       </div>
                     </template>
@@ -470,11 +473,14 @@ function exceuteAction(action: string) {
                         v-bind="props"
                         :title="item.raw.name"
                       >
-                      <v-chip class="ma-1" label>
+                      <v-chip size="x-small" class="ma-1" label>
                         {{ item.raw.node }}
                         </v-chip>
-                        <v-chip class="ma-1" label>
+                        <v-chip size="x-small" class="ma-1" label>
                         {{ item.raw.device }}
+                        </v-chip>
+                        <v-chip size="x-small" class="ma-1" label>
+                        {{ ValueType[item.raw.type] }}
                         </v-chip>
                     </v-list-item>
                    </template>
@@ -496,11 +502,14 @@ function exceuteAction(action: string) {
                     <template v-slot:chip="{ props, item }">
                       <div v-bind="props" v-if="item != null">
                         {{ item.raw.name }} 
-                        <v-chip class="ma-2" label>
+                        <v-chip size="x-small" class="ma-2" label>
                         {{ item.raw.node }}
                         </v-chip>
-                        <v-chip class="ma-2" label>
+                        <v-chip size="x-small" class="ma-2" label>
                         {{ item.raw.device }}
+                        </v-chip>
+                        <v-chip size="x-small" class="ma-2" label>
+                        {{ ValueType[item.raw.type] }}
                         </v-chip>
                       </div>
                     </template>
@@ -509,11 +518,14 @@ function exceuteAction(action: string) {
                         v-bind="props"
                         :title="item.raw.name"
                       >
-                      <v-chip class="ma-1" label>
+                      <v-chip size="x-small" class="ma-1" label>
                         {{ item.raw.node }}
                         </v-chip>
-                        <v-chip class="ma-1" label>
+                        <v-chip size="x-small" class="ma-1" label>
                         {{ item.raw.device }}
+                        </v-chip>
+                        <v-chip size="x-small" class="ma-1" label>
+                          {{ ValueType[item.raw.type] }}
                         </v-chip>
                     </v-list-item>
                    </template>
