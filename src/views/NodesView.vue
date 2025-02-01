@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { inject, onMounted, ref } from 'vue';
 import SystemNode  from '@/models/systemNode'
 import { useOrchestrator } from '@/composables/orchestratorService';
 import NodeEditorComponent from '@/components/NodeEditorComponent.vue'
@@ -14,12 +14,14 @@ import DeviceConfiguration from '@/models/deviceConfiguration';
 import { yellow } from 'vuetify/util/colors';
 import { DeviceState } from '@/models/enums';
 import type DeviceStatus from '@/models/deviceStatus';
+import { InjectionKeys } from '@/models/injectionKeys';
 
 const contextMenuItems: ContextMenuItem[] = [
   { "text": "edit dashboard", "action": "edit_dashboard", "disabled": false, "icon": "dashboard" },
   { "text": "new node", "action": "new_node", "disabled": false, "icon": "add" }
 ];
 
+const templateDataUpdated = inject(InjectionKeys.templateDataUpdated);
 
 const nodes = ref<SystemNode []  | undefined>(undefined);
 const deviceStatuses = ref<DeviceStatus []  | undefined>(undefined);
@@ -97,6 +99,7 @@ function saveConfiguration() {
   orchestrator.saveNodeConfiguration(editorData.value, (data: string | null) => {
     saving.value = true;
     initialize();
+    templateDataUpdated?.();
   });
 
   editNodeDialog.value = false;
