@@ -27,6 +27,16 @@ const functionTemplates = inject(InjectionKeys.functionTemplates);
 const commandTemplates = inject(InjectionKeys.commandTemplates);
 const variableTemplates = inject(InjectionKeys.variableTemplates);
 
+const reportTemplateItems = computed<ITemplate[]>(() => {
+  if(reportTemplates == undefined && variableTemplates == undefined)
+    return [];
+
+  if(reportTemplates == undefined) return (variableTemplates?.value as ITemplate[]);
+  if(variableTemplates == undefined) return (reportTemplates?.value as ITemplate[]);
+    
+  return (reportTemplates.value as ITemplate[]).concat(variableTemplates.value);
+});
+
 const commandTemplateItems = computed<ITemplate[]>(() => {
   if(commandTemplates == undefined && variableTemplates == undefined)
     return [];
@@ -435,7 +445,7 @@ function exceuteAction(action: string) {
                     v-if="newRuleStep.ruleType == RuleType.trigger"
                     v-model="selectedReportTemplate"
                     :rules="templateRule"
-                    :items="reportTemplates"
+                    :items="reportTemplateItems"
                     color="primary"
                     item-title="name"
                     item-value="name"
