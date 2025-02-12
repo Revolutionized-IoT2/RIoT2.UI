@@ -11,6 +11,7 @@ FROM nginx:alpine
 WORKDIR /usr/share/nginx/html
 COPY --from=build /app/dist .
 COPY entrypoint.sh /entrypoint.sh
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
