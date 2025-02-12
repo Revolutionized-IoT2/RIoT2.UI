@@ -30,13 +30,10 @@ const showDialog = ref(false);
 const editMode = ref(false);
 const jsonErrors = ref("");
 const editJson = ref("");
-
-const type = computed(() => {
-    return getValueType(props.datamodel);
-});
+const type = ref(ValueType.Text);
 
 const dataLang = computed(() => {
-    return ValueType[type.value];
+    return ValueType[getValueType(props.datamodel)];
 });
 
 function convertToType(val: any, type: ValueType): any {
@@ -85,7 +82,7 @@ function isPrimitive() {
 
 onMounted(() => {
     expandedState.value = props.expanded;
-    //type.value = getValueType(props.datamodel);
+    type.value = getValueType(props.datamodel);
     
 });
 
@@ -170,10 +167,6 @@ function formatCodeBlock(json: string) {
     return json;
 }
 
-
-function onCreated(arg0: () => void) {
-    throw new Error('Function not implemented.');
-}
 </script>
 
 <template>

@@ -57,10 +57,6 @@ function validateRule() {
   });
 }
 
-const ruleState = computed(() => 
-  rule.value.isActive ? 'active' : 'disabled'
-);
-
 const ruleItemValues = computed((): nameValue[] => {
   let retVal: nameValue[] = [];
   for (let i = 0; i < rule.value.ruleItems.length; i++) {
@@ -189,7 +185,7 @@ onMounted(() => {
         <RuleHeader v-model="rule" 
           :editable="true" text="rule editor" 
           :validationErrors="ruleValidationErrors" 
-          :state="ruleState"
+          :state="rule.isActive"
           :tagOptions="tags"
           />
       </v-col>

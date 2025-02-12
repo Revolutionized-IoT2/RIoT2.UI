@@ -13,7 +13,7 @@ export interface Props {
   text: string,
   editable: boolean,
   validationErrors: string[],
-  state: string,
+  state: boolean,
   tagOptions?: string []
 }
 
@@ -21,7 +21,7 @@ export interface Props {
 const props = withDefaults(defineProps<Props>(), {
   editable: false,
   labels: () => [],
-  state: "unknown",
+  state: false,
   validationErrors: () => [],
   tagOptions: () => []
 });
@@ -30,8 +30,13 @@ const editHeaderDialog = ref(false);
 const validationErrorsDialog = ref(false);
 
 function showValidationErrors() {
+  //TODO Always run validation...
+
   if(props.validationErrors.length > 0) {
         validationErrorsDialog.value = true;
+      }
+      else {
+        alert("TODO: Ask to activate rule")
       }
 }
 
@@ -47,26 +52,35 @@ function exceuteAction(action: string) {
       <v-toolbar flat dense color="">
         <v-icon class="ml-3">share</v-icon>
         <v-toolbar-title class="overline">
-          {{text}}
+          {{text}}: {{ model.name }} 
+          <span class="text-disabled ml-2 font-weight-thin text-subtitle-1"> [{{state?'active':'disabled'}}]</span>
         </v-toolbar-title>
         <v-spacer />
         <v-btn
-        dark
+          dark
+          color="grey"
+          xx-small
+          @click="showValidationErrors()"
+        >
+        <v-icon :color="validationErrors.length > 0 ? 'red':'green'">{{validationErrors.length > 0 ? 'warning':'check_circle'}}</v-icon>
+      validate  
+      </v-btn>
+        <v-btn
+          dark
           v-if="editable"
-             color="grey"
-         
-          x-small
+          color="grey"
+          xx-small
           @click="editHeaderDialog = true"
         >
-          <v-icon x-small>edit</v-icon>
+          <v-icon >edit</v-icon>
+          edit
         </v-btn>
       </v-toolbar>
-      <v-list-item dense three-line>
+      <v-list-item dense three-line class="mb-4">
         <div>
-          <v-list-item-title class="headline mb-1">
-            {{ model.name }} <span class="text-disabled text-overline"> [{{state}}]</span>
+          <v-list-item-title class="headline ma-2">
+            {{ model?.description }}
           </v-list-item-title>
-          <v-list-item-subtitle>{{ model?.description }}</v-list-item-subtitle>
           <div>
             <template v-for="(tag, index) in model?.tags">
                <v-chip
@@ -75,7 +89,7 @@ function exceuteAction(action: string) {
                 color="blue"
                 text-color="white"
                 class="ma-1 mt-2"
-                size="x-small"
+                size="small"
                 label
               >
               {{ tag }}
@@ -85,7 +99,7 @@ function exceuteAction(action: string) {
               </v-chip>
             </template>
               <span style="float: right;">
-                <v-icon x-large @click="showValidationErrors()" :color="validationErrors.length > 0 ? 'red':'green'">{{validationErrors.length > 0 ? 'warning':'check_circle'}}</v-icon>
+              
               </span>
           </div>
         </div>
