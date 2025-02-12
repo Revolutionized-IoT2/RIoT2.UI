@@ -287,7 +287,7 @@ onValueChange(newVal: any) {
                 ></v-select>
               </v-col>
               <v-col cols="12">
-                 <v-btn size="x-small" :loading="loading" color="success" outlined @click="showTriggerDataDialog()"><v-icon size="x-small">login</v-icon>trigger data</v-btn>
+                 <v-btn size="small" :loading="loading" color="success" outlined @click="showTriggerDataDialog()"><v-icon size="x-small">login</v-icon>trigger data</v-btn>
               </v-col>
             </v-row>
           </v-container>
@@ -312,7 +312,7 @@ onValueChange(newVal: any) {
               </v-col>
                <v-col cols="12">
                  <v-btn :loading="loading" 
-                    size="x-small" 
+                    size="small" 
                     color="success" 
                     outlined 
                     @click="testFunction()">
@@ -339,14 +339,14 @@ onValueChange(newVal: any) {
             <v-col cols="12">
               <v-card dark>
                 <v-card-text>
-                  IF <v-chip small>{{(model as RuleCondition).ifClause}}</v-chip> THEN <v-chip small>
+                  IF <v-chip small label>{{(model as RuleCondition).ifClause}}</v-chip> THEN <v-chip small label>
                     {{FlowOperator[(model as RuleCondition).thenOperator].toUpperCase()}}</v-chip>
                     {{(model as RuleCondition).thenOperator == FlowOperator.jump ? " TO ": ""}}
-                    <v-chip small v-if="(model as RuleCondition).thenOperator == FlowOperator.jump">
+                    <v-chip small label v-if="(model as RuleCondition).thenOperator == FlowOperator.jump">
                       {{getValueName((model as RuleCondition).thenJumpTo, ruleItemList)}}</v-chip>
                 </v-card-text>
                 <v-card-text>
-                  ELSE <v-chip small>{{FlowOperator[(model as RuleCondition).elseOperator].toUpperCase()}}</v-chip>
+                  ELSE <v-chip small label>{{FlowOperator[(model as RuleCondition).elseOperator].toUpperCase()}}</v-chip>
                   {{(model as RuleCondition).elseOperator == FlowOperator.jump ? " TO ":""}} 
                   <v-chip small v-if="(model as RuleCondition).elseOperator == FlowOperator.jump">
                     {{getValueName((model as RuleCondition).elseJumpTo, ruleItemList)}}</v-chip>
