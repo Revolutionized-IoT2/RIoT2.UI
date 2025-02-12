@@ -141,6 +141,14 @@ function editModeClick() {
     }
 }
 
+function valueToJson():string {
+    if(isPrimitive()) {
+            return props.datamodel;
+        } else {
+            return JSON.stringify(props.datamodel, undefined, 2);
+        }
+}
+
 function formatCodeBlock(json: string) {
     if(json == null)
         return "";
@@ -167,12 +175,18 @@ function formatCodeBlock(json: string) {
     return json;
 }
 
+function copyCode() {
+    navigator.clipboard.writeText(valueToJson());
+}
+
 </script>
 
 <template>
     <div>
         <v-card-actions class="pl-0 pr-0 h-40">
-         <v-card-subtitle class="pl-0 v-label--active">{{labeltext}}</v-card-subtitle>
+         <v-card-subtitle class="pl-0 v-label--active">{{labeltext}}
+            <v-icon size="x-small" @click="copyCode" class="ml-4">content_copy</v-icon>
+         </v-card-subtitle>
           <v-spacer></v-spacer>
         <v-btn v-if="expandable" icon @click="expandedState = !expandedState" class="pr-0 pl-0" small>
             <v-icon class="pl-0">{{ expandedState ? 'arrow_drop_up' : 'arrow_drop_down' }}</v-icon>
@@ -184,7 +198,7 @@ function formatCodeBlock(json: string) {
                <div class="code-block">
             <div class="content">
                 <pre class="highlight pa-3">
-                    <code :data-lang="dataLang" v-html="data" />
+                    <code :data-lang="dataLang" v-html="data" /> 
                 </pre>
             </div>
         </div>
