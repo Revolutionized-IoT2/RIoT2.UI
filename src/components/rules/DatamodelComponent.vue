@@ -30,7 +30,10 @@ const showDialog = ref(false);
 const editMode = ref(false);
 const jsonErrors = ref("");
 const editJson = ref("");
-const type = ref(ValueType.Text);
+
+const type = computed(() => {
+    return getValueType(props.datamodel);
+});
 
 const dataLang = computed(() => {
     return ValueType[type.value];
@@ -81,10 +84,11 @@ function isPrimitive() {
 }
 
 onMounted(() => {
-
     expandedState.value = props.expanded;
-    type.value = getValueType(props.datamodel);
+    //type.value = getValueType(props.datamodel);
+    
 });
+
 
 function clickView() {
     if(props.editable)
@@ -166,6 +170,10 @@ function formatCodeBlock(json: string) {
     return json;
 }
 
+
+function onCreated(arg0: () => void) {
+    throw new Error('Function not implemented.');
+}
 </script>
 
 <template>
