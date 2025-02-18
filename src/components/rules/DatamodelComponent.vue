@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ValueType } from '@/models/enums';
+import PlaceholderItem from '@/models/placeholderItem';
 import { Rule } from '@/models/rules/rule';
 import { computed, onMounted, ref } from 'vue';
 
@@ -15,7 +16,8 @@ export interface Props {
     expanded?: boolean,
     editable?: boolean,
     readInput?: boolean,
-    expandable?: boolean
+    expandable?: boolean,
+    placeholders?: PlaceholderItem[]
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -23,6 +25,7 @@ const props = withDefaults(defineProps<Props>(), {
     editable: false,
     readInput: false,
     expandable: true,
+    placeholders: () => []
 });
 
 const expandedState = ref(false);
@@ -31,6 +34,7 @@ const editMode = ref(false);
 const jsonErrors = ref("");
 const editJson = ref("");
 const type = ref(ValueType.Text);
+const selectedPlaceholder = ref<PlaceholderItem | null>(null);
 
 const dataLang = computed(() => {
     return ValueType[getValueType(props.datamodel)];
@@ -170,13 +174,27 @@ function formatCodeBlock(json: string) {
         }
         return '<span class="' + cls + '">' + match + '</span>';
     });
-    json = json.replace('"{trigger-value}"', '<i style="color:blue;">trigger-value</i>');
+
+    //{trigger-value}, {time}, {date}, {weekday}
+    //
+    //reformat placeholders when viewwing
+    props.placeholders.forEach((p) => {
+        json = json.replace('"'+p.placeholder+'"', '<i style="color:blue;border-style: solid;border-color: blue;">'+p.name+'</i>');
+    });
+
     //console.dir(json);
     return json;
 }
 
 function copyCode() {
     navigator.clipboard.writeText(valueToJson());
+}
+
+function copyPlaceHolder() {
+    if(selectedPlaceholder.value == null)
+        return;
+
+    navigator.clipboard.writeText(selectedPlaceholder.value.placeholder);
 }
 
 </script>
@@ -219,6 +237,43 @@ function copyCode() {
                         label="Type"
                         @update:model-value="editJson = setSelectedVariableDefault(type)"
                       />
+                    
+                    <v-autocomplete
+                        v-if="type == ValueType.Entity && props.placeholders.length > 0"
+                        v-model="selectedPlaceholder"
+                        :items="props.placeholders"
+                        color="primary"
+                        item-title="name"
+                        item-value="placeholder"
+                        label="Available placeholders"
+                        hint="To use placeholder, copy its value and paste to JSON"
+                        prepend-icon="find_in_page"
+                        return-object>
+
+                    <template v-slot:chip="{ props, item }">
+                      <div v-bind="props" v-if="item != null">
+                        {{ item.raw.name }} 
+                        <v-chip size="x-small" class="ma-2" label v-for="(tag) in item.raw.tags">
+                        {{ tag }}
+                        </v-chip>
+                      </div>
+                    </template>
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props" :title="item.raw.name">
+                      <v-chip size="x-small" class="ma-1" label v-for="(tag) in item.raw.tags">
+                        {{ tag }}
+                      </v-chip>
+                    </v-list-item>
+                   </template>
+                   <template v-slot:append>
+                        <v-icon
+                            color="info"
+                            icon="content_copy"
+                            @click="copyPlaceHolder"
+                        ></v-icon>
+                    </template>
+                  </v-autocomplete>
+
                     <div class="content">
                         <v-textarea
                         v-model="editJson"
