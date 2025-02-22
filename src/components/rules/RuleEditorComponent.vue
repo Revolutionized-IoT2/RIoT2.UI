@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import { useRuleUtils } from '@/composables/ruleUtilsService';
 import { OutputOperation, RuleType, ValueType } from '@/models/enums';
-import type { IRuleDefination } from '@/models/rules/IRuleDefination';
 import type { IRuleItem } from '@/models/rules/IRuleItem';
 import type connector from '@/models/rules/connector';
-import type { FunctionDefination } from '@/models/rules/functionDefination';
-import type { OutputDefination } from '@/models/rules/outputDefination';
 import { RuleCondition } from '@/models/rules/ruleCondition';
-import { RuleFunction, useRuleFunction } from '@/models/rules/ruleFunction';
-import { RuleOutput, useRuleOutput } from '@/models/rules/ruleOutput';
+import { useRuleFunction } from '@/models/rules/ruleFunction';
+import { useRuleOutput } from '@/models/rules/ruleOutput';
 import { RuleTrigger, useRuleTrigger } from '@/models/rules/ruleTrigger';
-import type { TriggerDefination } from '@/models/rules/triggerDefination';
 import { computed, inject, nextTick, onMounted, onUnmounted, onUpdated, ref } from 'vue';
 import { VueDraggableNext } from 'vue-draggable-next'
 import RuleItemComponent from './RuleItemComponent.vue';
@@ -18,8 +14,8 @@ import { InjectionKeys } from '@/models/injectionKeys';
 import type CommandTemplate from '@/models/commandTemplate';
 import type FunctionTemplate from '@/models/rules/functionTemplate';
 import type { ReportTemplate } from '@/models/rules/reportTemplate';
-import { Rule } from '@/models/rules/rule';
 import type { ITemplate } from '@/models/itemplate';
+import type { VForm } from 'vuetify/components';
 
 //import type { ContextMenuItem } fromv '@/models/contextMenuItem';
 const reportTemplates = inject(InjectionKeys.reportTemplates);
@@ -57,7 +53,7 @@ const ruleUtils = useRuleUtils();
 const model = defineModel<IRuleItem[]>({required: true })
 
 
-const newRuleForm = ref<any>(null);
+const newRuleForm = ref<InstanceType<typeof VForm> | null>(null);
 const newRuleStep = ref<IRuleItem>(new RuleTrigger());
 
 const selectedReportTemplate = ref<ReportTemplate | null>(null);
@@ -156,7 +152,7 @@ function validateRuleType(v: any){
 
 function createNewStep(){
 
-  newRuleForm.value.validate().then((data:{valid: boolean}) =>{
+  newRuleForm?.value?.validate().then((data:{valid: boolean}) =>{
 
     if(!data.valid)
     return;

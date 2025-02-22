@@ -3,8 +3,6 @@ import { useRuleUtils } from '@/composables/ruleUtilsService';
 import { ConditionType, FlowOperator, OutputOperation, RuleType, TriggerEvent, ValueType } from '@/models/enums';
 import type { IRuleItem } from '@/models/rules/IRuleItem';
 import type { FunctionEntity } from '@/models/rules/functionEntity';
-import type { nameValueStr } from '@/models/rules/nameValueStr';
-import type OutputParameter from '@/models/rules/outputParameter';
 import type { Parameter } from '@/models/rules/parameter';
 import type { RuleCondition } from '@/models/rules/ruleCondition';
 import type { RuleFunction } from '@/models/rules/ruleFunction';
@@ -15,7 +13,7 @@ import { onMounted, onUpdated } from 'vue';
 import { computed, ref } from 'vue';
 import Datamodel from '@/components/rules/DatamodelComponent.vue';
 import { useOrchestrator } from '@/composables/orchestratorService';
-import type Report from '@/models/report';
+import { Report } from '@/models/report';
 import type { nameValue } from '@/models/rules/nameValue';
 
 const ruleUtils = useRuleUtils();
