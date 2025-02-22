@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Rule } from '@/models/rules/rule';
-import { computed, onMounted, provide, ref, watch } from 'vue';
+import { computed, inject, onMounted, provide, ref, watch } from 'vue';
 
 import ContextMenu from '@/components/rules/ContextMenuComponent.vue';
 import RuleHeader from '@/components/rules/RuleHeaderComponent.vue';
@@ -18,6 +18,12 @@ import type CommandTemplate from '@/models/commandTemplate';
 import type FunctionTemplate from '@/models/rules/functionTemplate';
 import { useRoute } from 'vue-router';
 import router from '@/router';
+import PlaceholderItem from '@/models/placeholderItem';
+import { ValueType } from '@/models/enums';
+
+const reportTemplates = inject(InjectionKeys.reportTemplates);
+const commandTemplates = inject(InjectionKeys.commandTemplates);
+const variableTemplates = inject(InjectionKeys.variableTemplates);
 
 const orchestrator = useOrchestrator();
 const route = useRoute();
@@ -168,6 +174,81 @@ function getRouteParam(val: string | string []): string {
   return  (val as string);
 }
 
+const placeholders = computed(() => {
+  let items: PlaceholderItem [] = [];
+  if(reportTemplates != undefined) {
+    for(let r of reportTemplates.value) {
+      items.push({
+        id: r.id,
+        name: r.name,
+        placeholder: "{R:" + r.id + "}",
+        tags: ["report", r.node, r.device, ValueType[r.type]]        
+      })
+    }
+  }
+
+  if(commandTemplates != undefined) {
+    for(let c of commandTemplates.value) {
+      items.push({
+        id: c.id,
+        name: c.name,
+        placeholder: "{C:" + c.id + "}",
+        tags: ["command", c.node, c.device, ValueType[c.type]]        
+      })
+    }
+  }
+
+  if(variableTemplates != undefined) {
+    for(let v of variableTemplates.value) {
+      items.push({
+        id: v.id,
+        name: v.name,
+        placeholder: "{R:" + v.id + "}",
+        tags: ["variable", ValueType[v.type]]        
+      })
+    }
+  }
+  
+  return items;
+})
+
+const allowedTypes = computed(() => {
+  if(rule.value.ruleItems.length == 0)
+    return undefined;
+
+  let t = reportTemplates?.value.find(r => r.id == (rule.value.ruleItems[0] as RuleTrigger).reportId);
+  if(t != undefined) {
+    return getAllowedTypes(t.type);
+  }
+
+  let v = variableTemplates?.value.find(r => r.id == (rule.value.ruleItems[0] as RuleTrigger).reportId);
+  if(v != undefined) {
+    return getAllowedTypes(v.type);
+  }
+
+  return undefined;
+});
+
+function getAllowedTypes(t: ValueType) {
+  switch(t) {
+    case  ValueType.Entity:
+      return [ValueType.Entity];
+    
+     case  ValueType.Boolean:
+      return [ValueType.Entity, ValueType.Boolean];
+
+    case  ValueType.Number:
+      return [ValueType.Entity, ValueType.Number];
+
+    case  ValueType.TextArray:
+      return [ValueType.Entity, ValueType.TextArray];
+
+    default:
+    case  ValueType.Text:
+      return [ValueType.Entity, ValueType.Text];
+  }
+}
+
 onMounted(() => {
   loadTemplates();
   initRule(getRouteParam(route.params.id));
@@ -201,7 +282,12 @@ onMounted(() => {
                 <v-icon size="x-small" class="ml-2" style="float: right;" @click="schemaHelpDialog = true">help</v-icon>
             </v-card-title>
            <v-card-text>
-          <Datamodel :datamodel="rule.dataModel" labeltext="value" :expandable="false" :editable="true" @modelUpdated="updateDataModel"/>
+          <Datamodel :datamodel="rule.dataModel" labeltext="value" 
+            :expandable="false" 
+            :editable="true"
+            :placeholders="placeholders"
+            :allowedTypes="allowedTypes"
+            @modelUpdated="updateDataModel"/>
       </v-card-text>
           </v-card>
         </v-col>

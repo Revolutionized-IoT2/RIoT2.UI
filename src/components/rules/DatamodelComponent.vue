@@ -17,7 +17,8 @@ export interface Props {
     editable?: boolean,
     readInput?: boolean,
     expandable?: boolean,
-    placeholders?: PlaceholderItem[]
+    placeholders?: PlaceholderItem[],
+    allowedTypes?: ValueType[]
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -25,7 +26,8 @@ const props = withDefaults(defineProps<Props>(), {
     editable: false,
     readInput: false,
     expandable: true,
-    placeholders: () => []
+    placeholders: () => [],
+    allowedTypes: () => [],
 });
 
 const expandedState = ref(false);
@@ -108,11 +110,20 @@ function closeDialog() {
     editMode.value = false;
 }
 
-const valueTypes = [{name: "Boolean", value: ValueType.Boolean},
+const valueTypes = computed(() => {
+
+    let allTypes = [{name: "Boolean", value: ValueType.Boolean},
                     {name: "Entity", value: ValueType.Entity},
                     {name: "Number", value: ValueType.Number},
                     {name: "Text", value: ValueType.Text},
                     {name: "TextArray", value: ValueType.TextArray}];
+    
+    if(props.allowedTypes.length == 0) {
+        return allTypes;
+    } else {
+        return allTypes.filter(item => (props.allowedTypes.includes(item.value)));
+    }
+});
 
 function setSelectedVariableDefault(type: ValueType): any {
   switch(type) {
