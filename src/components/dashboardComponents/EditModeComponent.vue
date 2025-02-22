@@ -7,10 +7,9 @@ import { ButtonElementProperties, ValueElementProperties, type IComponentElement
 import { ValueType, ComponentType } from '@/models/enums';
 import { InjectionKeys } from '@/models/injectionKeys';
 import { computed, inject, reactive, ref, watch } from 'vue';
-import { report } from 'process';
 import { useOrchestrator } from '@/composables/orchestratorService';
-import type Report from '@/models/report';
-import { ITemplate } from '@/models/itemplate';
+import { Report } from '@/models/report';
+import type { ITemplate } from '@/models/itemplate';
 
 const props = defineProps<{
   data: Component

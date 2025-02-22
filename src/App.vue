@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Constants } from './models/constants';
 import type ConfigurationCommand from './models/configurationCommand';
 import type Command from './models/command';
-import  Report  from '@/models/report';
+import { Report } from '@/models/report';
 import { useOrchestrator } from './composables/orchestratorService';
 import { useOrchestratorStore } from './stores/orchestratorStore';
 import { useErrorStore } from './stores/errorStore';

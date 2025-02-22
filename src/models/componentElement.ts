@@ -1,6 +1,6 @@
 import type CommandTemplate from "./commandTemplate";
 //import type ReportTemplate from "./reportTemplate";
-import type Report from "./report";
+import { Report } from "./report";
 import { ReportTemplate } from "./rules/reportTemplate";
 
 export class ComponentElement implements IComponentElement {

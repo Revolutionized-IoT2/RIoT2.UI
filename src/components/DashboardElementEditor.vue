@@ -4,10 +4,10 @@ import { ComponentType, ValueType } from '@/models/enums';
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import Datamodel from '@/components/rules/DatamodelComponent.vue';
 import Component from '@/models/component';
-import { ButtonElementProperties, ChartElementProperties, ComponentElement, IComponentElement, ImageElementProperties, ValueElementProperties } from '@/models/componentElement';
+import { ButtonElementProperties, ChartElementProperties, ComponentElement, type IComponentElement, ImageElementProperties, ValueElementProperties } from '@/models/componentElement';
 import { ReportTemplate } from '@/models/rules/reportTemplate';
 import { InjectionKeys } from '@/models/injectionKeys';
-import { ITemplate } from '@/models/itemplate';
+import type { ITemplate } from '@/models/itemplate';
 
 const emit = defineEmits<{
     save: [void],

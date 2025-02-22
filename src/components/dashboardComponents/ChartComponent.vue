@@ -2,7 +2,7 @@
 import { useComponentService } from '@/composables/componentService';
 import type Component from '@/models/component';
 import { ChartType } from '@/models/enums';
-import type Report from '@/models/report';
+import { Report } from '@/models/report';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,7 +14,7 @@ import {
   Legend,
   BarElement,
   ArcElement,
-  ChartOptions
+  type ChartOptions
 } from 'chart.js'
 import { ref, watch } from 'vue';
 import { Line, Bar, Doughnut, Pie } from 'vue-chartjs'

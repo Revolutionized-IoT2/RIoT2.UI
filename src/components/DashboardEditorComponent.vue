@@ -2,7 +2,6 @@
 import { onMounted, ref } from 'vue';
 import Dashboard from '@/models/dashboard';
 import systemNode from '@/models/systemNode';
-import { IComponentElement } from '@/models/componentElement';
 import Component from '@/models/component';
 import { ComponentType, ComponentSize } from '@/models/enums';
 import DashboardComponentEditor from '@/components/DashboardComponentEditor.vue';

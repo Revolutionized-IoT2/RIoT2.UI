@@ -1,5 +1,6 @@
 import { ValueElementProperties } from './componentElement';
-export default class Report implements IReport {
+
+export class Report implements IReport {
 
     constructor(r: IReport) {
         this.id = r.id;

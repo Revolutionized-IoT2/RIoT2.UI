@@ -3,7 +3,7 @@ import { useComponentService } from '@/composables/componentService';
 import { useOrchestrator } from '@/composables/orchestratorService';
 import Command from '@/models/command';
 import type Component from '@/models/component';
-import { ComponentElement, IComponentElement } from '@/models/componentElement';
+import type { ComponentElement, IComponentElement } from '@/models/componentElement';
 import { ValueType, ComponentType, OutputOperation } from '@/models/enums';
 import { InjectionKeys } from '@/models/injectionKeys';
 import { inject, reactive, ref, watch } from 'vue';

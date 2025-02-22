@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useComponentService } from '@/composables/componentService';
 import Component from '@/models/component';
-import { ComponentElement, IComponentElement } from '@/models/componentElement';
+import { ComponentElement } from '@/models/componentElement';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import FooterComponent from './FooterComponent.vue';
 

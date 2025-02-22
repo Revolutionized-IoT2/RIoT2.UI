@@ -2,7 +2,6 @@
 import { useComponentService } from '@/composables/componentService';
 import type Component from '@/models/component';
 import { ComponentElement } from '@/models/componentElement';
-import type Report from '@/models/report';
 import { ref, watch } from 'vue';
 import FooterComponent from './FooterComponent.vue';
 
