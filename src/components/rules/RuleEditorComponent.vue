@@ -7,7 +7,7 @@ import { RuleCondition } from '@/models/rules/ruleCondition';
 import { useRuleFunction } from '@/models/rules/ruleFunction';
 import { useRuleOutput } from '@/models/rules/ruleOutput';
 import { RuleTrigger, useRuleTrigger } from '@/models/rules/ruleTrigger';
-import { computed, inject, nextTick, onMounted, onUnmounted, onUpdated, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, onUpdated, ref, watch } from 'vue';
 import { VueDraggableNext } from 'vue-draggable-next'
 import RuleItemComponent from './RuleItemComponent.vue';
 import { InjectionKeys } from '@/models/injectionKeys';
@@ -16,6 +16,7 @@ import type FunctionTemplate from '@/models/rules/functionTemplate';
 import type { ReportTemplate } from '@/models/rules/reportTemplate';
 import type { ITemplate } from '@/models/itemplate';
 import type { VForm } from 'vuetify/components';
+import type { IRule } from '@/models/rules/IRule';
 
 //import type { ContextMenuItem } fromv '@/models/contextMenuItem';
 const reportTemplates = inject(InjectionKeys.reportTemplates);
@@ -44,7 +45,7 @@ const commandTemplateItems = computed<ITemplate[]>(() => {
 });
 
 const emit = defineEmits<{
-    ruleItemListUpdated: [IRuleItem[]],
+    ruleItemListUpdated: [IRuleItem],
     ruleItemClicked: [number]
 }>();
 
@@ -89,16 +90,6 @@ const draggableOptions : any = {
 
 const isDragging = ref(false);
 const delayedDragging = ref(false);
-
-const ruleItemList = computed({
-  get(): IRuleItem[] {
-        return model.value;
-  },
-  set(val: IRuleItem[]) {
-    alert("edit")
-    emit('ruleItemListUpdated', val)
-  }
-});
 
 const connectors = computed<connector[]>((): connector[] => {
     if(model == null || model.value == null)
@@ -163,6 +154,7 @@ function createNewStep(){
     
     if(ruleItem != undefined){
         model.value.push(ruleItem);
+        emit('ruleItemListUpdated', ruleItem);
     }
 
     newStepDialog.value = false;
@@ -351,9 +343,9 @@ function exceuteAction(action: string) {
           </template>
         </svg>
       </div>
-      <VueDraggableNext v-model="ruleItemList" v-bind="draggableOptions" :move="onMove" @start="isDragging=true" @end="draggingDone">
+      <VueDraggableNext v-model="model" v-bind="draggableOptions" :move="onMove" @start="isDragging=true" @end="draggingDone">
       <transition-group type="transition" :name="'flip-list'">
-        <RuleItemComponent v-for="(item, i) in ruleItemList" :key="item.id"
+        <RuleItemComponent v-for="(item, i) in model" :key="item.id"
               :item="item"
               @ruleItemClicked="activateRuleEditView(i)"
             />
@@ -453,15 +445,6 @@ function exceuteAction(action: string) {
                     <template v-slot:chip="{ props, item }">
                       <div v-bind="props" v-if="item != null">
                         {{ item.raw.name }} 
-                        <v-chip size="x-small" class="ma-2" label>
-                        {{ item.raw.node }}
-                        </v-chip>
-                        <v-chip size="x-small" class="ma-2" label>
-                        {{ item.raw.device }}
-                        </v-chip>
-                        <v-chip size="x-small" class="ma-2" label>
-                        {{ ValueType[item.raw.type] }}
-                        </v-chip>
                       </div>
                     </template>
                     <template v-slot:item="{ props, item }">
@@ -498,15 +481,6 @@ function exceuteAction(action: string) {
                     <template v-slot:chip="{ props, item }">
                       <div v-bind="props" v-if="item != null">
                         {{ item.raw.name }} 
-                        <v-chip size="x-small" class="ma-2" label>
-                        {{ item.raw.node }}
-                        </v-chip>
-                        <v-chip size="x-small" class="ma-2" label>
-                        {{ item.raw.device }}
-                        </v-chip>
-                        <v-chip size="x-small" class="ma-2" label>
-                        {{ ValueType[item.raw.type] }}
-                        </v-chip>
                       </div>
                     </template>
                     <template v-slot:item="{ props, item }">

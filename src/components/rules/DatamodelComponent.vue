@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ValueType } from '@/models/enums';
 import PlaceholderItem from '@/models/placeholderItem';
-import { Rule } from '@/models/rules/rule';
 import { computed, onMounted, ref } from 'vue';
 
 //import type { ContextMenuItem } from '@/models/contextMenuItem';
@@ -204,9 +203,12 @@ function copyCode() {
 function copyPlaceHolder() {
     if(selectedPlaceholder.value == null)
         return;
-
     navigator.clipboard.writeText(selectedPlaceholder.value.placeholder);
 }
+
+defineExpose({
+    type
+});
 
 </script>
 
@@ -258,15 +260,12 @@ function copyPlaceHolder() {
                         item-value="placeholder"
                         label="Available placeholders"
                         hint="To use placeholder, copy its value and paste to JSON"
-                        prepend-icon="find_in_page"
                         return-object>
 
                     <template v-slot:chip="{ props, item }">
                       <div v-bind="props" v-if="item != null">
                         {{ item.raw.name }} 
-                        <v-chip size="x-small" class="ma-2" label v-for="(tag) in item.raw.tags">
-                        {{ tag }}
-                        </v-chip>
+                       
                       </div>
                     </template>
                     <template v-slot:item="{ props, item }">

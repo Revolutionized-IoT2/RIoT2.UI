@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Rule } from '@/models/rules/rule';
-import { computed, inject, onMounted, provide, ref, watch } from 'vue';
+import { computed, inject, onMounted, ref, watch } from 'vue';
 
 import ContextMenu from '@/components/rules/ContextMenuComponent.vue';
 import RuleHeader from '@/components/rules/RuleHeaderComponent.vue';
@@ -10,16 +10,13 @@ import Datamodel from '@/components/rules/DatamodelComponent.vue';
 import { RuleTrigger } from '@/models/rules/ruleTrigger';
 import type { IRuleItem } from '@/models/rules/IRuleItem';
 import { nameValue } from '@/models/rules/nameValue';
-import { nameValueStr } from '@/models/rules/nameValueStr';
 import { InjectionKeys } from '@/models/injectionKeys';
-import type { ReportTemplate } from '@/models/rules/reportTemplate';
 import { useOrchestrator } from '@/composables/orchestratorService';
-import type CommandTemplate from '@/models/commandTemplate';
-import type FunctionTemplate from '@/models/rules/functionTemplate';
 import { useRoute } from 'vue-router';
 import router from '@/router';
 import PlaceholderItem from '@/models/placeholderItem';
 import { ValueType } from '@/models/enums';
+import { ca } from 'vuetify/locale';
 
 const reportTemplates = inject(InjectionKeys.reportTemplates);
 const commandTemplates = inject(InjectionKeys.commandTemplates);
@@ -41,6 +38,8 @@ const saveRuleSnackbar = ref(false);
 const schemaHelpDialog = ref(false);
 const editRuleItemView = ref(false);
 const ruleItemToEdit = ref<IRuleItem>(new RuleTrigger());
+
+const ruledatamodel = ref<any>(null);
 
 const contextMenuItems = computed(() => [
         { text: "cancel", action: "cancel_ruleEditor", disabled: !isDirty, icon: "cancel" },
@@ -119,7 +118,7 @@ function initRule(id?: string | undefined) {
   }
 }
 
-watch(rule.value, () => {
+watch(rule, () => {
   ruleChanged();
 },  { deep: true })
 
@@ -133,12 +132,38 @@ function ruleChanged() {
     }
 }
 
+function forceUpdateDataModel() {
+  let currentDataModelType = ruledatamodel.value.type;
+    if(allowedTypes.value != undefined && !allowedTypes.value.includes(currentDataModelType)) { //if current datamodel type is not allowed -> changed data model
+      let firstAllowedType = allowedTypes.value[0];
+      ruledatamodel.value.type = firstAllowedType;
+      
+      switch(firstAllowedType) {
+        case ValueType.Boolean:
+          updateDataModel(true);
+          break;
+        case ValueType.Entity:
+          updateDataModel({"prop1": "val1", "prop2": 2});
+          break;
+        case ValueType.Number:
+          updateDataModel(0);
+          break;
+        case ValueType.Text:
+          updateDataModel("text value");
+          break;
+        case ValueType.TextArray:
+          updateDataModel(["text1", "text2"]);
+          break;
+      }
+    }
+}
+
 function updateDataModel(model: any) {
   rule.value.dataModel = model;
 }
 
-function updateItems(items: IRuleItem[]) {
-    rule.value.ruleItems = items;
+function updateItems(items: IRuleItem) {
+    forceUpdateDataModel();
 }
 
 function editRuleItem(id: number) {
@@ -235,17 +260,17 @@ function getAllowedTypes(t: ValueType) {
       return [ValueType.Entity];
     
      case  ValueType.Boolean:
-      return [ValueType.Entity, ValueType.Boolean];
+      return [ValueType.Boolean, ValueType.Entity];
 
     case  ValueType.Number:
-      return [ValueType.Entity, ValueType.Number];
+      return [ValueType.Number, ValueType.Entity];
 
     case  ValueType.TextArray:
-      return [ValueType.Entity, ValueType.TextArray];
+      return [ValueType.TextArray, ValueType.Entity];
 
     default:
     case  ValueType.Text:
-      return [ValueType.Entity, ValueType.Text];
+      return [ValueType.Text, ValueType.Entity];
   }
 }
 
@@ -282,7 +307,7 @@ onMounted(() => {
                 <v-icon size="x-small" class="ml-2" style="float: right;" @click="schemaHelpDialog = true">help</v-icon>
             </v-card-title>
            <v-card-text>
-          <Datamodel :datamodel="rule.dataModel" labeltext="value" 
+          <Datamodel ref="ruledatamodel" :datamodel="rule.dataModel" labeltext="value" 
             :expandable="false" 
             :editable="true"
             :placeholders="placeholders"
