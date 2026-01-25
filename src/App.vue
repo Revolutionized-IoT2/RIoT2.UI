@@ -81,8 +81,9 @@ onMounted(() => {
     mqttService.subscribe(Constants.topicReport);
     mqttService.subscribe(configureDashboardTopic);
     console.log(`the component is now mounted.`);
-
-    mqttService.sendMessage(dashboardOnlineTopic, '{ "IsOnline": true, "Name": "Dashboard" }'); //TODO check required content -> this will indicate that dashboard is online!
+    
+    var x = navigator.product??"Dasboard"
+    mqttService.sendMessage(dashboardOnlineTopic, '{ "IsOnline": true, "Name": "'+x+'", "NodeType": 2 }'); //TODO check required content -> this will indicate that dashboard is online!
     //orchestratorService.loadDashboard("for debugging");
     //console.log(dashboardConfiguration.value);
 });
