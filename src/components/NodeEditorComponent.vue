@@ -26,7 +26,7 @@ const reportHeaders = [
   { title: 'Name', value: 'name' },
   { title: 'Address', value: 'address' },
   { title: 'Type', value: 'type' }, 
-  { title: 'Filters', value: 'filterOptions' },
+  { title: 'Filters', value: 'filters' },
   { title: 'Refresh', value: 'refreshSchedule' },
   { title: 'History', value: 'maintainHistory' },
   { title: 'Has parameters', value: 'parameters' }, 
@@ -290,8 +290,8 @@ onMounted(() => {
         <template v-slot:item.type="{ item }">
           {{ ValueType[item.type] }}
         </template>
-        <template v-slot:item.filterOptions="{ item }">
-          {{ item.filterOptions?.join('; ') }}
+        <template v-slot:item.filters="{ item }">
+          {{ item.filters?.join('; ') }}
         </template>
         <template v-slot:item.refreshSchedule="{ item }">
           {{ item.refreshSchedule }}

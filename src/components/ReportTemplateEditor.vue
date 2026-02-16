@@ -83,7 +83,7 @@ function cancel() {
       </v-col>
       <v-col cols="6">
         <v-combobox
-          v-model="model.filterOptions"
+          v-model="model.filters"
           label="Filter options"
           multiple
           chips

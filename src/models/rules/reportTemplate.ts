@@ -12,7 +12,7 @@ export class ReportTemplate implements ITemplate  {
         this.node = "";
         this.device = "";
         this.deviceId = "",
-        this.filterOptions = [];
+        this.filters = [];
         this.parameters = {};
         this.refreshSchedule = "",
         this.maintainHistory = false;
@@ -26,7 +26,7 @@ export class ReportTemplate implements ITemplate  {
     node!: string;
     deviceId!: string
     device!: string;
-    filterOptions: string [] = [];
+    filters: string [] = [];
     parameters: any;
     refreshSchedule: string;
     maintainHistory: boolean;
