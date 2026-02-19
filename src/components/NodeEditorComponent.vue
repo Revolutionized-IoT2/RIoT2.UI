@@ -9,6 +9,8 @@ import ReportTemplateEditor from './ReportTemplateEditor.vue';
 import CommandTemplateEditor from './CommandTemplateEditor.vue';
 import systemNode from '@/models/systemNode';
 import { useOrchestrator } from '@/composables/orchestratorService';
+import type { plugins } from 'chart.js';
+import type { PluginFile } from '@/models/rules/pluginFile';
 
 const model = defineModel<NodeConfiguration>({ default: new NodeConfiguration() });
 const orchestrator = useOrchestrator();
@@ -53,6 +55,8 @@ const newCommandTemplateDialog = ref(false);
 const nodeIdOptions = ref<systemNode[]>([]);
 
 const newSaved = ref(false);
+const validatingUrl = ref(false);
+const isUrlValid = ref<boolean|null>(null);
 
 async function removeParameter(deviceIndex: number, propertyName: string) {
   delete model.value.deviceConfigurations[deviceIndex].deviceParameters[propertyName];
@@ -175,12 +179,50 @@ function deleteDevice(deviceIndex: number) {
   model.value.deviceConfigurations.splice(deviceIndex, 1);
 }
 
+function validatePluginUrl(focused: boolean) {
+  if(focused)
+    return;
+
+  validatingUrl.value = true;
+
+  orchestrator.checkPlugin({
+    url: model.value.pluginPackageUrl
+    },
+    (data: PluginFile | null) => {
+      if(data?.name != "")
+      {
+        isUrlValid.value = true;
+      }
+      else
+      {
+        isUrlValid.value = false;
+      }
+    },
+    () => {
+      validatingUrl.value = false;
+    });
+}
+
 onMounted(() => {
   newSaved.value = model.value.id != null && model.value.id != "";
   if(!newSaved.value) {
     orchestrator.getOnlineNodes((data: systemNode[] | null) => {
       if(data != null) {
         nodeIdOptions.value = data.filter(x => x.name == null || x.name == '');
+        /* debugging
+        nodeIdOptions.value.push({
+          deviceStatuses:[],
+          id:"1234-66765-35345-2342",
+          isOnline:true,
+          manifest: {
+            date:"",
+            installedPackageFilename:"",
+            name:"manifest",
+            version:"0.5.5"
+          },
+          name:"",
+          pluginManifest:null
+        });*/
       }
     });
   }
@@ -190,31 +232,75 @@ onMounted(() => {
 <template>
   <v-form v-model="valid">
   <v-container>
+    <div class="text-subtitle-1 mb-2 font-weight-bold">Node settings
+      <v-divider class="border-opacity-100 mb-6" color="black" />
+    </div>
     <v-row>
-      <v-col cols="6">
-        <v-text-field v-model="model.name" required hide-details
+      <v-col cols="4">
+        <v-text-field v-model="model.name" required hide-details variant="solo" dense
           label="Node Name" />
       </v-col>
-      <v-col cols="6">
+      <v-col cols="4">
         <v-combobox
           :disabled="newSaved"
+          dense
           required
+          variant="solo"
           :return-object="false"
           item-value="id"
           item-title="id"
           v-model="model.id"
           :items="nodeIdOptions"
           label="Node Id"
-          chips
         >
+        <template v-slot:selection="{ item, index }">
+        <v-chip
+          size="small"
+          variant="flat"
+          label
+          color="secondary"
+        >
+        {{ item.value }}
+      </v-chip>
+      </template>
+
+      <template v-slot:item="{ props, item }">
+         <v-list-item @click="props.onClick as MouseEventInit">
+          <v-chip
+            color="secondary"
+            variant="flat"
+            label
+          >{{ item.raw.manifest != null?item.raw.manifest.name +" ("+item.raw.id+")" : item.raw.id }}</v-chip>
+        </v-list-item>
+      </template>
       </v-combobox>
       </v-col>
+  
+      <v-col cols="4">
+        <v-text-field v-model="model.pluginPackageUrl" hide-details variant="solo" dense
+          label="Plugin package Url" @update:focused="validatePluginUrl"> 
+        <template v-slot:loader>
+          <v-progress-linear
+            :active="validatingUrl"
+            color="secondary"
+            model-value="progress"
+            height="5"
+            indeterminate
+            :append-inner-icon="isUrlValid!=null ? (isUrlValid ? 'check':'error') : ''"
+          ></v-progress-linear>
+      </template>
+        </v-text-field>
+      </v-col>
     </v-row>
-    <v-expansion-panels class="mt-4">
+
+    <div v-if="model?.deviceConfigurations.length > 0" class="text-subtitle-1 mb-2 font-weight-bold">Device configurations
+      <v-divider class="border-opacity-100 mb-3" color="black" />
+    </div>
+    <v-expansion-panels class="mt-6">
       <v-expansion-panel v-for="(device, i) in model.deviceConfigurations" :key="i">
-        <v-expansion-panel-title class="font-weight-bold">{{ device.name }}</v-expansion-panel-title>
+        <v-expansion-panel-title color="info" class="font-weight-bold">{{ device.name }}</v-expansion-panel-title>
         <v-expansion-panel-text>
-          <p>Device parameters</p>
+          <p class="mt-4">Device parameters</p>
           <v-divider class="border-opacity-100 mb-3" color="black" />
           <v-row>
             <v-col cols="6">

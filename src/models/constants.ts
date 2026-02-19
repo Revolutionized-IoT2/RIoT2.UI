@@ -15,6 +15,7 @@ export const Constants = {
     urlDeleteVariable: "/api/nodes/variable/{id}/delete",
     urlGetDeviceTemplateById: "/api/nodes/device/{id}/template",
     urlSendCommand: "/api/nodes/command/{operation}",
+    urlCheckPlugin: "/api/nodes/checkplugin",
 
     urlGetRules: "/api/rules",
     urlSaveRule: "/api/rules/save",

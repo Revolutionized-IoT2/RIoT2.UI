@@ -76,6 +76,15 @@ function loadTemplates() {
   });
 }
 
+//TODO LIST
+// track when workflow engine is online / offline-> enable link button
+//add plugin installation option to device
+//verify file link
+//display current version
+//display current plugins versions
+//parameters -> add help text
+//
+
 onMounted(() => {
     mqttService.connect(mqttMessageReceived);
     mqttService.subscribe(Constants.topicReport);

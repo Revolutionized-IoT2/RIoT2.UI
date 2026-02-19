@@ -118,7 +118,9 @@ function completeNodeDelete() {
 
 const headers = [
   { title: 'Name', value: 'name' },
+  { title: 'Version', value: 'version' },
   { title: 'Status', value: 'isOnline' },
+  { title: 'Plugins', value: 'plugins' },
   { title: 'Devices', value: 'devices' },
   { title: 'Actions', value: 'id' }
 ];
@@ -243,8 +245,11 @@ onMounted(() => {
       </template>
     
       <template v-slot:item.name="{ item }">
-        <div>{{item.name}}</div>
+        <div>{{item.name}}{{(item.manifest != null?" ("+item.manifest?.name+")":"") }}
+          <v-tooltip v-if="item.manifest != null" activator="parent" location="top">{{item.manifest.installedPackageFilename}}</v-tooltip>
+        </div>
       </template>
+
       <template v-slot:item.isOnline="{ item }">
         <div class="text-center">
           <v-chip
@@ -256,6 +261,26 @@ onMounted(() => {
           ></v-chip>
         </div>
       </template>
+
+      <template v-slot:item.plugins="{ item }">
+        <div v-if="item.pluginManifest == null" class="text-left">
+          n/a
+        </div>
+        <div v-else class="text-left">
+          {{ item.pluginManifest.name }}{{ " (" +item.pluginManifest.version+")" }}
+          <v-tooltip activator="parent" location="top">{{item.pluginManifest.installedPackageFilename}}</v-tooltip>
+        </div>
+      </template>
+
+       <template v-slot:item.version="{ item }">
+        <div v-if="item.manifest == null" class="text-left">
+          n/a
+        </div>
+        <div v-else class="text-left">
+          {{ item.manifest.version }}
+        </div>
+      </template>
+
       <template v-slot:item.devices="{ item }">
         <div class="text-center">
           <v-icon :color="nodeStatusColorOrIcon(item)" @click="showNodeDeviceStatuses(item)">{{nodeStatusColorOrIcon(item, true)}}</v-icon>
@@ -311,7 +336,7 @@ onMounted(() => {
             rounded="0"
             color="success"
             variant="outlined"
-            @click="newDevice(editorData.id)"
+            @click="newDevice(editorData.id!)"
             :disabled="editorData.id == null || editorData.id == ''"
           >
           <v-icon size="small">add</v-icon>

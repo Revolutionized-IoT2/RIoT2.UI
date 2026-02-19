@@ -3,7 +3,7 @@
     <v-list density="compact" nav>
       <v-list-item prepend-icon="home" title="Home" to="/"></v-list-item>
       <v-list-item prepend-icon="settings" title="Configure" to="/nodes"></v-list-item>
-      <v-list-item prepend-icon="fact_check" title="Rules" to="/rules"></v-list-item>
+      <v-list-item prepend-icon="fact_check" title="Rules" @to="rulesLink" @disabled="rulesLink == ''"></v-list-item>
       <v-list-item prepend-icon="functions" title="Varibles" to="/variables"></v-list-item>
       <v-list-item prepend-icon="dashboard" title="Dashboard" to="/dash"></v-list-item>
     </v-list>
@@ -21,6 +21,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
   const drawer = ref(false);
+  //TODO this info is receive from mqtt / from orchestrator
+  const rulesLink = ref("http://192.168.0.35");
+
 </script>
 <style scoped>
 .fixedAppBar {

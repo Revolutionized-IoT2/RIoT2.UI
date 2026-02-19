@@ -11,7 +11,7 @@ import type CommandTemplate from '@/models/commandTemplate';
 import type FunctionTemplate from '@/models/rules/functionTemplate';
 import type { FunctionEntity } from '@/models/rules/functionEntity';
 import type Command from '@/models/command';
-import type Report from '@/models/report';
+import type{ Report } from '@/models/report';
 import type { Variable } from '@/models/rules/variable';
 import type VariableTemplate from '@/models/variableTemplate';
 import type { Rule } from '@/models/rules/rule';
@@ -21,6 +21,7 @@ import type { IEvent } from '@/models/rules/Ievent';
 import NodeConfiguration from '@/models/nodeConfiguration';
 import DeviceConfiguration from '@/models/deviceConfiguration';
 import { OutputOperation } from '@/models/enums';
+import type { PluginFile } from '@/models/rules/pluginFile';
 
 export function useOrchestrator() {
 
@@ -80,6 +81,12 @@ export function useOrchestrator() {
     url = url.replace('{id}', id);
     url = url.replace('{type}', "report");
     httpClient.get<Report>(url, callback, completed);
+  }
+
+  function checkPlugin(plugin: PluginFile, callback:(data: PluginFile | null) => void, completed?:()=> void) {
+
+    let url = orchestratorStore.baseUrl + Constants.urlCheckPlugin;
+    httpClient.post<PluginFile, PluginFile>(url, plugin, callback, completed);
   }
 
   function getCommandState(id: string, callback:(data: Command | null) => void, completed?:()=> void) {
@@ -262,6 +269,7 @@ export function useOrchestrator() {
     getOnlineNodes: getOnlineNodes,
     saveDashboard: saveDashboard,
     getDeviceTemplate: getDeviceTemplate,
-    sendCommand: sendCommand
+    sendCommand: sendCommand,
+    checkPlugin: checkPlugin
   }
 }
