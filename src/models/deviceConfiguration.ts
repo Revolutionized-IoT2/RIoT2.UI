@@ -6,8 +6,8 @@ export default class DeviceConfiguration {
 	id: string = "";
     name: string = "";
     classFullName: string = "";
-    commandTemplates: CommandTemplate [] = [];
-    reportTemplates: ReportTemplate [] = [];
+    commandTemplates: CommandTemplate [] | null = null;
+    reportTemplates: ReportTemplate [] | null = null;
     refreshSchedule: string = "";
     deviceParameters: any
 }

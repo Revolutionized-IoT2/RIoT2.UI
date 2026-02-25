@@ -95,10 +95,10 @@ function saveReport() {
 
   //if new add to templates
   if(reportTemplateForEdit.value.id == "") {
-    model.value.deviceConfigurations[idx].reportTemplates.push(reportTemplateForEdit.value);
+    model.value.deviceConfigurations[idx].reportTemplates?.push(reportTemplateForEdit.value);
   } else { //edit operation -> replace existing with edited
-    let reportIdx = model.value.deviceConfigurations[idx].reportTemplates.findIndex(x => x.id == reportTemplateForEdit.value.id);
-    if(reportIdx > -1)
+    let reportIdx = model.value.deviceConfigurations[idx].reportTemplates?.findIndex(x => x.id == reportTemplateForEdit.value.id);
+    if(model.value.deviceConfigurations[idx].reportTemplates != null && reportIdx != undefined && reportIdx > -1)
     model.value.deviceConfigurations[idx].reportTemplates[reportIdx] = reportTemplateForEdit.value;
   }
   newReportTemplateDialog.value = false;
@@ -115,10 +115,10 @@ if(idx == -1)
 
 //if new add to templates
 if(commandTemplateForEdit.value.id == "") {
-  model.value.deviceConfigurations[idx].commandTemplates.push(commandTemplateForEdit.value);
+  model.value.deviceConfigurations[idx].commandTemplates?.push(commandTemplateForEdit.value);
 } else { //edit operation -> replace existing with edited
-  let reportIdx = model.value.deviceConfigurations[idx].commandTemplates.findIndex(x => x.id == commandTemplateForEdit.value.id);
-  if(reportIdx > -1)
+  let reportIdx = model.value.deviceConfigurations[idx].commandTemplates?.findIndex(x => x.id == commandTemplateForEdit.value.id);
+  if(model.value.deviceConfigurations[idx].commandTemplates != null && reportIdx != undefined && reportIdx > -1)
     model.value.deviceConfigurations[idx].commandTemplates[reportIdx] = commandTemplateForEdit.value;
 }
 newCommandTemplateDialog.value = false;
@@ -142,7 +142,7 @@ function editCommandTemplate(template: CommandTemplate, deviceId: string) {
 
 function deleteCommandTemplate(id: string, deviceId: string) {
   let idx = model.value.deviceConfigurations.findIndex(x => x.id == deviceId);
-  if(idx == -1)
+  if(idx == -1 || model.value.deviceConfigurations[idx].commandTemplates == null)
     return;
 
   let cmdIdx = model.value.deviceConfigurations[idx].commandTemplates.findIndex(x => x.id == id);
@@ -165,7 +165,7 @@ function editReportTemplate(template: ReportTemplate, deviceId: string) {
 function deleteReportTemplate(id: string, deviceId: string) {
 
   let idx = model.value.deviceConfigurations.findIndex(x => x.id == deviceId);
-  if(idx == -1)
+  if(idx == -1 || model.value.deviceConfigurations[idx].reportTemplates == null)
     return;
 
   let reportIdx = model.value.deviceConfigurations[idx].reportTemplates.findIndex(x => x.id == id);
