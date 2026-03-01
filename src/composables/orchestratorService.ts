@@ -22,6 +22,7 @@ import NodeConfiguration from '@/models/nodeConfiguration';
 import DeviceConfiguration from '@/models/deviceConfiguration';
 import { OutputOperation } from '@/models/enums';
 import type { PluginFile } from '@/models/rules/pluginFile';
+import type { CronValidationResult } from '@/models/cronValidationResult';
 
 export function useOrchestrator() {
 
@@ -143,6 +144,12 @@ export function useOrchestrator() {
     httpClient.post<Variable, void | null>(url, command, callback, completed);
   }
 
+  function executeCommand(command: Command, callback:(data: void | null) => void, completed?:()=> void) {
+
+    let url = orchestratorStore.baseUrl + Constants.urlExecuteCommand;
+    httpClient.post<Command, void | null>(url, command, callback, completed);
+  }
+
   function getVariables(callback:(data: Variable[] | null) => void, completed?:()=> void) {
 
     let url = orchestratorStore.baseUrl + Constants.urlGetVariables;
@@ -233,6 +240,12 @@ export function useOrchestrator() {
     httpClient.get<DeviceConfiguration[]>(url, callback, completed);
   }
 
+  function validateCron(cron: CronValidationResult, callback:(data: CronValidationResult | null) => void, completed?:()=> void) {
+
+    let url = orchestratorStore.baseUrl + Constants.urlValidateCron;
+    httpClient.post<CronValidationResult, CronValidationResult>(url, cron, callback, completed);
+  }
+
   
   /*
   function updateDashboardHistory(id: string, callback:(data: Report[] | null) => void ) {
@@ -270,6 +283,8 @@ export function useOrchestrator() {
     saveDashboard: saveDashboard,
     getDeviceTemplate: getDeviceTemplate,
     sendCommand: sendCommand,
-    checkPlugin: checkPlugin
+    checkPlugin: checkPlugin,
+    validateCron: validateCron,
+    executeCommand: executeCommand
   }
 }

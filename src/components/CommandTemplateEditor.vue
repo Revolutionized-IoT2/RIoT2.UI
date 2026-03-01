@@ -29,22 +29,27 @@ function cancel() {
 
 <template>
   <v-card>
-  <v-card-title>
-    <span class="text-h5">{{ model.id == "" ? "New" : "Edit" }} command template</span>
-                    </v-card-title>
-                  <v-card-text>
+     <v-toolbar>
+          <v-toolbar-title>{{ model.id == "" ? "New" : "Edit" }} command template</v-toolbar-title>
+
+          <v-toolbar-items>
+             <v-chip
+             class="ma-4"
+            color="secondary"
+            variant="flat"
+            label
+          >{{model.id == "" ? "new" : model.id}}</v-chip>
+          </v-toolbar-items>
+        </v-toolbar>
+        <v-card-text>
   <v-form v-model="valid">
   <v-container>
-    <p>Device parameters</p>
-     <v-divider class="border-opacity-100 mb-3" color="black" />
     <v-row>
       <v-col cols="6">
         <v-text-field v-model="model.name" required hide-details
           label="Name" />
       </v-col>
-      <v-col cols="6" class="mt-4">
-        Id: {{model.id == "" ? "new" : model.id}}
-      </v-col>
+
       <v-col cols="6">
         <v-text-field v-model="model.address" required hide-details
           label="Address" />
@@ -52,7 +57,7 @@ function cancel() {
     </v-row>
      <Datamodel 
               :datamodel="model.model" 
-              labeltext="Command Model"
+              labeltext="Expected model"
               :expandable="true" 
               :editable="true" 
               :expanded="true"

@@ -16,6 +16,8 @@ export const Constants = {
     urlGetDeviceTemplateById: "/api/nodes/device/{id}/template",
     urlSendCommand: "/api/nodes/command/{operation}",
     urlCheckPlugin: "/api/nodes/checkplugin",
+    urlValidateCron: "/api/nodes/validatecron",
+    urlExecuteCommand: "/api/command/execute",
 
     urlGetRules: "/api/rules",
     urlSaveRule: "/api/rules/save",

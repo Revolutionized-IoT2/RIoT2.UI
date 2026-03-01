@@ -11,7 +11,7 @@ const emit = defineEmits<{
 
 export interface Props {
     datamodel: any,
-    labeltext: string,
+    labeltext?: string,
     expanded?: boolean,
     editable?: boolean,
     readInput?: boolean,
@@ -102,7 +102,6 @@ function readInputClick() {
 }
 
 function closeDialog() {
-
     jsonErrors.value = "";
     editJson.value = "";
     showDialog.value = false;
@@ -214,8 +213,8 @@ defineExpose({
 
 <template>
     <div>
-        <v-card-actions class="pl-0 pr-0 h-40">
-         <v-card-subtitle class="pl-0 v-label--active">{{labeltext}}
+        <v-card-actions class="pl-0 pr-0 h-40" v-if="labeltext != undefined || expandable">
+         <v-card-subtitle v-if="labeltext != undefined" class="pl-0 v-label--active">{{labeltext}}
             <v-icon size="x-small" @click="copyCode" class="ml-4">content_copy</v-icon>
          </v-card-subtitle>
           <v-spacer></v-spacer>
@@ -238,7 +237,7 @@ defineExpose({
         </v-expand-transition>
         <v-dialog v-model="showDialog" width="500">
         <v-card>
-            <v-card-title class="headline grey lighten-2" primary-title>
+            <v-card-title v-if="labeltext != undefined" class="headline grey lighten-2" primary-title>
                 {{labeltext}}
              </v-card-title>
                 <v-card-text v-if="editMode">
