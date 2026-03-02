@@ -87,3 +87,10 @@ export enum DeviceState {
     running = 3,
     error = 4
 }
+
+export enum NodeType {
+    unknown = 0,
+    device = 1,
+    dashboard = 2,
+    workflow = 3
+}
