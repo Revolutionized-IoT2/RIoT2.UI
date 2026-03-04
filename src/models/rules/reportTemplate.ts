@@ -14,7 +14,6 @@ export class ReportTemplate implements ITemplate  {
         this.deviceId = "",
         this.filters = [];
         this.parameters = {};
-        this.refreshSchedule = "",
         this.maintainHistory = false;
     }
 
@@ -28,6 +27,5 @@ export class ReportTemplate implements ITemplate  {
     device!: string;
     filters: string [] = [];
     parameters: any;
-    refreshSchedule: string;
     maintainHistory: boolean;
 }
