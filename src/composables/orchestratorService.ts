@@ -23,6 +23,7 @@ import DeviceConfiguration from '@/models/deviceConfiguration';
 import { OutputOperation } from '@/models/enums';
 import type { PluginFile } from '@/models/rules/pluginFile';
 import type { CronValidationResult } from '@/models/cronValidationResult';
+import type DeviceStatus from '@/models/deviceStatus';
 
 export function useOrchestrator() {
 
@@ -103,6 +104,15 @@ export function useOrchestrator() {
     let url = orchestratorStore.baseUrl + Constants.urlGetNodes;
     httpClient.get<SystemNode[]>(url, callback, completed);
   }
+
+  function getNodeDevicesStatus(nodeid: string, callback:(data: DeviceStatus[] | null) => void, completed?:()=> void) {
+
+    let url = orchestratorStore.baseUrl + Constants.urlGetNodeDevicesStatus;
+    url = url.replace('{id}', nodeid);
+
+    httpClient.get<DeviceStatus[]>(url, callback, completed);
+  }
+
 
   function getNodeConfiguration(id: string, callback:(data: NodeConfiguration | null) => void, completed?:()=> void) {
 
@@ -235,7 +245,7 @@ export function useOrchestrator() {
 
   function getDeviceTemplate(id: string, callback:(data: DeviceConfiguration[] | null) => void, completed?:()=> void) {
 
-    let url = orchestratorStore.baseUrl + Constants.urlGetDeviceTemplateById;
+    let url = orchestratorStore.baseUrl + Constants.urlGetNodeDeviceTemplates;
     url = url.replace('{id}', id);
     httpClient.get<DeviceConfiguration[]>(url, callback, completed);
   }
@@ -285,6 +295,7 @@ export function useOrchestrator() {
     sendCommand: sendCommand,
     checkPlugin: checkPlugin,
     validateCron: validateCron,
-    executeCommand: executeCommand
+    executeCommand: executeCommand,
+    getNodeDevicesStatus: getNodeDevicesStatus
   }
 }

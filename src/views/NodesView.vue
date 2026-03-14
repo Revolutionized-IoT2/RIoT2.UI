@@ -15,6 +15,7 @@ import { yellow } from 'vuetify/util/colors';
 import { DeviceState } from '@/models/enums';
 import type DeviceStatus from '@/models/deviceStatus';
 import { InjectionKeys } from '@/models/injectionKeys';
+import type systemNode from '@/models/systemNode';
 
 const contextMenuItems: ContextMenuItem[] = [
   { "text": "edit dashboard", "action": "edit_dashboard", "disabled": false, "icon": "dashboard" },
@@ -24,6 +25,7 @@ const contextMenuItems: ContextMenuItem[] = [
 const templateDataUpdated = inject(InjectionKeys.templateDataUpdated);
 
 const nodes = ref<SystemNode []  | undefined>(undefined);
+const onlineNodes = ref<SystemNode []  | null>(null);
 const deviceStatuses = ref<DeviceStatus []  | undefined>(undefined);
 const orchestrator = useOrchestrator();
 const deleteNodeDialog = ref(false);
@@ -143,6 +145,12 @@ function initialize() {
     if(data != null)
      nodes.value = data;
  });
+
+ orchestrator.getOnlineNodes((data: systemNode[] | null) => {
+      if(data != null) {
+        onlineNodes.value = data;
+      }
+    });
 }
 
 function AddDevice() {
@@ -205,6 +213,34 @@ function newDevice(id: string) {
     deviceTemplates.value.push(df);
     newDeviceDialog.value = true;
     loadingDeviceTemplates.value = false;
+  });
+}
+
+function reloadDevice(deviceId: string) {
+  let deviceConfiguration = editorData.value.deviceConfigurations.find(x => x.id == deviceId);
+
+  if(deviceConfiguration == null || editorData.value.id == null)
+    return;
+
+   orchestrator.getDeviceTemplate(editorData.value.id, (data: DeviceConfiguration[] | null) => {
+    if(data != null) {
+      let conf = data.find(x => x.classFullName == deviceConfiguration.classFullName);
+      console.dir(conf)
+      if(conf != null) {
+     
+        if(conf.commandTemplates != null && deviceConfiguration.commandTemplates == null)
+          deviceConfiguration.commandTemplates = [];
+
+        if(conf.reportTemplates != null && deviceConfiguration.reportTemplates == null)
+          deviceConfiguration.reportTemplates = [];
+
+        if(conf?.commandTemplates != null && deviceConfiguration.commandTemplates != null)
+            deviceConfiguration.commandTemplates = deviceConfiguration.commandTemplates?.concat(conf.commandTemplates);
+
+        if(conf?.reportTemplates != null && deviceConfiguration.reportTemplates != null)
+            deviceConfiguration.reportTemplates = deviceConfiguration.reportTemplates?.concat(conf.reportTemplates);
+      }
+    }
   });
 }
 
@@ -317,7 +353,7 @@ onMounted(() => {
       </v-toolbar>
         <v-divider></v-divider>
         <v-card-text style="height: 90%;">
-         <NodeEditorComponent v-model="editorData" :title="editorTitle" :enabled="true" />
+         <NodeEditorComponent v-model="editorData" :onlineNodes="onlineNodes" :title="editorTitle" :enabled="true" @reload-device="reloadDevice" />
         </v-card-text>
         <v-divider />
         <v-card-actions>

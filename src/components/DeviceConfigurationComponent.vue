@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nameValueStr } from '@/models/rules/nameValueStr';
-import { OutputOperation, ValueType } from '@/models/enums';
-import { onMounted, ref } from 'vue';
+import { DeviceState, OutputOperation, ValueType } from '@/models/enums';
+import { computed, onMounted, ref } from 'vue';
 import { ReportTemplate } from '@/models/rules/reportTemplate';
 import CommandTemplate from '@/models/commandTemplate';
 import ReportTemplateEditor from './ReportTemplateEditor.vue';
@@ -12,19 +12,19 @@ import Datamodel from '@/components/rules/DatamodelComponent.vue';
 import type { CronValidationResult } from '@/models/cronValidationResult';
 import DeviceConfiguration from '@/models/deviceConfiguration';
 import Command from '@/models/command';
+import type DeviceStatus from '@/models/deviceStatus';
+import StateComponent from './dashboardComponents/StateComponent.vue';
 
 const model = defineModel<DeviceConfiguration>({ default: new DeviceConfiguration() });
 const orchestrator = useOrchestrator();
 
-/*
 const props = defineProps<{
-  enabled: boolean,
-  title: string
+  state: DeviceStatus | null,
 }>();
-*/
 
 const emit = defineEmits<{
     delete: [string],
+    reload: [string]
 }>();
 
 const reportHeaders = [
@@ -195,6 +195,10 @@ function deleteCommandTemplate(id: string) {
   model.value.commandTemplates.splice(cmdIdx, 1);
 }
 
+function loadDeviceTemplates() {
+  emit("reload", model.value.id);
+}
+
 function executeCommand(template: CommandTemplate) {
 
   let r = JSON.parse(JSON.stringify(template));
@@ -249,6 +253,14 @@ function getCronTooltipText() {
   return tip;
 }
 
+const titleState = computed(()=> {
+  
+  if(props.state == null)
+    return "[new]";
+
+  return "[" + DeviceState[props.state.state] + "]";
+});
+
 onMounted(() => {
   validateCron(false); //run once after loading to get current cron state
 });
@@ -256,7 +268,8 @@ onMounted(() => {
 
 <template>
   <v-expansion-panel>
-    <v-expansion-panel-title color="info" class="font-weight-bold">{{ model.name }}</v-expansion-panel-title>
+    <v-expansion-panel-title color="info" class="font-weight-bold">{{ model.name }} {{ titleState }}
+    </v-expansion-panel-title>
     <v-expansion-panel-text>
       <p class="mt-4">Device parameters</p>
       <v-divider class="border-opacity-100 mb-3" color="black" />
@@ -297,10 +310,28 @@ onMounted(() => {
               :label="p" />
           </v-col>
         </v-row>
-        <v-btn size="small" class="mt-6 mb-6" rounded="0" color="blue-darken-1" variant="outlined" @click="newParameter">
-          <v-icon>add</v-icon>
-          new parameter
-        </v-btn>
+        <v-row>
+          <v-col>
+            <v-btn size="small" class="mt-6 mb-6" rounded="0" color="blue-darken-1" variant="outlined" @click="newParameter">
+              <v-icon>add</v-icon>
+              new parameter
+            </v-btn>
+          </v-col>
+          <v-col class="text-right">
+            <v-tooltip text="Device not running. Set the device parameters and save." v-if="state?.state != DeviceState.running" location="left" open-on-click :open-on-hover="false">
+              <template v-slot:activator="{ props }">
+                <v-btn v-bind="props" size="small" class="mt-6 mb-6 disabled" rounded="0" color="error" variant="outlined">
+                  <v-icon>cached</v-icon>
+                  load templates
+                </v-btn>
+              </template>
+            </v-tooltip>
+            <v-btn v-else size="small" class="mt-6 mb-6" rounded="0" color="error" variant="outlined" @click="loadDeviceTemplates">
+              <v-icon>cached</v-icon>
+              load templates
+           </v-btn>
+          </v-col>
+        </v-row>
       </div>
 
       <v-data-table v-if="model.reportTemplates != null" :hide-default-footer="model.reportTemplates.length < 10" 
@@ -331,9 +362,6 @@ onMounted(() => {
         </template>
         <template v-slot:item.filters="{ item }">
           {{ item.filters?.join('; ') }}
-        </template>
-        <template v-slot:item.refreshSchedule="{ item }">
-          {{ item.refreshSchedule }}
         </template>
         <template v-slot:header.maintainHistory="{ column }">
           <v-tooltip text="Set value to true to activate time-series tracking" location="top" activator="parent">

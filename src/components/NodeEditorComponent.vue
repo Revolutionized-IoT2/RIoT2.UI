@@ -5,21 +5,29 @@ import systemNode from '@/models/systemNode';
 import { useOrchestrator } from '@/composables/orchestratorService';
 import type { PluginFile } from '@/models/rules/pluginFile';
 import DeviceConfigurationComponent from '@/components/DeviceConfigurationComponent.vue';
+import DeviceStatus from '@/models/deviceStatus';
 
 const model = defineModel<NodeConfiguration>({ default: new NodeConfiguration() });
 const orchestrator = useOrchestrator();
 
 const props = defineProps<{
   enabled: boolean,
-  title: string
+  title: string,
+  onlineNodes: systemNode[] | null
 }>();
 
 const emit = defineEmits<{
     delete: [number],
+    reloadDevice: [string]
 }>();
 
 const valid = ref(false);
-const nodeIdOptions = ref<systemNode[]>([]);
+const deviceStatuses = ref<DeviceStatus[] | null>(null);
+
+const nodeIdOptions = computed(()=> { 
+  return props.onlineNodes?.filter(x => x.name == null || x.name == '');
+});
+
 
 const newSaved = ref(false);
 const validatingUrl = ref(false);
@@ -60,29 +68,30 @@ const isPluginValid = computed(()=> {
   return true;
 });
 
+function getDeviceState(deviceId: string) : DeviceStatus | null {
+
+  if(deviceStatuses.value == null)
+    return null;
+
+  let state = deviceStatuses.value?.find(x => x.id == deviceId);
+  if(state == null || state == undefined)
+    return null;
+
+  return state;
+}
+
+function reloadDevice(deviceId: string) {
+  emit("reloadDevice", deviceId);
+}
+
 onMounted(() => {
-  newSaved.value = model.value.id != null && model.value.id != "";
-  if(!newSaved.value) {
-    orchestrator.getOnlineNodes((data: systemNode[] | null) => {
-      if(data != null) {
-        nodeIdOptions.value = data.filter(x => x.name == null || x.name == '');
-        /* debugging
-        nodeIdOptions.value.push({
-          deviceStatuses:[],
-          id:"1234-66765-35345-2342",
-          isOnline:true,
-          manifest: {
-            date:"",
-            installedPackageFilename:"",
-            name:"manifest",
-            version:"0.5.5"
-          },
-          name:"",
-          pluginManifest:null
-        });*/
-      }
+
+  if(model.value.id == null)
+    return;
+
+    orchestrator.getNodeDevicesStatus(model.value.id, (data: DeviceStatus[] | null) => {
+      deviceStatuses.value = data;
     });
-  }
 });
 </script>
 
@@ -155,7 +164,7 @@ onMounted(() => {
     </div>
     <v-expansion-panels class="mt-6">
       <template v-for="(device, i) in model.deviceConfigurations" :key="i">
-        <DeviceConfigurationComponent v-model="model.deviceConfigurations[i]" @delete="deleteDevice" />
+        <DeviceConfigurationComponent v-model="model.deviceConfigurations[i]" :state="getDeviceState(device.id)" @delete="deleteDevice" @reload="reloadDevice" />
       </template>
     </v-expansion-panels>
   </v-container>
