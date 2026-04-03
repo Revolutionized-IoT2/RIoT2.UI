@@ -234,11 +234,23 @@ function reloadDevice(deviceId: string) {
         if(conf.reportTemplates != null && deviceConfiguration.reportTemplates == null)
           deviceConfiguration.reportTemplates = [];
 
-        if(conf?.commandTemplates != null && deviceConfiguration.commandTemplates != null)
-            deviceConfiguration.commandTemplates = deviceConfiguration.commandTemplates?.concat(conf.commandTemplates);
+        if(conf?.commandTemplates != null && deviceConfiguration.commandTemplates != null) {
+          conf.commandTemplates.forEach(ct => {
+              let exist = deviceConfiguration.commandTemplates?.some(x => x.address == ct.address);
+              if(!exist) {
+                deviceConfiguration.commandTemplates?.push(ct);
+              }
+          });
+        }
 
-        if(conf?.reportTemplates != null && deviceConfiguration.reportTemplates != null)
-            deviceConfiguration.reportTemplates = deviceConfiguration.reportTemplates?.concat(conf.reportTemplates);
+        if(conf?.reportTemplates != null && deviceConfiguration.reportTemplates != null) {
+          conf.reportTemplates.forEach(ct => {
+              let exist = deviceConfiguration.reportTemplates?.some(x => x.address == ct.address);
+              if(!exist) {
+                deviceConfiguration.reportTemplates?.push(ct);
+              }
+          });
+        }
       }
     }
   });

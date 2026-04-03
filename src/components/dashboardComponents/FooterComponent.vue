@@ -16,8 +16,9 @@ const props = defineProps<{
     <v-list-item v-else density="compact" >
         <v-list-item-subtitle></v-list-item-subtitle>
       </v-list-item>
-      <v-list-item density="compact" prepend-icon="history">
+      <v-list-item density="compact">
         <v-list-item-subtitle>
+          <v-icon class="mr-2">history</v-icon>
           <timeago v-if="props.updated != undefined" :datetime="props.updated" :converter-options="{ includeSeconds: true }" :auto-update="5"/>
           <div v-else>never</div>
         </v-list-item-subtitle>
