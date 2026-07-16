@@ -1,60 +1,46 @@
-import axios, { Axios, AxiosError } from 'axios';
-import { inject } from 'vue';
-import { InjectionKeys } from '@/models/injectionKeys';
+import axios, { AxiosError } from 'axios';
 import AppError from '@/models/appError';
 import { useErrorStore } from '@/stores/errorStore';
 
-export function useHttpClient() { 
+export function useHttpClient() {
 
-    //const errorHandler = inject(InjectionKeys.errorHandler);
     const e = useErrorStore();
 
-    function axiosHttpGet<T>(url: string, callback: (data: T | null) => void, completed?: () => void): void {
-        axios
-            .get<T>(url)
-            .then((response) => {
-                if(response == null || response.data == null || response.data == '')
-                    callback(null);
-                else
-                    callback(response.data);
-            })
-            .catch((error: Error | AxiosError) => {
-                if(e != undefined) {
-                    if(axios.isAxiosError(error)) {
-                        e.setError(new AppError("Error in HTTP Client", (error as AxiosError).message, error.stack, url));
-                    } else {
-                        e.setError(new AppError("Error in HTTP Client", (error as Error).message, error.stack, url));
-                    }
-                }
-            })
-            .finally(() => {
-                if(completed != null)
-                    completed();
-            });
+    function handleError(error: Error | AxiosError, url: string): void {
+        if(e == undefined)
+            return;
+
+        if(axios.isAxiosError(error)) {
+            e.setError(new AppError("Error in HTTP Client", (error as AxiosError).message, error.stack, url));
+        } else {
+            e.setError(new AppError("Error in HTTP Client", (error as Error).message, error.stack, url));
+        }
     }
 
-    function axiosHttpPost<T, R>(url: string, data: any, callback: (data: R | null) => void, completed?: () => void): void {
-        axios
-            .post<T, any>(url, data)
-            .then((response) => {
-                if(response == null || response.data == null || response.data == '')
-                    callback(null);
-                else
-                    callback(response.data);
-            })
-            .catch((error: Error | AxiosError) => {
-                if(e != undefined) {
-                    if(axios.isAxiosError(error)) {
-                        e.setError(new AppError("Error in HTTP Client", (error as AxiosError).message, error.stack, url));
-                    } else {
-                        e.setError(new AppError("Error in HTTP Client", (error as Error).message, error.stack, url));
-                    }
-                }
-            })
-            .finally(() => {
-                if(completed != null)
-                    completed();
-            });
+    async function axiosHttpGet<T>(url: string): Promise<T | null> {
+        try {
+            const response = await axios.get<T>(url);
+            if(response == null || response.data == null || (response.data as unknown) === '')
+                return null;
+
+            return response.data;
+        } catch (error) {
+            handleError(error as Error | AxiosError, url);
+            return null;
+        }
+    }
+
+    async function axiosHttpPost<T, R>(url: string, data: any): Promise<R | null> {
+        try {
+            const response = await axios.post<R>(url, data);
+            if(response == null || response.data == null || (response.data as unknown) === '')
+                return null;
+
+            return response.data;
+        } catch (error) {
+            handleError(error as Error | AxiosError, url);
+            return null;
+        }
     }
 
     return {

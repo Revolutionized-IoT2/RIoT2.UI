@@ -98,7 +98,7 @@ export class ButtonElementProperties {
 }
 
 export class ImageElementProperties  {
-    value!: string;
+    url!: string;
 }
 
 export class StateElementProperties  {
