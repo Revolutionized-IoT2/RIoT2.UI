@@ -1,5 +1,5 @@
 import { Constants } from '@/models/constants';
-import { useHttpClient } from '@/composables/httpClientService';
+import { useHttpClient, withCallback } from '@/composables/httpClientService';
 import { useOrchestratorStore } from '@/stores/orchestratorStore';
 import type CommandTemplate from '@/models/commandTemplate';
 import type Command from '@/models/command';
@@ -13,65 +13,51 @@ export function useCommandApi() {
   const httpClient = useHttpClient();
   const orchestratorStore = useOrchestratorStore();
 
-  async function getReportTemplates(callback:(data: ReportTemplate[] | null) => void, completed?:()=> void): Promise<void> {
+  function getReportTemplates(callback:(data: ReportTemplate[] | null) => void, completed?:()=> void): Promise<void> {
 
     let url = orchestratorStore.baseUrl + Constants.urlGetReportTemplates;
-    let data = await httpClient.get<ReportTemplate[]>(url);
-    callback(data);
-    completed?.();
+    return withCallback(httpClient.get<ReportTemplate[]>(url), callback, completed);
   }
 
-  async function getCommandTemplates(callback:(data: CommandTemplate[] | null) => void, completed?:()=> void): Promise<void> {
+  function getCommandTemplates(callback:(data: CommandTemplate[] | null) => void, completed?:()=> void): Promise<void> {
 
     let url = orchestratorStore.baseUrl + Constants.urlGetCommandTemplates;
-    let data = await httpClient.get<CommandTemplate[]>(url);
-    callback(data);
-    completed?.();
+    return withCallback(httpClient.get<CommandTemplate[]>(url), callback, completed);
   }
 
-  async function getReportState(id: string, callback:(data: Report | null) => void, completed?:()=> void): Promise<void> {
+  function getReportState(id: string, callback:(data: Report | null) => void, completed?:()=> void): Promise<void> {
 
     let url = orchestratorStore.baseUrl + Constants.urlGetReportOrCommandState;
     url = url.replace('{id}', id);
     url = url.replace('{type}', "report");
-    let data = await httpClient.get<Report>(url);
-    callback(data);
-    completed?.();
+    return withCallback(httpClient.get<Report>(url), callback, completed);
   }
 
-  async function getCommandState(id: string, callback:(data: Command | null) => void, completed?:()=> void): Promise<void> {
+  function getCommandState(id: string, callback:(data: Command | null) => void, completed?:()=> void): Promise<void> {
 
     let url = orchestratorStore.baseUrl + Constants.urlGetReportOrCommandState;
     url = url.replace('{id}', id);
     url = url.replace('{type}', "command");
-    let data = await httpClient.get<Command>(url);
-    callback(data);
-    completed?.();
+    return withCallback(httpClient.get<Command>(url), callback, completed);
   }
 
-  async function sendCommand(operation: OutputOperation, command: Command, callback:(data: void | null) => void, completed?:()=> void): Promise<void> {
+  function sendCommand(operation: OutputOperation, command: Command, callback:(data: void | null) => void, completed?:()=> void): Promise<void> {
 
     let url = orchestratorStore.baseUrl + Constants.urlSendCommand;
     url = url.replace('{operation}', (operation as number).toString());
-    let data = await httpClient.post<Command, void | null>(url, command);
-    callback(data);
-    completed?.();
+    return withCallback(httpClient.post<Command, void | null>(url, command), callback, completed);
   }
 
-  async function executeCommand(command: Command, callback:(data: void | null) => void, completed?:()=> void): Promise<void> {
+  function executeCommand(command: Command, callback:(data: void | null) => void, completed?:()=> void): Promise<void> {
 
     let url = orchestratorStore.baseUrl + Constants.urlExecuteCommand;
-    let data = await httpClient.post<Command, void | null>(url, command);
-    callback(data);
-    completed?.();
+    return withCallback(httpClient.post<Command, void | null>(url, command), callback, completed);
   }
 
-  async function validateCron(cron: CronValidationResult, callback:(data: CronValidationResult | null) => void, completed?:()=> void): Promise<void> {
+  function validateCron(cron: CronValidationResult, callback:(data: CronValidationResult | null) => void, completed?:()=> void): Promise<void> {
 
     let url = orchestratorStore.baseUrl + Constants.urlValidateCron;
-    let data = await httpClient.post<CronValidationResult, CronValidationResult>(url, cron);
-    callback(data);
-    completed?.();
+    return withCallback(httpClient.post<CronValidationResult, CronValidationResult>(url, cron), callback, completed);
   }
 
   return {

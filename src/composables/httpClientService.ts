@@ -2,6 +2,17 @@ import axios, { AxiosError } from 'axios';
 import AppError from '@/models/appError';
 import { useErrorStore } from '@/stores/errorStore';
 
+/**
+ * Awaits `request`, then forwards the result to `callback` and invokes
+ * `completed` (if provided). Centralizes the callback/completed bridging
+ * so API composables don't have to repeat it after every request.
+ */
+export async function withCallback<T>(request: Promise<T | null>, callback: (data: T | null) => void, completed?: () => void): Promise<void> {
+    const data = await request;
+    callback(data);
+    completed?.();
+}
+
 export function useHttpClient() {
 
     const e = useErrorStore();
@@ -30,7 +41,7 @@ export function useHttpClient() {
         }
     }
 
-    async function axiosHttpPost<T, R>(url: string, data: any): Promise<R | null> {
+    async function axiosHttpPost<T, R>(url: string, data: T): Promise<R | null> {
         try {
             const response = await axios.post<R>(url, data);
             if(response == null || response.data == null || (response.data as unknown) === '')
