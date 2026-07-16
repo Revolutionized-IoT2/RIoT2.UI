@@ -15,7 +15,6 @@ import { yellow } from 'vuetify/util/colors';
 import { DeviceState } from '@/models/enums';
 import type DeviceStatus from '@/models/deviceStatus';
 import { InjectionKeys } from '@/models/injectionKeys';
-import type systemNode from '@/models/systemNode';
 
 const contextMenuItems: ContextMenuItem[] = [
   { "text": "edit dashboard", "action": "edit_dashboard", "disabled": false, "icon": "dashboard" },
@@ -146,7 +145,7 @@ function initialize() {
      nodes.value = data;
  });
 
- orchestrator.getOnlineNodes((data: systemNode[] | null) => {
+ orchestrator.getOnlineNodes((data: SystemNode[] | null) => {
       if(data != null) {
         onlineNodes.value = data;
       }

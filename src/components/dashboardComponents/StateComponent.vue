@@ -23,7 +23,7 @@ watch(props.data.elements, () => {
 const isTimerExpirated = ref(false);
 
 const timerPercentage = computed(() => {
-    if(!isTimerExpirated)
+    if(!isTimerExpirated.value)
       return 100;
 
     return 100 - (Math.round((elapsedTime.value / timerExpirationTime) * 100));

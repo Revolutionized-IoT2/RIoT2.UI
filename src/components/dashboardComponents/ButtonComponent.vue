@@ -98,7 +98,9 @@ function setElementState(toState: boolean, element: IComponentElement) {
   if(toState) {
     selectedButtonIds.push(element.id);
   } else {
-    selectedButtonIds.splice(selectedButtonIds.findIndex(v => v === element.id), 1);
+    let idx = selectedButtonIds.findIndex(v => v === element.id);
+    if(idx != -1)
+      selectedButtonIds.splice(idx, 1);
   }
 }
 

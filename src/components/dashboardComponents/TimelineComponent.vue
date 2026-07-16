@@ -2,7 +2,7 @@
 import { useComponentService } from '@/composables/componentService';
 import Component from '@/models/component';
 import { ComponentElement } from '@/models/componentElement';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import FooterComponent from './FooterComponent.vue';
 
 enum Resolution {
@@ -128,6 +128,11 @@ onMounted(() => {
   updateComponent();
   setValues();
   setTimer();
+});
+
+onUnmounted(() => {
+  if(timerId.value != null)
+    clearInterval(timerId.value);
 });
 
 </script>
