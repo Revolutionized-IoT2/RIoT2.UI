@@ -11,7 +11,7 @@
   import Dashboard from '@/models/dashboard';
   import { useRoute, useRouter } from 'vue-router';
   import Page from '@/models/page';
-  import ContextMenu from '@/components/rules/ContextMenuComponent.vue';
+  import ContextMenu from '@/components/ContextMenuComponent.vue';
   import Component from '@/models/component';
   import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
 

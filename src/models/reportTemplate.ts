@@ -1,5 +1,5 @@
-﻿import { ValueType } from "../enums";
-import type { ITemplate } from "../itemplate";
+import { ValueType } from "./enums";
+import type { ITemplate } from "./itemplate";
 
 export class ReportTemplate implements ITemplate  {
     

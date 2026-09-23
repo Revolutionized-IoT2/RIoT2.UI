@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { nameValueStr } from '@/models/rules/nameValueStr';
-import { DeviceState, OutputOperation, ValueType } from '@/models/enums';
+import { nameValueStr } from '@/models/nameValueStr';
+import { DeviceState, ValueType } from '@/models/enums';
 import { computed, onMounted, ref } from 'vue';
-import { ReportTemplate } from '@/models/rules/reportTemplate';
+import { ReportTemplate } from '@/models/reportTemplate';
 import CommandTemplate from '@/models/commandTemplate';
 import ReportTemplateEditor from './ReportTemplateEditor.vue';
 import CommandTemplateEditor from './CommandTemplateEditor.vue';
 import { useOrchestrator } from '@/composables/orchestratorService';
 import { Report } from '@/models/report';
-import Datamodel from '@/components/rules/DatamodelComponent.vue';
+import Datamodel from '@/components/DatamodelComponent.vue';
 import type { CronValidationResult } from '@/models/cronValidationResult';
 import DeviceConfiguration from '@/models/deviceConfiguration';
 import Command from '@/models/command';
@@ -515,7 +515,7 @@ onMounted(() => {
       <v-card-subtitle class="pb-1 text-subtitle-1">{{reportTemplateForEdit?.device}}</v-card-subtitle>
       <!--<v-card-subtitle class="pb-1 text-disabled text-decoration-overline text-subtitle-2">-todo-</v-card-subtitle>-->
       <v-card-text>
-        <Datamodel :datamodel="currentReport" labeltext="Value" :expanded="true" :editable="false" :readInput="false" />
+        <Datamodel :datamodel="currentReport" labeltext="Value" :expanded="true" :editable="false" />
       </v-card-text>
       <v-card-actions>
         <v-spacer />

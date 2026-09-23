@@ -1,4 +1,4 @@
-﻿import type { ValueType } from './../enums';
+import type { ValueType } from './enums';
 
 export class Variable {
 

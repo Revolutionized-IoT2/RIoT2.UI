@@ -5,7 +5,7 @@ import { useOrchestrator } from '@/composables/orchestratorService';
 import NodeEditorComponent from '@/components/NodeEditorComponent.vue'
 import DashboardEditorComponent from '@/components/DashboardEditorComponent.vue'
 import { Constants } from '@/models/constants';
-import ContextMenu from '@/components/rules/ContextMenuComponent.vue';
+import ContextMenu from '@/components/ContextMenuComponent.vue';
 import type { ContextMenuItem } from '@/models/contextMenuItem';
 import NodeConfiguration from '@/models/nodeConfiguration';
 import Dashboard from '@/models/dashboard';

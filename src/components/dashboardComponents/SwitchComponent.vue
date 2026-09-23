@@ -4,7 +4,6 @@ import { useOrchestrator } from '@/composables/orchestratorService';
 import Command from '@/models/command';
 import type Component from '@/models/component';
 import type { IComponentElement } from '@/models/componentElement';
-import { OutputOperation } from '@/models/enums';
 import { InjectionKeys } from '@/models/injectionKeys';
 import { inject, onMounted, ref, watch } from 'vue';
 
@@ -55,19 +54,12 @@ function updateElement(i: 1|2, e: IComponentElement) {
     let cmd = new Command();
     cmd.id = e.commandTemplate.id;
     cmd.value = val;
-    
-    let op = OutputOperation.write;
 
-    if(e.commandTemplate?.address?.toLowerCase() == "variable") //TODO better way to recognize variable?
-      op = OutputOperation.Variable;
-
-    console.dir(e.commandTemplate)
-    console.log("switch: "+ op)
-    console.dir(cmd)
-
-    orchestrator.sendCommand(op, cmd, () => {
-      //need todo anything?
-    });
+    if(e.commandTemplate.address?.toLowerCase() == "variable") {
+      orchestrator.setVariableValue(cmd, () => {});
+    } else {
+      orchestrator.executeCommand(cmd, () => {});
+    }
   }
 }
 

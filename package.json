@@ -20,7 +20,6 @@
     "vue-timeago3": "^2.3.2",
     "uuid": "^9.0.0",
     "mitt": "^3.0.1",
-    "vue-draggable-next":"^2.2.1",
     "roboto-fontface": "*"
   },
   "devDependencies": {

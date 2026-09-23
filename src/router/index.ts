@@ -63,36 +63,6 @@ const router = createRouter({
       ],
     },
     {
-      path: '/rules',
-      name: 'rules',
-      component: () => import('@/layout/Default.vue'),
-      meta: {
-        //requiresAuth: true
-      },
-      children: [
-        {
-          path: '',
-          name: 'List rules',
-          component: () => import('@/views/RulesView.vue'),
-        },
-      ],
-    },
-    {
-      path: '/rules/editor/:id?',
-      name: 'rulesEditor',
-      component: () => import('@/layout/Default.vue'),
-      meta: {
-        //requiresAuth: true
-      },
-      children: [
-        {
-          path: '',
-          name: 'Edit rules',
-          component: () => import('@/views/RuleEditorView.vue'),
-        },
-      ],
-    },
-    {
       path: '/variables',
       name: 'variables',
       component: () => import('@/layout/Default.vue'),
@@ -104,21 +74,6 @@ const router = createRouter({
           path: '',
           name: 'List variables',
           component: () => import('@/views/VariablesView.vue'),
-        },
-      ],
-    },
-    {
-      path: '/rules/simulate/:id?',
-      name: 'rulesSimulation',
-      component: () => import('@/layout/Default.vue'),
-      meta: {
-        //requiresAuth: true
-      },
-      children: [
-        {
-          path: '',
-          name: 'Simulate rules',
-          component: () => import('@/views/RuleSimulationView.vue'),
         },
       ],
     },

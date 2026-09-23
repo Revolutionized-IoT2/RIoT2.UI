@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ValueType } from '@/models/enums';
-import { nameValueStr } from '@/models/rules/nameValueStr';
-import { ReportTemplate } from '@/models/rules/reportTemplate';
+import { nameValueStr } from '@/models/nameValueStr';
+import { ReportTemplate } from '@/models/reportTemplate';
 import { ref } from 'vue';
 
 const emit = defineEmits<{

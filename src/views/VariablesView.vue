@@ -1,13 +1,11 @@
 <script setup lang="ts">
 
-import Datamodel from '@/components/rules/DatamodelComponent.vue';
-import ContextMenu from '@/components/rules/ContextMenuComponent.vue';
+import Datamodel from '@/components/DatamodelComponent.vue';
+import ContextMenu from '@/components/ContextMenuComponent.vue';
 import { useOrchestrator } from '@/composables/orchestratorService';
 import type { ContextMenuItem } from '@/models/contextMenuItem';
 import { ValueType } from '@/models/enums';
-import type { IRuleListItem } from '@/models/rules/IRuleListItem';
-import { Variable } from '@/models/rules/variable';
-import router from '@/router';
+import { Variable } from '@/models/variable';
 import { inject, onBeforeUnmount, onMounted, ref } from 'vue';
 import { InjectionKeys } from '@/models/injectionKeys';
 import type Report from '@/models/report';
@@ -249,7 +247,6 @@ onBeforeUnmount(() => {
                       labeltext="Value" 
                       :expanded="true" 
                       :editable="true"
-                      :readInput="false"
                       @modelUpdated="updateVariableObjectValue"
                       />
                   </v-col>

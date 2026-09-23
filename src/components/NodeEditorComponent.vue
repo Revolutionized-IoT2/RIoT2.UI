@@ -3,7 +3,7 @@ import NodeConfiguration from '@/models/nodeConfiguration';
 import { computed, nextTick, onMounted, ref } from 'vue';
 import systemNode from '@/models/systemNode';
 import { useOrchestrator } from '@/composables/orchestratorService';
-import type { PluginFile } from '@/models/rules/pluginFile';
+import type { PluginFile } from '@/models/pluginFile';
 import DeviceConfigurationComponent from '@/components/DeviceConfigurationComponent.vue';
 import DeviceStatus from '@/models/deviceStatus';
 

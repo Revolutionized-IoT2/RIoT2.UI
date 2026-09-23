@@ -4,7 +4,7 @@ import { useOrchestrator } from '@/composables/orchestratorService';
 import Command from '@/models/command';
 import type Component from '@/models/component';
 import type { ComponentElement, IComponentElement } from '@/models/componentElement';
-import { ValueType, ComponentType, OutputOperation } from '@/models/enums';
+import { ValueType, ComponentType } from '@/models/enums';
 import { InjectionKeys } from '@/models/injectionKeys';
 import { inject, reactive, ref, watch } from 'vue';
 
@@ -37,14 +37,11 @@ function executeToggle(element: IComponentElement) {
     let cmd = new Command();
     cmd.id = element.commandTemplate.id;
     cmd.value = getValue(!isElementSelected(element), element);
-    let op = OutputOperation.write;
-
-    if(element.commandTemplate?.address?.toLowerCase() == "variable")
-      op = OutputOperation.Variable;
-
-    orchestrator.sendCommand(op, cmd, () => {
-      //need todo anything?
-    });
+    if(element.commandTemplate.address?.toLowerCase() == "variable") {
+      orchestrator.setVariableValue(cmd, () => {});
+    } else {
+      orchestrator.executeCommand(cmd, () => {});
+    }
   }
   setElementState(!isElementSelected(element), element);
 }

@@ -2,7 +2,7 @@
 import CommandTemplate from '@/models/commandTemplate';
 import { ValueType } from '@/models/enums';
 import { ref } from 'vue';
-import Datamodel from '@/components/rules/DatamodelComponent.vue';
+import Datamodel from '@/components/DatamodelComponent.vue';
 
 const emit = defineEmits<{
     save: [void],

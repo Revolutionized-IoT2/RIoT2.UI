@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { ValueType } from '@/models/enums';
-import PlaceholderItem from '@/models/placeholderItem';
 import { computed, onMounted, ref } from 'vue';
 
-//import type { ContextMenuItem } from '@/models/contextMenuItem';
 const emit = defineEmits<{
-    readInputClicked: [void],
     modelUpdated: [any, ValueType]
 }>();
 
@@ -14,18 +11,14 @@ export interface Props {
     labeltext?: string,
     expanded?: boolean,
     editable?: boolean,
-    readInput?: boolean,
     expandable?: boolean,
-    placeholders?: PlaceholderItem[],
     allowedTypes?: ValueType[]
 };
 
 const props = withDefaults(defineProps<Props>(), {
     expanded: false,
     editable: false,
-    readInput: false,
     expandable: true,
-    placeholders: () => [],
     allowedTypes: () => [],
 });
 
@@ -35,7 +28,6 @@ const editMode = ref(false);
 const jsonErrors = ref("");
 const editJson = ref("");
 const type = ref(ValueType.Text);
-const selectedPlaceholder = ref<PlaceholderItem | null>(null);
 
 const dataLang = computed(() => {
     return ValueType[getValueType(props.datamodel)];
@@ -95,10 +87,6 @@ onMounted(() => {
 function clickView() {
     if(props.editable)
         showDialog.value = true;
-}
-
-function readInputClick() {
-    emit('readInputClicked');
 }
 
 function closeDialog() {
@@ -184,25 +172,12 @@ function formatCodeBlock(json: string) {
         return '<span class="' + cls + '">' + match + '</span>';
     });
 
-    //{trigger-value}, {time}, {date}, {weekday}
-    //
-    //reformat placeholders when viewwing
-    props.placeholders.forEach((p) => {
-        json = json.replace('"'+p.placeholder+'"', '<i style="color:blue;border-style: solid;border-color: blue;">'+p.name+'</i>');
-    });
-
     //console.dir(json);
     return json;
 }
 
 function copyCode() {
     navigator.clipboard.writeText(valueToJson());
-}
-
-function copyPlaceHolder() {
-    if(selectedPlaceholder.value == null)
-        return;
-    navigator.clipboard.writeText(selectedPlaceholder.value.placeholder);
 }
 
 defineExpose({
@@ -250,39 +225,6 @@ defineExpose({
                         @update:model-value="editJson = setSelectedVariableDefault(type)"
                       />
                     
-                    <v-autocomplete
-                        v-if="type == ValueType.Entity && props.placeholders.length > 0"
-                        v-model="selectedPlaceholder"
-                        :items="props.placeholders"
-                        color="primary"
-                        item-title="name"
-                        item-value="placeholder"
-                        label="Available placeholders"
-                        hint="To use placeholder, copy its value and paste to JSON"
-                        return-object>
-
-                    <template v-slot:chip="{ props, item }">
-                      <div v-bind="props" v-if="item != null">
-                        {{ item.raw.name }} 
-                       
-                      </div>
-                    </template>
-                    <template v-slot:item="{ props, item }">
-                      <v-list-item v-bind="props" :title="item.raw.name">
-                      <v-chip size="x-small" class="ma-1" label v-for="(tag) in item.raw.tags">
-                        {{ tag }}
-                      </v-chip>
-                    </v-list-item>
-                   </template>
-                   <template v-slot:append>
-                        <v-icon
-                            color="info"
-                            icon="content_copy"
-                            @click="copyPlaceHolder"
-                        ></v-icon>
-                    </template>
-                  </v-autocomplete>
-
                     <div class="content">
                         <v-textarea
                         v-model="editJson"
@@ -304,10 +246,6 @@ defineExpose({
                 <v-btn v-if="editable" color="blue" variant="text" @click="editModeClick">
                             <v-icon>edit</v-icon>
                         {{editMode?'save':'edit'}}
-                    </v-btn>
-                <v-btn v-if="readInput" color="blue" variant="text" @click="readInputClick">
-                            <v-icon>replay</v-icon>
-                        read
                     </v-btn>
                 <v-btn color="blue" variant="text" @click="closeDialog">
                     <v-icon>close</v-icon>

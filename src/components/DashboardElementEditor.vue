@@ -2,10 +2,10 @@
 import CommandTemplate from '@/models/commandTemplate';
 import { ComponentType, ValueType } from '@/models/enums';
 import { computed, inject, onMounted, ref, watch } from 'vue';
-import Datamodel from '@/components/rules/DatamodelComponent.vue';
+import Datamodel from '@/components/DatamodelComponent.vue';
 import Component from '@/models/component';
 import { ButtonElementProperties, ChartElementProperties, ComponentElement, type IComponentElement, ImageElementProperties, ValueElementProperties } from '@/models/componentElement';
-import { ReportTemplate } from '@/models/rules/reportTemplate';
+import { ReportTemplate } from '@/models/reportTemplate';
 import { InjectionKeys } from '@/models/injectionKeys';
 import type { ITemplate } from '@/models/itemplate';
 

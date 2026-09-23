@@ -13,25 +13,21 @@ import { Report } from '@/models/report';
 import { useOrchestrator } from './composables/orchestratorService';
 import { useOrchestratorStore } from './stores/orchestratorStore';
 import { useErrorStore } from './stores/errorStore';
-import { ReportTemplate } from './models/rules/reportTemplate';
-import FunctionTemplate from './models/rules/functionTemplate';
+import { ReportTemplate } from './models/reportTemplate';
 import CommandTemplate from './models/commandTemplate';
 import VariableTemplate from './models/variableTemplate';
-import { OutputOperation } from './models/enums';
 
 const emitter = mitt();
 
 const errorHandler = useErrorStore();
 
 const reportTemplates = ref<ReportTemplate[]>([]);
-const functionTemplates = ref<FunctionTemplate[]>([]);
 const commandTemplates = ref<CommandTemplate[]>([]);
 const variableTemplates = ref<VariableTemplate[]>([]);
 //provide(InjectionKeys.errorHandler, setError);
 provide(InjectionKeys.emitter, emitter);
 
 provide(InjectionKeys.reportTemplates, reportTemplates);
-provide(InjectionKeys.functionTemplates, functionTemplates);
 provide(InjectionKeys.commandTemplates, commandTemplates);
 provide(InjectionKeys.variableTemplates, variableTemplates);
 provide(InjectionKeys.templateDataUpdated, loadTemplates); // Call this if templates need to be reloaded
@@ -63,11 +59,6 @@ function loadTemplates() {
   orchestrator.getCommandTemplates((data: CommandTemplate [] | null) => {
     if(data != null)
       commandTemplates.value = data;
-  });
-
-  orchestrator.getFunctionTemplates((data: FunctionTemplate [] | null) => {
-    if(data != null)
-      functionTemplates.value = data;
   });
 
   orchestrator.getVariableTemplates((data: VariableTemplate [] | null) => {

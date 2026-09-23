@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (or any AI coding assistant) when wor
 RIoT2.UI is the web frontend for RIoT2, an IoT orchestration/automation system. It provides:
 - A dashboard for visualizing device data (charts, numeric values, switches, state, timeline, etc.)
 - Node management/configuration for connected devices
-- A rule editor for building automation rules (with a node-based/drag-and-drop editor)
+- Discovery of and a navigation link to the external Elsa 3 workflow service
 - Real-time device communication over MQTT and an HTTP orchestrator API
 
 Built with Vue 3 (Composition API), TypeScript, Vite, Vuetify 3, Pinia, and Vue Router.
@@ -43,14 +43,21 @@ These are consumed via `import.meta.env` and re-exported from `src/app.config.ts
   - `httpClientService.ts` — Axios wrapper for the orchestrator REST API.
   - `orchestratorService.ts` — higher-level API calls to the backend orchestrator.
   - `mqttService.ts` — MQTT client for real-time device/data updates.
-  - `componentService.ts`, `ruleUtilsService.ts` — dashboard/rule helper logic.
-- `src/models/` — TypeScript types/interfaces for domain entities (devices, nodes, rules, dashboards, commands, reports, etc.). `src/models/rules/` holds rule-specific types.
+  - `api/` — dashboard, node, command/report, variable, and Matter API helpers.
+  - `componentService.ts` — dashboard helper logic.
+- `src/models/` — TypeScript types/interfaces for domain entities (devices, nodes, dashboards, commands, reports, variables, etc.). Shared models such as `reportTemplate.ts`, `variable.ts`, `pluginFile.ts`, and `nameValueStr.ts` live here, not under a rule-engine namespace.
 - `src/components/` — shared Vue components.
   - `dashboardComponents/` — widget components rendered on dashboards (Chart, Switch, State, Numeric, Timeline, Button, Image, etc.), driven by `component.ts`/`componentElement.ts` models.
-  - `rules/` — rule editor UI (node graph editor, event viewer, data model panel, context menu).
-- `src/views/` — route-level page components (Dashboard, Nodes, Rules, RuleEditor, RuleSimulation, Variables, Home, About).
+  - `DatamodelComponent.vue`, `ContextMenuComponent.vue` — shared data editing/viewing and action-menu components used by node, variable, and dashboard pages.
+- `src/views/` — route-level page components (Dashboard, Nodes, Matter, Variables, Home, About).
 - `src/layout/` — app shell components (`AppBar.vue`, `Default.vue`, `View.vue`).
 - `src/plugins/` — Vuetify and other plugin registration (`plugins/index.ts`, `plugins/vuetify.ts`).
+
+## Workflow integration
+
+- Elsa 3 owns workflow authoring and execution. Do not reintroduce the retired internal rule editor, simulator, `/rules` routes, `/api/rules` helpers, or function-template loading.
+- `src/layout/AppBar.vue` discovers the workflow node through `GET /api/nodes/online`, using `NodeType.workflow` (`3`) and its `nodeBaseUrl` for the external **Rules** link. Preserve this discovery contract.
+- Dashboard controls and variables are independent of the retired engine. Preserve their report/command/variable templates and APIs. Device commands use `POST /api/command/execute` with `{ id, value }`; variable actions read `GET /api/variable/{id}/value` and post the full DTO to `/api/nodes/variable/save`, changing only its value. Do not restore the retired typed command endpoint or `OutputOperation` enum.
 
 ## Conventions
 

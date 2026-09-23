@@ -5,7 +5,7 @@ import type SystemNode from '@/models/systemNode';
 import NodeConfiguration from '@/models/nodeConfiguration';
 import DeviceConfiguration from '@/models/deviceConfiguration';
 import type DeviceStatus from '@/models/deviceStatus';
-import type { PluginFile } from '@/models/rules/pluginFile';
+import type { PluginFile } from '@/models/pluginFile';
 
 export function useNodeApi() {
 

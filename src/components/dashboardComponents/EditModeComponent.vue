@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useComponentService } from '@/composables/componentService';
-import Datamodel from '@/components/rules/DatamodelComponent.vue';
+import Datamodel from '@/components/DatamodelComponent.vue';
 import Command from '@/models/command';
 import type Component from '@/models/component';
 import { ButtonElementProperties, ValueElementProperties, type IComponentElement, ChartElementProperties, ImageElementProperties, SwitchElementProperties, StateElementProperties } from '@/models/componentElement';
@@ -350,7 +350,6 @@ const commandTemplateItems = computed<ITemplate[]>(() => {
               labeltext="" 
               :expanded="true" 
               :editable="false"
-              :readInput="false"
                />
         </v-card-text>
         <v-card-actions>

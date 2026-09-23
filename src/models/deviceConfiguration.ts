@@ -1,5 +1,5 @@
 import CommandTemplate from "./commandTemplate";
-import { ReportTemplate } from "./rules/reportTemplate"
+import { ReportTemplate } from "./reportTemplate"
 
 export default class DeviceConfiguration {
 
@@ -11,4 +11,3 @@ export default class DeviceConfiguration {
     refreshSchedule: string = "";
     deviceParameters: any
 }
-

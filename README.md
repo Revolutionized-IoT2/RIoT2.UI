@@ -4,7 +4,7 @@ RIoT2.UI is the web frontend for **RIoT2**, an IoT orchestration/automation syst
 
 - A dashboard for visualizing device data (charts, numeric values, switches, state, timeline, etc.)
 - Node management/configuration for connected devices
-- A rule editor for building automation rules with a node-based/drag-and-drop editor
+- A link to Elsa 3 for authoring and running automation workflows
 - Real-time device communication over MQTT and an HTTP orchestrator API
 
 Built with Vue 3 (Composition API), TypeScript, Vite, Vuetify 3, Pinia, and Vue Router.
@@ -12,6 +12,23 @@ Built with Vue 3 (Composition API), TypeScript, Vite, Vuetify 3, Pinia, and Vue 
 ## Backend
 
 The backend for this UI is located at: https://github.com/Revolutionized-IoT2/RIoT2.Net.Orchestrator
+
+## Workflows
+
+Automation is managed by the external Elsa 3 workflow service, not an internal UI rule editor.
+The **Rules** navigation item opens the `nodeBaseUrl` of the online workflow node
+(`nodeType: 3`) returned by the orchestrator's `GET /api/nodes/online` endpoint.
+If no workflow node is discovered, the link is disabled.
+
+The legacy `/rules`, `/rules/editor/:id?`, and `/rules/simulate/:id?` pages have been
+retired, along with calls to `/api/rules` and `/api/nodes/function/templates`.
+Dashboard controls, report/command templates, and system variables still use the
+orchestrator's node, dashboard, command, and variable APIs. Dashboard device
+commands use `POST /api/command/execute` with `{ id, value }`; variable actions
+first read `GET /api/variable/{id}/value`, then update the value via
+`POST /api/nodes/variable/save`, preserving the variable's metadata.
+The retired typed `/api/nodes/command/{operation}`
+endpoint and `OutputOperation` enum are no longer used.
 
 ## Prerequisites
 
