@@ -122,7 +122,7 @@ function executeExtendedClick() {
       <v-item-group multiple :model-value="selectedButtonIds" v-if="props.data.type == ComponentType.button">
         <v-container>
           <v-row class="mb-3" justify="start">
-            <template v-for="elem, i in data.elements" :key="elem.name">
+            <template v-for="elem, i in data.elements" :key="elem.id">
             <v-col cols="auto" >
               <v-item v-slot="{ isSelected, toggle }" :value="elem.id">
                 <v-card :color="isSelected ? 'primary' : 'secondary'" class="d-flex align-center" 
@@ -155,7 +155,7 @@ function executeExtendedClick() {
     >
       <v-slide-group-item
         v-for="elem, i of props.data.elements"
-        :key="i + '-elem'"
+        :key="elem.id"
         v-slot="{ isSelected, toggle, selectedClass }"
         :value="elem.id"
       >

@@ -89,7 +89,7 @@ function cancel() {
       </v-col>
       <v-col cols="6">
         <v-switch
-          :model-value="model.maintainHistory"
+          v-model="model.maintainHistory"
           color="primary"
           label="Store datapoints"
         ></v-switch>

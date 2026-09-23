@@ -12,9 +12,9 @@ const props = defineProps<{
 const numValue = ref({value: "-", prevValue: "-", updated: new Date(8640000000000000), unit: "-", trendIcon: ""})
 const componentService = useComponentService();
 
-watch(props.data.elements, () => {
+watch(() => props.data.elements, () => {
   updateComponent();
-},  { immediate: true })
+},  { immediate: true, deep: true })
 
 function updateComponent() {
 
@@ -30,21 +30,26 @@ function updateComponent() {
   let lastUpdated = componentService.timeStampToDate(elem.report.timeStamp);
   let numericValue = componentService.getElementNumericValue(elem);
   let unit = componentService.getElementPropertyValue(elem, "unit");
-  let digits = componentService.getElementPropertyValue(elem, "digits") ?? 0;
+  let configuredDigits = Number(componentService.getElementPropertyValue(elem, "digits") ?? 0);
+  let digits = Number.isFinite(configuredDigits) ? Math.min(100, Math.max(0, Math.trunc(configuredDigits))) : 0;
 
   let pValue = "-";
   if(elem.previousReports != undefined &&  elem.previousReports.length > 1) {
-    pValue = elem.previousReports[1].value.toFixed(digits);
+    const previousValue = componentService.getElementNumericValue({ ...elem, report: elem.previousReports[1] });
+    if(Number.isFinite(previousValue))
+      pValue = previousValue.toFixed(digits);
   }
 
   let trendIcon = "";
   if(componentService.getElementBooleanValue(elem, "useTrendIcon")) {
-    let previousValues = componentService.arrayMap<number>(elem.previousReportsAsc, "value");
+    let previousValues = (elem.previousReportsAsc ?? [])
+      .map(report => componentService.getElementNumericValue({ ...elem, report }))
+      .filter(Number.isFinite);
     if(previousValues != null)
       trendIcon = getTrendIcon(previousValues);
   }
 
-  numValue.value = {value: numericValue.toFixed(digits), prevValue: pValue, updated: lastUpdated, unit: unit, trendIcon: trendIcon};
+  numValue.value = {value: Number.isFinite(numericValue) ? numericValue.toFixed(digits) : "-", prevValue: pValue, updated: lastUpdated, unit: unit, trendIcon: trendIcon};
 }
 
 function getTrendIcon(previousValues: any[]) :string {

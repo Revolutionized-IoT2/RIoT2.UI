@@ -39,14 +39,16 @@ const props = defineProps<{
 const componentService = useComponentService();
 const chartdata = ref({labels: [''], datasets: [{label: '', backgroundColor: [''], data: [0]}],  updated: new Date(8640000000000000)});
 
-watch(props.data.elements, () => {
+watch(() => props.data.elements, () => {
   updateComponent();
-});
+}, { immediate: true, deep: true });
 
 function updateComponent() {
   
-  if(props.data.elements[0].report == undefined)
+  if(props.data.elements[0]?.report == undefined) {
+    chartdata.value = { labels: [], datasets: [], updated: new Date(8640000000000000) };
     return;
+  }
 
   let timeStamp = componentService.timeStampToDate(props.data.elements[0].report.timeStamp);
   let ds: {label: string, backgroundColor: string[], data: number[]}[] = [];
@@ -78,7 +80,7 @@ function updateComponent() {
         if(i == 0) {
           let valueLabel = componentService.getElementProperty(currentElement, "label");
           if(currentElement.previousReportsAsc != undefined) {
-            if(valueLabel != undefined) {
+            if(valueLabel) {
               let labels = componentService.arrayMap<string>(currentElement.previousReportsAsc, "value." + valueLabel);
               if(labels != null)
                 lbls = labels;

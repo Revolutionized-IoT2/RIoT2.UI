@@ -10,6 +10,7 @@ import { computed, inject, reactive, ref, watch } from 'vue';
 import { useOrchestrator } from '@/composables/orchestratorService';
 import { Report } from '@/models/report';
 import type { ITemplate } from '@/models/itemplate';
+import { v4 as uuidv4 } from 'uuid';
 
 const props = defineProps<{
   data: Component
@@ -58,7 +59,7 @@ function saveElement() {
   let idx = props.data.elements.findIndex(x => x.id == selectedEditElement.value.id);
 
   if(idx == -1) {
-    selectedEditElement.value.id = (props.data.elements.length + 1).toString();
+    selectedEditElement.value.id = uuidv4();
     props.data.elements.push(selectedEditElement.value);
   } else {
     props.data.elements[idx] = selectedEditElement.value;
@@ -171,7 +172,7 @@ const commandTemplateItems = computed<ITemplate[]>(() => {
       <v-item-group multiple :model-value="componentElements">
         <v-container>
           <v-row class="mb-3" justify="start">
-            <template v-for="elem, i in data.elements" :key="elem.name">
+            <template v-for="elem, i in data.elements" :key="elem.id">
             <v-col cols="auto" >
               <v-item v-slot="{ toggle }" :value="elem">
                 <v-card color="green-lighten-5" class="d-flex align-center" 

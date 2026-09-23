@@ -8,6 +8,9 @@ import { Constants } from '@/models/constants';
 import { useErrorStore } from '@/stores/errorStore';
 import { mqttServer, mqttUser, mqttPassword } from '@/app.config';
 
+const initialReconnectPeriod = 4000;
+const maximumReconnectPeriod = 30000;
+
 let connection = {
     protocol: "ws",
     host: mqttServer,
@@ -16,7 +19,7 @@ let connection = {
     endpoint: "/",
     clean: true,
     connectTimeout: 30000, // ms
-    reconnectPeriod: 4000, // ms
+    reconnectPeriod: initialReconnectPeriod,
     clientId: "",
     // auth
     username: mqttUser,
@@ -40,7 +43,8 @@ export function useMqtt(id: string): IMqttService {
   let client: MqttClient;
   let subscribeSuccess: boolean = false;
   let connecting: boolean = false;
-  let retryTimes: number = 0;
+  let reconnectPeriod = initialReconnectPeriod;
+  let stopped = true;
   const status: Ref<boolean> = ref(false);
 
   function handleError(msg: string) {
@@ -51,40 +55,44 @@ export function useMqtt(id: string): IMqttService {
   }
 
   function initData() {
-    client.connected = false;
-    retryTimes = 0;
+    status.value = false;
+    reconnectPeriod = initialReconnectPeriod;
     connecting = false;
     subscribeSuccess = false;
   }
 
   function handleOnReConnect() {
-      retryTimes += 1;
-      if (retryTimes > 5) {
-        try {
-          client.end();
-          initData();
-          //$message.error("Connection maxReconnectTimes limit, stop retry");
-        } catch (error) {
-          //this.$message.error(error.toString());
-        }
-      }
+      if (stopped)
+        return;
+      status.value = false;
+      // MQTT.js clears its timer when this attempt starts; the next outage
+      // timer uses the updated delay without disabling automatic resubscription.
+      reconnectPeriod = Math.min(reconnectPeriod * 2, maximumReconnectPeriod);
+      client.options.reconnectPeriod = reconnectPeriod;
   }
 
   function createConnection(callback: (topic: string, message: string) => void) {
       try {
           connecting = true;
+          stopped = false;
+          reconnectPeriod = initialReconnectPeriod;
           status.value = false;
           const { protocol, host, port, endpoint, ...options } = connection;
           const connectUrl = `${protocol}://${host}:${port}${endpoint}`;
           client = mqtt.connect(connectUrl, options);
         
           client.on("connect", () => {
+              if (stopped)
+                return;
+              reconnectPeriod = initialReconnectPeriod;
+              client.options.reconnectPeriod = initialReconnectPeriod;
               connecting = false;
               console.log("Connection succeeded: " + client.connected);
               status.value = client.connected;
           });
 
           client.on("reconnect", handleOnReConnect);
+          client.on("close", () => { status.value = false; });
           client.on("error", (error) => {
             handleError(error.message);
           });
@@ -127,9 +135,11 @@ export function useMqtt(id: string): IMqttService {
   }
 
   function disConnect() {
-      if (client.connected) {
+      stopped = true;
+      status.value = false;
+      if (client) {
         try {
-          client.end(false, () => {
+          client.end(!client.connected, () => {
             initData()
             console.log('Successfully disconnected!')
           })

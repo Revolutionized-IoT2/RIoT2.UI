@@ -23,9 +23,12 @@ npm run dev        # Start Vite dev server (--force)
 npm run build       # Type-check (vue-tsc) then production build
 npm run preview      # Preview production build on port 5050
 npm run typecheck     # Type-check only, no emit (vue-tsc --noEmit)
+npm test              # Offline regressions using the existing Node/Vue/TypeScript tooling
 ```
 
-There is no configured lint or test script currently — verify with `npm run typecheck` and `npm run build` before considering a change complete.
+There is no configured lint script. Run `npm test`, `npm run typecheck`, and
+`npm run build` before considering a change complete. The tests use real Vue
+reactivity and source code with stubbed network dependencies; no live services are required.
 
 ## Environment configuration
 

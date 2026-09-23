@@ -52,9 +52,23 @@ npm run dev        # Start Vite dev server (--force)
 npm run build       # Type-check (vue-tsc) then production build
 npm run preview      # Preview production build on port 5050
 npm run typecheck     # Type-check only, no emit (vue-tsc --noEmit)
+npm test              # Offline client regressions (Node test runner + existing Vue/TypeScript)
 ```
 
-There is no configured lint or test script currently — verify with `npm run typecheck` and `npm run build` before considering a change complete.
+There is no configured lint script. Verify changes with `npm test`, `npm run typecheck`,
+and `npm run build`. Tests execute the actual component setup/service code with Vue
+reactivity and stubbed external dependencies; they do not contact MQTT or HTTP services
+and are not browser end-to-end tests.
+
+Regression coverage includes numeric/entity history values, initial and replaced chart
+history, unique stable IDs when deleting/adding dashboard pages/components/elements,
+two-way report-history settings, and MQTT reconnect recovery.
+
+MQTT continues reconnecting until the client is explicitly disconnected. The first
+retry waits 4 seconds; successive retry delays grow to 8, 16, then a maximum of
+30 seconds. Successful connections reset the delay to 4 seconds. MQTT.js retains
+automatic subscription recovery; explicit disconnect also terminates an offline
+client rather than waiting indefinitely for queued traffic.
 
 ## Environment configuration
 

@@ -14,6 +14,7 @@
   import ContextMenu from '@/components/ContextMenuComponent.vue';
   import Component from '@/models/component';
   import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
+  import { v4 as uuidv4 } from 'uuid';
 
   const contextMenuItems = computed(() => [
         { text: "save dashboard", action: "save", disabled: !isDirty.value, icon: "save" },
@@ -206,7 +207,7 @@ function savePage() {
   let idx = dashboardConfiguration.value.pages.findIndex(x => x.id == editPage.value.id);
 
   if(idx == -1) {
-    editPage.value.id = (dashboardConfiguration.value.pages.length + 1).toString();
+    editPage.value.id = uuidv4();
     dashboardConfiguration.value.pages.push(editPage.value);
   } else {
     dashboardConfiguration.value.pages[idx].name = editPage.value.name,
@@ -224,6 +225,7 @@ function deletePage() {
   if(dashboardConfiguration.value.pages.length > 1) 
     dashboardConfiguration.value.pages.splice(selectedPage.value, 1);
 
+  selectedPage.value = Math.min(selectedPage.value, dashboardConfiguration.value.pages.length - 1);
   editPageDialog.value = false;
 }
 
@@ -283,7 +285,7 @@ function saveComponent() {
     targetComponent.size = editComponent.value.size;
     targetComponent.type = editComponent.value.type;
   } else {
-    editComponent.value.id = (dashboardConfiguration.value.pages[selectedPage.value].components.length + 1).toString();
+    editComponent.value.id = uuidv4();
     dashboardConfiguration.value.pages[selectedPage.value].components.push(editComponent.value);
   }
 
@@ -338,10 +340,10 @@ onBeforeRouteLeave(() => {
     <ContextMenu v-if="editMode" :items="contextMenuItems" @click="contextMenuAction" />
   <!--<v-avatar class="mqtt-status" size="16" :color="mqttService.status.value?'green':'red'"></v-avatar>-->
   <v-window v-model="selectedPage" :touch="false">
-    <v-window-item v-for="page in dashboardConfiguration?.pages">
+    <v-window-item v-for="page in dashboardConfiguration?.pages" :key="page.id">
       <v-container :class="editMode?'mt-9' : 'mt-1'" fluid>
         <v-row class="mb-9">
-          <template v-for="comp in page.components" :key="comp.name">
+          <template v-for="comp in page.components" :key="comp.id">
             <v-col cols="12" sm="12" :md="getMdSize(comp.size)" :lg="getLgSize(comp.size)" class="d-flex" style="flex-direction:column">
               <DashboardComponent :data="comp" :editMode="editMode" @editComponent="editComponentAction" @deleteComponent="deleteComponent" />
             </v-col>
@@ -378,7 +380,7 @@ onBeforeRouteLeave(() => {
 
   <v-bottom-navigation class="fixedBottomBar" height="60" fixed v-if="dashboardConfiguration != null && dashboardConfiguration?.pages?.length > 1" v-model="selectedPage">
     <v-slide-group show-arrows>
-      <v-slide-group-item v-for="page, i in dashboardConfiguration?.pages" :key="page.name + i" v-slot="{ isSelected, toggle }">
+      <v-slide-group-item v-for="page, i in dashboardConfiguration?.pages" :key="page.id" v-slot="{ isSelected, toggle }">
         <v-btn class="navBtn" :color="isSelected ? undefined : 'blue'" @click="changePage(i)">
           <v-icon v-if="page.icon != null">{{page.icon}}</v-icon>
           {{page.name}}
