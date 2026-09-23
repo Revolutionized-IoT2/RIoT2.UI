@@ -33,6 +33,14 @@ export const Constants = {
     urlGetNodesOnline: "/api/nodes/online",
     urlSaveDashboard: "/api/dashboard/configuration",
 
+    urlGetMatterStatus: "/api/matter/status",
+    urlGetMatterConfiguration: "/api/matter/configuration",
+    urlSaveMatterConfiguration: "/api/matter/configuration",
+    urlGetMatterQr: "/api/matter/qr",
+    urlOpenMatterCommissioning: "/api/matter/commissioning/open",
+    urlRefreshMatterDevices: "/api/matter/devices/refresh",
+    urlResetMatter: "/api/matter/reset",
+
     topicReport: "riot2/node/+/report",
     topicCommand: "riot2/node/{id}/command",
     topicConfigure: "riot2/node/{id}/configuration",

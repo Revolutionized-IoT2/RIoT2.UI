@@ -6,6 +6,7 @@
       <v-list-item prepend-icon="fact_check" title="Rules" :href="rulesLink" :disabled="rulesLink == undefined" target="_blank"
                   :subtitle="(rulesLinkSubtitle != undefined)?rulesLinkSubtitle:''"></v-list-item>
       <v-list-item prepend-icon="functions" title="Varibles" to="/variables"></v-list-item>
+      <v-list-item prepend-icon="hub" title="Matter" to="/matter"></v-list-item>
       <v-list-item prepend-icon="dashboard" title="Dashboard" to="/dash"></v-list-item>
     </v-list>
   </v-navigation-drawer>

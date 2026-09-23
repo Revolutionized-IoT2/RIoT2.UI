@@ -48,6 +48,21 @@ const router = createRouter({
       ],
     },
     {
+      path: '/matter',
+      name: 'matter',
+      component: () => import('@/layout/Default.vue'),
+      meta: {
+        //requiresAuth: true
+      },
+      children: [
+        {
+          path: '',
+          name: 'Matter bridge',
+          component: () => import('@/views/MatterView.vue'),
+        },
+      ],
+    },
+    {
       path: '/rules',
       name: 'rules',
       component: () => import('@/layout/Default.vue'),
