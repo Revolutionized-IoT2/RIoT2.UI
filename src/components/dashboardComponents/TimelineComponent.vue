@@ -21,7 +21,7 @@ const resolution = ref<Resolution>(Resolution.minute);
 const values = ref<number[]>([0,0,0,0,0,0,0,0,0,0,0,0]);
 const timerId = ref<any>(null);
 
-watch(props.data.elements[0], () => {
+watch(() => props.data.elements[0], () => {
   update();
 
 },  { immediate: false, deep: true });

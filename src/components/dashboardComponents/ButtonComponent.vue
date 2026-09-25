@@ -65,9 +65,9 @@ function isElementSelected(elem: IComponentElement): boolean {
   return selectedButtonIds.includes(elem.id);
 }
 
-watch(props.data.elements, () => {
+watch(() => props.data.elements, () => {
   updateButtonStates();
-},  { immediate: true })
+},  { immediate: true, deep: true })
 
 function updateButtonStates() { 
   for(let e of props.data.elements) {
@@ -87,7 +87,7 @@ function getStateFromReport(elem: IComponentElement): boolean {
     if(elem.reportTemplate.type == ValueType.Boolean) {
       return componentService.getElementBooleanValue(elem);
     } 
-    return componentService.areEqual(componentService.getElementPropertyValue(elem, "onValue"), elem.report);
+    return componentService.areEqual(componentService.getElementPropertyValue(elem, "onValue"), elem.report.value);
 }
 
 function setElementState(toState: boolean, element: IComponentElement) {

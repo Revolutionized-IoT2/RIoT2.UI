@@ -23,8 +23,8 @@ export function useVariableApi() {
   }
 
   async function setVariableValue(command: Command, callback:(data: void | null) => void, completed?:()=> void): Promise<void> {
-    const url = orchestratorStore.baseUrl + Constants.urlGetVariableValue.replace('{id}', encodeURIComponent(command.id));
-    const variable = await httpClient.get<Variable>(url);
+    const variables = await httpClient.get<Variable[]>(orchestratorStore.baseUrl + Constants.urlGetVariables);
+    const variable = variables?.find(v => v.id === command.id);
     if (variable == null) {
       callback(null);
       completed?.();

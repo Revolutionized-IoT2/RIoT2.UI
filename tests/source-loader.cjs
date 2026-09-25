@@ -29,8 +29,10 @@ function loadSource(relativePath, { props = {}, model, expose = [], mocks = {} }
       exports,
       console,
       defineProps: () => props,
+      withDefaults: (definedProps, defaults) => ({ ...defaults, ...definedProps }),
       defineModel: options => model ?? vue.ref(options.default),
       defineEmits: () => () => {},
+      defineExpose() {},
       require(specifier) {
         if (specifier in overrides) return overrides[specifier];
         if (specifier.endsWith('.vue')) return {};

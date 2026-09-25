@@ -145,6 +145,9 @@ export function useComponentService() {
     }
 
     function areEqual(object1: any, object2: any) {
+      if (!isObject(object1) || !isObject(object2))
+        return Object.is(object1, object2);
+
       const keys1 = Object.keys(object1);
       const keys2 = Object.keys(object2);
       if (keys1.length !== keys2.length) {

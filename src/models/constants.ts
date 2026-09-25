@@ -11,7 +11,6 @@ export const Constants = {
     urlSaveNodeConfiguration: "/api/nodes/configuration",
     urlGetVariableTemplates: "/api/nodes/variable/templates",
     urlGetVariables: "/api/nodes/variables",
-    urlGetVariableValue: "/api/variable/{id}/value",
     urlSaveVariable: "/api/nodes/variable/save",
     urlDeleteVariable: "/api/nodes/variable/{id}/delete",
     urlGetNodeDeviceTemplates: "/api/nodes/{id}/device/templates",

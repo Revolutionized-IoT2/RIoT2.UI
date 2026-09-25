@@ -107,6 +107,10 @@ export function useMqtt(id: string): IMqttService {
   }
 
   function doSubscribe(topic: string) {
+      if (!client) {
+        handleError("Could not subscribe before MQTT connection was created: " + topic);
+        return;
+      }
       client.subscribe(topic, (error, res) => {
         if (error) {
           handleError("Could not subscribe to topic: " + topic);
@@ -119,6 +123,8 @@ export function useMqtt(id: string): IMqttService {
   }
 
   function doUnSubscribe(topic: string) {
+      if (!client)
+        return;
       client.unsubscribe(topic, undefined, error => {
         if (error) {
           handleError("Could not un-subscribe to topic: " + topic);
@@ -127,6 +133,10 @@ export function useMqtt(id: string): IMqttService {
   }
 
   function doPublish(topic: string, message: string) {
+      if (!client) {
+        handleError("Could not publish before MQTT connection was created: " + topic);
+        return;
+      }
       client.publish(topic, message, error => {
         if (error) {
           handleError("Could not publish to topic: " + topic);

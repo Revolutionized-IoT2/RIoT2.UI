@@ -21,9 +21,9 @@ const state1_off = ref<{ icon: string, color: string, name: string } | undefined
 const state2_on = ref<{ icon: string, color: string, name: string } | undefined>(undefined);
 const state2_off = ref<{ icon: string, color: string, name: string } | undefined>(undefined);
 
-watch(props.data.elements, () => {
+watch(() => props.data.elements, () => {
   updateComponent();
-},  { immediate: false });
+},  { immediate: false, deep: true });
 
 function updateComponent() { 
 

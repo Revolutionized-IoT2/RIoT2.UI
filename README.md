@@ -25,8 +25,8 @@ retired, along with calls to `/api/rules` and `/api/nodes/function/templates`.
 Dashboard controls, report/command templates, and system variables still use the
 orchestrator's node, dashboard, command, and variable APIs. Dashboard device
 commands use `POST /api/command/execute` with `{ id, value }`; variable actions
-first read `GET /api/variable/{id}/value`, then update the value via
-`POST /api/nodes/variable/save`, preserving the variable's metadata.
+read `GET /api/nodes/variables`, select the matching variable by id, then update
+the value via `POST /api/nodes/variable/save`, preserving the variable's metadata.
 The retired typed `/api/nodes/command/{operation}`
 endpoint and `OutputOperation` enum are no longer used.
 
@@ -62,7 +62,8 @@ and are not browser end-to-end tests.
 
 Regression coverage includes numeric/entity history values, initial and replaced chart
 history, unique stable IDs when deleting/adding dashboard pages/components/elements,
-two-way report-history settings, and MQTT reconnect recovery.
+two-way report-history settings, variable command updates, dashboard button state
+comparison, data-model type detection, and MQTT reconnect recovery.
 
 MQTT continues reconnecting until the client is explicitly disconnected. The first
 retry waits 4 seconds; successive retry delays grow to 8, 16, then a maximum of
@@ -79,10 +80,12 @@ Runtime config is read from Vite env vars (see `env.d.ts` and `src/app.config.ts
 - `VITE_MQTT_PASSWORD`
 
 These are consumed via `import.meta.env` and re-exported from `src/app.config.ts`.
+Do not commit real broker credentials to `.env`; use local overrides or deployment
+secrets. The committed `.env` and `.env.production` contain safe placeholders only.
 
 ## Deployment
 
-`Dockerfile`, `nginx.conf`, and `entrypoint.sh` build and serve the app via Nginx in a container. `entrypoint.sh` injects runtime env vars at container startup.
+`Dockerfile`, `nginx.conf`, and `entrypoint.sh` build and serve the app via Nginx in a container. The image build uses `npm ci`; the runtime stage serves `dist/` from Nginx and includes a `wget` health check on `http://localhost/`. `entrypoint.sh` keeps pristine copies of generated `assets/index*.js*` files outside the served asset names, renders from those templates on every container start, replaces `VITE_MQTT_SERVER`, `VITE_MQTT_USER`, and `VITE_MQTT_PASSWORD` safely for shell/sed special characters, and warns when a value is empty without logging secret values. `nginx.conf` enables gzip for text assets, no-cache for the SPA shell and for the runtime-substituted `assets/index*.js` bundles (so changed MQTT settings reach browsers after a restart), immutable caching for all other hashed `/assets/` files, and basic security headers on every location. A CSP is intentionally left as a commented example because `connect-src` must allow the orchestrator API and MQTT `ws:/wss:` endpoints before enabling it.
 
 ## Recommended IDE Setup
 

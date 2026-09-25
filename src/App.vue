@@ -82,8 +82,8 @@ onMounted(() => {
     mqttService.subscribe(configureDashboardTopic);
     console.log(`the component is now mounted.`);
     
-    var x = navigator.product??"Dasboard"
-    mqttService.sendMessage(dashboardOnlineTopic, '{ "IsOnline": true, "Name": "'+x+'", "NodeType": 2 }'); //TODO check required content -> this will indicate that dashboard is online!
+    const productName = navigator.product ?? "Dashboard";
+    mqttService.sendMessage(dashboardOnlineTopic, JSON.stringify({ IsOnline: true, Name: productName, NodeType: 2 })); //TODO check required content -> this will indicate that dashboard is online!
     //orchestratorService.loadDashboard("for debugging");
     //console.log(dashboardConfiguration.value);
 });
@@ -106,17 +106,17 @@ function toCamelCase(key: string, value: any) {
 
 function mqttMessageReceived(topic: string, message: string) {
     //var decoded = new TextDecoder("utf-8").decode(message);
-    if(topic == configureDashboardTopic) {
-      let configurationCmd: ConfigurationCommand = JSON.parse(message, toCamelCase);
-      orchestratorStore.baseUrl = configurationCmd.apiBaseUrl;
-      loadTemplates();
-    } else { 
-        try {
+    try {
+      if(topic == configureDashboardTopic) {
+        let configurationCmd: ConfigurationCommand = JSON.parse(message, toCamelCase);
+        orchestratorStore.baseUrl = configurationCmd.apiBaseUrl;
+        loadTemplates();
+      } else { 
           emitter.emit("mqttReportReceived", new Report(JSON.parse(message, toCamelCase)));
-      } catch(e) {
-        if(errorHandler.setError != undefined)
-          errorHandler.setError(new AppError("Could not parse incoming report", "", "", message));
       }
+    } catch(e) {
+      if(errorHandler.setError != undefined)
+        errorHandler.setError(new AppError("Could not parse incoming MQTT message", "", "", message));
     }
   }
 

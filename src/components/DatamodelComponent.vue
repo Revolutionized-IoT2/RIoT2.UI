@@ -46,11 +46,11 @@ function convertToType(val: any, type: ValueType): any {
 
 function getValueType(val: any): ValueType {
 
-    if(typeof val === 'object')
-        return ValueType.Entity;
-
     if(Array.isArray(val))
         return ValueType.TextArray;
+
+    if(typeof val === 'object')
+        return ValueType.Entity;
 
     if (typeof val == "boolean") return ValueType.Boolean;
     if (typeof val == "number") return ValueType.Number;

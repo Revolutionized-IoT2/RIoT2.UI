@@ -36,6 +36,9 @@ Runtime config is read from Vite env vars (see `env.d.ts` and `src/app.config.ts
 - `VITE_MQTT_SERVER`, `VITE_MQTT_USER`, `VITE_MQTT_PASSWORD`
 
 These are consumed via `import.meta.env` and re-exported from `src/app.config.ts`.
+Do not commit real broker credentials to `.env`; the checked-in env files should
+contain placeholders only. Container startup performs string replacement for the
+three MQTT values in the generated JS.
 
 ## Architecture
 
@@ -60,7 +63,7 @@ These are consumed via `import.meta.env` and re-exported from `src/app.config.ts
 
 - Elsa 3 owns workflow authoring and execution. Do not reintroduce the retired internal rule editor, simulator, `/rules` routes, `/api/rules` helpers, or function-template loading.
 - `src/layout/AppBar.vue` discovers the workflow node through `GET /api/nodes/online`, using `NodeType.workflow` (`3`) and its `nodeBaseUrl` for the external **Rules** link. Preserve this discovery contract.
-- Dashboard controls and variables are independent of the retired engine. Preserve their report/command/variable templates and APIs. Device commands use `POST /api/command/execute` with `{ id, value }`; variable actions read `GET /api/variable/{id}/value` and post the full DTO to `/api/nodes/variable/save`, changing only its value. Do not restore the retired typed command endpoint or `OutputOperation` enum.
+- Dashboard controls and variables are independent of the retired engine. Preserve their report/command/variable templates and APIs. Device commands use `POST /api/command/execute` with `{ id, value }`; variable actions read `GET /api/nodes/variables`, find the matching variable by id, and post the full DTO to `/api/nodes/variable/save`, changing only its value. Do not restore the retired typed command endpoint or `OutputOperation` enum.
 
 ## Conventions
 
@@ -71,4 +74,4 @@ These are consumed via `import.meta.env` and re-exported from `src/app.config.ts
 
 ## Deployment
 
-- `Dockerfile`, `nginx.conf`, and `entrypoint.sh` build and serve the app via Nginx in a container. `entrypoint.sh` likely injects runtime env vars at container startup — check it before assuming env vars are build-time only.
+- `Dockerfile`, `nginx.conf`, and `entrypoint.sh` build and serve the app via Nginx in a container. `entrypoint.sh` injects runtime MQTT env vars at container startup and intentionally avoids printing secret values.

@@ -248,9 +248,7 @@ function getCronTooltipText() {
   if(cronValidationResult.value == null)
     return "";
   
-  let tip = cronValidationResult.value.summary
-  tip?.replace("\n", "<br>");
-  return tip;
+  return cronValidationResult.value.summary?.replace(/\r?\n/g, '\n') ?? "";
 }
 
 const titleState = computed(()=> {
@@ -291,7 +289,7 @@ onMounted(() => {
                   <template v-slot:activator="{ props }">
                     <v-icon :color="(cronValidationResult.isValid ? 'primary':'error')" :icon="(cronValidationResult.isValid ? 'check':'error')" />
                   </template>
-                  <span v-html="getCronTooltipText()"></span>
+                  <span class="cron-tooltip">{{ getCronTooltipText() }}</span>
                 </v-tooltip>
               </template>
               <template v-slot:loader>
@@ -554,5 +552,7 @@ onMounted(() => {
 
 <!--component styles-->
 <style scoped>
-
+.cron-tooltip {
+  white-space: pre-line;
+}
 </style>

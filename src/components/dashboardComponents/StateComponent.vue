@@ -14,11 +14,11 @@ const currentState = ref<{value: number, icon: string, color: string, name: stri
 const timerExpirationTime = 720000; // 12mins
 const timerStepInMillis = 1000;
 const elapsedTime = ref(0);
-var timer: any = null;
+let timer: ReturnType<typeof setInterval> | null = null;
 
-watch(props.data.elements, () => {
+watch(() => props.data.elements, () => {
   updateComponent();
-},  { immediate: false });
+},  { immediate: false, deep: true });
 
 const isTimerExpirated = ref(false);
 
@@ -53,8 +53,10 @@ function timerStep() {
 }
 
 function stopTimer() {
-  if(timer != null)
+  if(timer != null) {
       clearInterval(timer);
+      timer = null;
+  }
 
   elapsedTime.value = 0;
 }

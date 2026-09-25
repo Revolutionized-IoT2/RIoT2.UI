@@ -3,8 +3,7 @@ import { useComponentService } from '@/composables/componentService';
 import type Component from '@/models/component';
 import { ComponentElement } from '@/models/componentElement';
 import { ValueType } from '@/models/enums';
-import { reactive, ref } from '@vue/reactivity';
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 import FooterComponent from './FooterComponent.vue';
 
 const props = defineProps<{
@@ -15,11 +14,11 @@ const componentService = useComponentService();
 const image = ref({url: ["/default.jpg"], updated: new Date(8640000000000000)})
 const selectedImage = ref<number>(0);
 
-watch(props.data.elements, () => {
+watch(() => props.data.elements, () => {
   selectedImage.value = 0;
   updateImage();
 
-},  { immediate: true })
+},  { immediate: true, deep: true })
 
 function updateImage() {
 

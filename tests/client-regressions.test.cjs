@@ -140,6 +140,75 @@ test('report history switch writes both true and false to the saved model', () =
   assert.equal(plain(model).maintainHistory, false);
 });
 
+test('datamodel classifies arrays before generic objects', t => {
+  const widget = loadSource('src/components/DatamodelComponent.vue', { expose: ['getValueType'] });
+  t.after(widget.dispose);
+  assert.equal(widget.state.getValueType(['a', 'b']), ValueType.TextArray);
+  assert.equal(widget.state.getValueType({ a: 1 }), ValueType.Entity);
+});
+
+test('component equality handles primitive command values exactly', () => {
+  const { useComponentService } = loadSource('src/composables/componentService.ts');
+  const service = useComponentService();
+  assert.equal(service.areEqual(1, 1), true);
+  assert.equal(service.areEqual(1, 2), false);
+  assert.equal(service.areEqual('on', 'on'), true);
+  assert.equal(service.areEqual('on', 'off'), false);
+  assert.equal(service.areEqual({ red: 1 }, { red: 1 }), true);
+});
+
+test('button state compares configured onValue with report value', t => {
+  const props = vue.reactive({ data: { type: 0, elements: [] } });
+  const widget = loadSource('src/components/dashboardComponents/ButtonComponent.vue', {
+    props,
+    expose: ['getStateFromReport'],
+    mocks: { '@/composables/orchestratorService': { useOrchestrator: () => ({ executeCommand() {}, setVariableValue() {} }) } },
+  });
+  t.after(widget.dispose);
+  assert.equal(widget.state.getStateFromReport({
+    reportTemplate: { type: ValueType.Text },
+    report: { value: 'armed' },
+    properties: { onValue: 'armed' },
+  }), true);
+  assert.equal(widget.state.getStateFromReport({
+    reportTemplate: { type: ValueType.Number },
+    report: { value: 1 },
+    properties: { onValue: 2 },
+  }), false);
+});
+
+test('variable command update uses existing orchestrator endpoints', async t => {
+  const calls = [];
+  const httpClient = {
+    async get(url) {
+      calls.push(['get', url]);
+      return [{ id: 'var-1', name: 'Variable', value: false }];
+    },
+    async post(url, data) {
+      calls.push(['post', url, data]);
+      return null;
+    },
+  };
+  const module = loadSource('src/composables/api/variableApi.ts', {
+    mocks: {
+      '@/stores/orchestratorStore': { useOrchestratorStore: () => ({ baseUrl: 'https://api.example' }) },
+      '@/composables/httpClientService': {
+        useHttpClient: () => httpClient,
+        withCallback: async (request, callback, completed) => { callback(await request); completed?.(); },
+      },
+    },
+  });
+  t.after(module.dispose);
+  const api = module.useVariableApi();
+  let completed = false;
+  await api.setVariableValue({ id: 'var-1', value: true }, () => {}, () => { completed = true; });
+  assert.equal(completed, true);
+  assert.deepEqual(calls[0], ['get', 'https://api.example/api/nodes/variables']);
+  assert.equal(calls[1][0], 'post');
+  assert.equal(calls[1][1], 'https://api.example/api/nodes/variable/save');
+  assert.deepEqual(plain(calls[1][2]), { id: 'var-1', name: 'Variable', value: true });
+});
+
 function mqttFixture(t) {
   const handlers = {};
   const errors = [];
