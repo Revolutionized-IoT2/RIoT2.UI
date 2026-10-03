@@ -1,92 +1,126 @@
 # RIoT2.UI
 
-RIoT2.UI is the web frontend for **RIoT2**, an IoT orchestration/automation system. It provides:
+Vue 3 web dashboard for the [RIoT2](https://github.com/Revolutionized-IoT2) IoT platform. It is
+served as a static single-page app by nginx and talks to the orchestrator REST API plus MQTT over
+WebSockets.
 
-- A dashboard for visualizing device data (charts, numeric values, switches, state, timeline, etc.)
-- Node management/configuration for connected devices
-- A link to Elsa 3 for authoring and running automation workflows
-- Real-time device communication over MQTT and an HTTP orchestrator API
+- Type: Vue 3 + TypeScript + Vite + Vuetify application
+- Runtime: nginx container, port 80
+- MQTT transport: MQTT.js over `ws://<VITE_MQTT_SERVER>:9001/`
 
-Built with Vue 3 (Composition API), TypeScript, Vite, Vuetify 3, Pinia, and Vue Router.
+How this UI fits into the platform: [architecture overview](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/architecture/overview.md).
 
-## Backend
+## What it does
 
-The backend for this UI is located at: https://github.com/Revolutionized-IoT2/RIoT2.Net.Orchestrator
+- Shows dashboards with charts, numeric values, switches, states, images, timelines and buttons.
+- Manages nodes, device configuration, variables and Matter bridge settings through the
+  orchestrator API.
+- Opens the external Elsa Studio workflow node from the navigation drawer.
+- Subscribes to live report messages over MQTT and sends dashboard-node presence on page load.
+
+## Run locally
+
+From the repository root (`C:\Src\RIoT2\RIoT2.UI`):
+
+```powershell
+npm install
+npm run dev
+```
+
+`npm run dev` starts Vite with `--force`. The app still needs a reachable MQTT WebSocket listener
+and an orchestrator configuration message before it leaves the initial "Connecting..." screen.
+
+## Build, test and preview
+
+```powershell
+npm test
+npm run typecheck
+npm run build
+npm run preview
+```
+
+- `npm test` runs offline Node.js regression tests from `tests/*.test.cjs`.
+- `npm run typecheck` runs `vue-tsc --noEmit`.
+- `npm run build` runs `vue-tsc --noEmit` and `vite build`.
+- `npm run preview` serves the production build on port 5050.
+
+There is no configured lint script.
+
+## Configuration
+
+The browser-side MQTT settings are Vite variables read by `src/app.config.ts`:
+
+| Variable | Purpose |
+|---|---|
+| `VITE_MQTT_SERVER` | Broker host name or IP for the browser. The port is fixed in code at 9001. |
+| `VITE_MQTT_USER` | Optional MQTT user name. |
+| `VITE_MQTT_PASSWORD` | Optional MQTT password. |
+
+Do not commit real broker credentials. These values are visible to anyone who can load the UI.
+The platform source of truth for environment variables and ports is
+[env-vars.md](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/env-vars.md).
+
+## Container deployment
+
+`Dockerfile` builds the app with `npm ci` and serves `dist/` from nginx on port 80. At container
+startup, `entrypoint.sh` renders `VITE_MQTT_SERVER`, `VITE_MQTT_USER` and `VITE_MQTT_PASSWORD` into
+the built JavaScript from pristine template copies, so a container restart is enough to change
+MQTT settings.
+
+Example:
+
+```powershell
+docker build -t riot2-ui:local .
+docker run --rm -p 8081:80 -e VITE_MQTT_SERVER=<broker-host> -e VITE_MQTT_USER=<mqtt-user> -e VITE_MQTT_PASSWORD=<mqtt-password> riot2-ui:local
+```
+
+`nginx.conf` disables caching for the SPA shell and runtime-substituted `assets/index*.js` bundles,
+uses immutable caching for other hashed assets, and leaves Content Security Policy as a commented
+example because `connect-src` must match the orchestrator API and MQTT `ws:` / `wss:` endpoints.
+
+## Contracts and APIs
+
+This repository consumes the hub contracts instead of copying them:
+
+- [MQTT topics and payloads](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/mqtt-topics.md)
+- [HTTP and gRPC APIs](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/http-api.md)
+- [Environment variables, ports, volumes and images](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/env-vars.md)
+
+Important implementation files:
+
+| Path | Purpose |
+|---|---|
+| `src/App.vue` | Creates the dashboard MQTT client id, subscribes, announces online and waits for configuration. |
+| `src/composables/mqttService.ts` | MQTT.js connection, reconnect backoff, subscriptions and publishing. |
+| `src/composables/orchestratorService.ts` | Higher-level orchestrator REST calls. |
+| `src/composables/api/` | Dashboard, node, Matter, command/report and variable API helpers. |
+| `src/models/constants.ts` | REST routes and MQTT topic templates used by the UI. |
+| `src/layout/AppBar.vue` | Navigation drawer and external Elsa Studio link. |
 
 ## Workflows
 
-Automation is managed by the external Elsa 3 workflow service, not an internal UI rule editor.
-The **Rules** navigation item opens the `nodeBaseUrl` of the online workflow node
-(`nodeType: 3`) returned by the orchestrator's `GET /api/nodes/online` endpoint.
-If no workflow node is discovered, the link is disabled.
+Automation is handled by [RIoT2.Elsa](https://github.com/Revolutionized-IoT2/RIoT2.Elsa), not by
+an internal UI rule editor. The navigation drawer still labels the Elsa Studio link as **Rules** in
+the current code, but it opens the `nodeBaseUrl` of the online workflow node (`nodeType` 3) returned
+by `GET /api/nodes/online`.
 
-The legacy `/rules`, `/rules/editor/:id?`, and `/rules/simulate/:id?` pages have been
-retired, along with calls to `/api/rules` and `/api/nodes/function/templates`.
-Dashboard controls, report/command templates, and system variables still use the
-orchestrator's node, dashboard, command, and variable APIs. Dashboard device
-commands use `POST /api/command/execute` with `{ id, value }`; variable actions
-read `GET /api/nodes/variables`, select the matching variable by id, then update
-the value via `POST /api/nodes/variable/save`, preserving the variable's metadata.
-The retired typed `/api/nodes/command/{operation}`
-endpoint and `OutputOperation` enum are no longer used.
+Legacy `/rules`, `/rules/editor/:id?`, `/rules/simulate/:id?`, `/api/rules` and
+`/api/nodes/function/templates` paths are retired. Dashboard controls and variables use the
+orchestrator node, dashboard, command and variable APIs.
 
-## Prerequisites
+## Releases
 
-- Node.js and npm
+- Release notes are in [CHANGELOG.md](CHANGELOG.md).
+- Pushing a `*.*.*` tag runs `.github/workflows/main.yml`, which builds and pushes
+  `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`.
 
-## Setup
+## Contributing
 
-```bash
-npm install
-```
+- Instructions for AI coding agents: [AGENTS.md](AGENTS.md).
+- Platform documentation: [.github/docs](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/README.md).
+- UI screenshots used by the organization profile are regenerated from
+  [tools/ui-screenshots](https://github.com/Revolutionized-IoT2/.github/blob/main/tools/ui-screenshots/README.md).
 
-## Development
+## License
 
-```bash
-npm run dev        # Start Vite dev server (--force)
-```
-
-## Building
-
-```bash
-npm run build       # Type-check (vue-tsc) then production build
-npm run preview      # Preview production build on port 5050
-npm run typecheck     # Type-check only, no emit (vue-tsc --noEmit)
-npm test              # Offline client regressions (Node test runner + existing Vue/TypeScript)
-```
-
-There is no configured lint script. Verify changes with `npm test`, `npm run typecheck`,
-and `npm run build`. Tests execute the actual component setup/service code with Vue
-reactivity and stubbed external dependencies; they do not contact MQTT or HTTP services
-and are not browser end-to-end tests.
-
-Regression coverage includes numeric/entity history values, initial and replaced chart
-history, unique stable IDs when deleting/adding dashboard pages/components/elements,
-two-way report-history settings, variable command updates, dashboard button state
-comparison, data-model type detection, and MQTT reconnect recovery.
-
-MQTT continues reconnecting until the client is explicitly disconnected. The first
-retry waits 4 seconds; successive retry delays grow to 8, 16, then a maximum of
-30 seconds. Successful connections reset the delay to 4 seconds. MQTT.js retains
-automatic subscription recovery; explicit disconnect also terminates an offline
-client rather than waiting indefinitely for queued traffic.
-
-## Environment configuration
-
-Runtime config is read from Vite env vars (see `env.d.ts` and `src/app.config.ts`):
-
-- `VITE_MQTT_SERVER`
-- `VITE_MQTT_USER`
-- `VITE_MQTT_PASSWORD`
-
-These are consumed via `import.meta.env` and re-exported from `src/app.config.ts`.
-Do not commit real broker credentials to `.env`; use local overrides or deployment
-secrets. The committed `.env` and `.env.production` contain safe placeholders only.
-
-## Deployment
-
-`Dockerfile`, `nginx.conf`, and `entrypoint.sh` build and serve the app via Nginx in a container. The image build uses `npm ci`; the runtime stage serves `dist/` from Nginx and includes a `wget` health check on `http://localhost/`. `entrypoint.sh` keeps pristine copies of generated `assets/index*.js*` files outside the served asset names, renders from those templates on every container start, replaces `VITE_MQTT_SERVER`, `VITE_MQTT_USER`, and `VITE_MQTT_PASSWORD` safely for shell/sed special characters, and warns when a value is empty without logging secret values. `nginx.conf` enables gzip for text assets, no-cache for the SPA shell and for the runtime-substituted `assets/index*.js` bundles (so changed MQTT settings reach browsers after a restart), immutable caching for all other hashed `/assets/` files, and basic security headers on every location. A CSP is intentionally left as a commented example because `connect-src` must allow the orchestrator API and MQTT `ws:/wss:` endpoints before enabling it.
-
-## Recommended IDE Setup
-
-[VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+See [LICENSE](LICENSE).
