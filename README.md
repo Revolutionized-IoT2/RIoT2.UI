@@ -118,7 +118,7 @@ orchestrator node, dashboard, command and variable APIs.
 
 - Instructions for AI coding agents: [AGENTS.md](AGENTS.md).
 - Platform documentation: [.github/docs](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/README.md).
-- UI screenshots used by the organization profile are regenerated from
+- UI screenshots used by the platform guides are regenerated from
   [tools/ui-screenshots](https://github.com/Revolutionized-IoT2/.github/blob/main/tools/ui-screenshots/README.md).
 
 ## License
