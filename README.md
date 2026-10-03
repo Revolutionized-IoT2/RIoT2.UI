@@ -62,10 +62,10 @@ The platform source of truth for environment variables and ports is
 
 ## Container deployment
 
-`Dockerfile` builds the app with `npm ci` and serves `dist/` from nginx on port 80. At container
-startup, `entrypoint.sh` renders `VITE_MQTT_SERVER`, `VITE_MQTT_USER` and `VITE_MQTT_PASSWORD` into
-the built JavaScript from pristine template copies, so a container restart is enough to change
-MQTT settings.
+`Dockerfile` builds the app on Node 24 (active LTS) with `npm ci` and serves `dist/` from nginx on
+port 80. At container startup, `entrypoint.sh` renders `VITE_MQTT_SERVER`, `VITE_MQTT_USER` and
+`VITE_MQTT_PASSWORD` into the built JavaScript from pristine template copies, so a container restart
+is enough to change MQTT settings.
 
 Example:
 

@@ -1,5 +1,5 @@
 # Build the project
-FROM node:22 AS build
+FROM node:24 AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci

@@ -116,4 +116,4 @@ There is no configured lint script.
 - [M3](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/plans/m03-split-oversized-classes.md):
   split oversized orchestrator/UI classes.
 - [M8](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/plans/m08-dotnet10-migration.md):
-  move the UI build image from Node 22 to Node 24 in the coordinated runtime pass.
+  completed the UI build-image move from Node 22 to Node 24.
