@@ -5,6 +5,10 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-12
+
+Tag `1.0.0` failed the Docker build and was never published.
+
 - Changed the Docker build stage from Node 22 to Node 24 active LTS.
 - Declared `vite-plugin-vuetify` as an explicit devDependency. It was previously only present as an
   optional peer of `vuetify`, which newer npm versions skip during `npm ci`, breaking the Docker build.
