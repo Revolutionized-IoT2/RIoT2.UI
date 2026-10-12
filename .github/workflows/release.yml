@@ -1,0 +1,26 @@
+name: Release
+
+# Push a x.y.z tag to release ghcr.io/revolutionized-iot2/riot2-ui:<tag> and :latest.
+
+on:
+  push:
+    tags: ["*.*.*"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  validate:
+    uses: Revolutionized-IoT2/.github/.github/workflows/node-validate.yml@main
+    with:
+      node-version: "24"
+      scripts: test build
+
+  image:
+    needs: validate
+    uses: Revolutionized-IoT2/.github/.github/workflows/docker-publish.yml@main
+    with:
+      image: riot2-ui
+      push: true
+    secrets: inherit
