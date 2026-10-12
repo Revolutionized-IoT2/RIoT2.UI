@@ -111,8 +111,9 @@ orchestrator node, dashboard, command and variable APIs.
 ## Releases
 
 - Release notes are in [CHANGELOG.md](CHANGELOG.md).
-- Pushing a `*.*.*` tag runs `.github/workflows/main.yml`, which builds and pushes
-  `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`.
+- Pushing a `*.*.*` tag runs `.github/workflows/release.yml`, which runs the tests and the build,
+  then pushes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`. Every push runs the same
+  checks in `ci.yml` ([CI guide](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/guides/ci.md)).
 
 ## Contributing
 

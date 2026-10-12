@@ -31,8 +31,9 @@ docker build -t riot2-ui:local .
 - `npm run typecheck`: `vue-tsc --noEmit`.
 - `npm run build`: `vue-tsc --noEmit` then `vite build`.
 - `npm run preview`: Vite preview on port 5050.
-- Release is tag-driven: push a `*.*.*` tag. `.github/workflows/main.yml` builds and pushes
-  `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`.
+- Every push runs `.github/workflows/ci.yml` (`npm test`, `npm run build`, image build, secret
+  scan). Release is tag-driven: push a `*.*.*` tag. `release.yml` validates, then pushes
+  `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>` ([CI guide](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/guides/ci.md)).
 
 There is no configured lint script.
 

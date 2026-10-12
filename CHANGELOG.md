@@ -5,6 +5,9 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+- CI: every push runs `npm test`, `npm run build`, the image build and a secret scan; a tag
+  validates before it pushes the image. The image build no longer receives the NuGet token.
+
 ## [1.0.1] - 2026-10-12
 
 Tag `1.0.0` failed the Docker build and was never published.
