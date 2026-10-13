@@ -21,6 +21,8 @@ jobs:
       node-version: "24"
       # build runs vue-tsc first, so it also type-checks.
       scripts: test build
+      # tests/contracts.test.cjs reads the golden files and the orchestrator's OpenAPI document.
+      siblings: RIoT2.Core RIoT2.Net.Orchestrator
 
   image:
     uses: Revolutionized-IoT2/.github/.github/workflows/docker-publish.yml@main

@@ -5,6 +5,11 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+- Added `tests/contracts.test.cjs` ([I05](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-0-1.md#i05-golden-files-and-route-contract-m)): every orchestrator URL in `constants.ts` must exist in
+  the orchestrator's OpenAPI document with the method the UI uses, and the UI's MQTT handler
+  reads the golden reports and configuration command. CI clones RIoT2.Core and
+  RIoT2.Net.Orchestrator for the files.
+
 - CI: every push runs `npm test`, `npm run build`, the image build and a secret scan; a tag
   validates before it pushes the image. The image build no longer receives the NuGet token.
 

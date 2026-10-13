@@ -16,6 +16,8 @@ jobs:
     with:
       node-version: "24"
       scripts: test build
+      # tests/contracts.test.cjs reads the golden files and the orchestrator's OpenAPI document.
+      siblings: RIoT2.Core RIoT2.Net.Orchestrator
 
   image:
     needs: validate

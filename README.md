@@ -40,6 +40,10 @@ npm run preview
 ```
 
 - `npm test` runs offline Node.js regression tests from `tests/*.test.cjs`.
+  `tests/contracts.test.cjs` needs RIoT2.Core and RIoT2.Net.Orchestrator checked out next to this
+  repository (CI clones them). It fails when a URL in `src/models/constants.ts` isn't in the
+  orchestrator's OpenAPI document (`openapi/riot2-orchestrator.json`) with the method the UI uses,
+  or when the UI can't read the [golden files](https://github.com/Revolutionized-IoT2/RIoT2.Core/blob/main/contracts/golden/README.md).
 - `npm run typecheck` runs `vue-tsc --noEmit`.
 - `npm run build` runs `vue-tsc --noEmit` and `vite build`.
 - `npm run preview` serves the production build on port 5050.

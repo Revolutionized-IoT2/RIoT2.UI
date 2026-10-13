@@ -27,7 +27,11 @@ docker build -t riot2-ui:local .
 ```
 
 - `npm run dev`: Vite dev server (`vite --force`).
-- `npm test`: offline regressions (`node --test tests/*.test.cjs`).
+- `npm test`: offline regressions (`node --test tests/*.test.cjs`). `tests/contracts.test.cjs`
+  reads `../RIoT2.Net.Orchestrator/openapi/riot2-orchestrator.json` and
+  `../RIoT2.Core/contracts/golden`; check them out next to this repository. Add every new
+  orchestrator URL to `src/models/constants.ts` and call it through `httpClient` in
+  `src/composables/api/`, so the route test sees it and its method.
 - `npm run typecheck`: `vue-tsc --noEmit`.
 - `npm run build`: `vue-tsc --noEmit` then `vite build`.
 - `npm run preview`: Vite preview on port 5050.
