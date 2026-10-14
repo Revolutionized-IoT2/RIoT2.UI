@@ -12,13 +12,13 @@ export const Constants = {
     urlGetVariableTemplates: "/api/nodes/variable/templates",
     urlGetVariables: "/api/nodes/variables",
     urlSaveVariable: "/api/nodes/variable/save",
-    urlDeleteVariable: "/api/nodes/variable/{id}/delete",
+    urlDeleteVariable: "/api/v2/variables/{id}",
     urlGetNodeDeviceTemplates: "/api/nodes/{id}/device/templates",
     urlCheckPlugin: "/api/nodes/checkplugin",
     urlValidateCron: "/api/nodes/validatecron",
     urlExecuteCommand: "/api/command/execute",
 
-    urlDeleteNodeById: "/api/nodes/{id}/delete",
+    urlDeleteNodeById: "/api/v2/nodes/{id}",
     urlGetNodesOnline: "/api/nodes/online",
     urlSaveDashboard: "/api/dashboard/configuration",
 
@@ -26,9 +26,9 @@ export const Constants = {
     urlGetMatterConfiguration: "/api/matter/configuration",
     urlSaveMatterConfiguration: "/api/matter/configuration",
     urlGetMatterQr: "/api/matter/qr",
-    urlOpenMatterCommissioning: "/api/matter/commissioning/open",
-    urlRefreshMatterDevices: "/api/matter/devices/refresh",
-    urlResetMatter: "/api/matter/reset",
+    urlOpenMatterCommissioning: "/api/v2/matter/commissioning/open",
+    urlRefreshMatterDevices: "/api/v2/matter/devices/refresh",
+    urlResetMatter: "/api/v2/matter/reset",
 
     topicReport: "riot2/node/+/report",
     topicCommand: "riot2/node/{id}/command",

@@ -5,6 +5,15 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-14
+
+Needs RIoT2.Net.Orchestrator 1.4.0 or later ([I15](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i15-command-results-and-api-v2-m), backlog item 7).
+
+- Changed: deleting a node or a variable uses `DELETE /api/v2/nodes/{id}` and
+  `DELETE /api/v2/variables/{id}`, and the Matter page opens commissioning, refreshes devices and
+  resets the bridge with `POST /api/v2/matter/...`, instead of the old state-changing `GET` routes.
+  The HTTP client has a `delete` method for it.
+
 ## [1.1.0] - 2026-10-14
 
 ### Breaking

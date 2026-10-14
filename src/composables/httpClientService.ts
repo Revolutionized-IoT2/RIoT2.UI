@@ -54,8 +54,22 @@ export function useHttpClient() {
         }
     }
 
+    async function axiosHttpDelete<R>(url: string): Promise<R | null> {
+        try {
+            const response = await axios.delete<R>(url);
+            if(response == null || response.data == null || (response.data as unknown) === '')
+                return null;
+
+            return response.data;
+        } catch (error) {
+            handleError(error as Error | AxiosError, url);
+            return null;
+        }
+    }
+
     return {
         get: axiosHttpGet,
-        post: axiosHttpPost
+        post: axiosHttpPost,
+        delete: axiosHttpDelete
       };
 }

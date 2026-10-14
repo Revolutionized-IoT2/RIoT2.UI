@@ -39,19 +39,19 @@ export function useMatterApi() {
   function openCommissioning(callback:(data: MatterStatus | null) => void, completed?:()=> void): Promise<void> {
 
     let url = orchestratorStore.baseUrl + Constants.urlOpenMatterCommissioning;
-    return withCallback(httpClient.get<MatterStatus>(url), callback, completed);
+    return withCallback(httpClient.post<null, MatterStatus>(url, null), callback, completed);
   }
 
   function refreshDevices(callback:(data: MatterStatus | null) => void, completed?:()=> void): Promise<void> {
 
     let url = orchestratorStore.baseUrl + Constants.urlRefreshMatterDevices;
-    return withCallback(httpClient.get<MatterStatus>(url), callback, completed);
+    return withCallback(httpClient.post<null, MatterStatus>(url, null), callback, completed);
   }
 
   function reset(callback:(data: MatterStatus | null) => void, completed?:()=> void): Promise<void> {
 
     let url = orchestratorStore.baseUrl + Constants.urlResetMatter;
-    return withCallback(httpClient.get<MatterStatus>(url), callback, completed);
+    return withCallback(httpClient.post<null, MatterStatus>(url, null), callback, completed);
   }
 
   return {

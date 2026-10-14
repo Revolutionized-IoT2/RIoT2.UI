@@ -42,7 +42,7 @@ export function useNodeApi() {
 
     let url = orchestratorStore.baseUrl + Constants.urlDeleteNodeById;
     url = url.replace('{id}', id);
-    return withCallback(httpClient.get<void | null>(url), callback, completed);
+    return withCallback(httpClient.delete<void | null>(url), callback, completed);
   }
 
   function getNodeDevicesStatus(nodeid: string, callback:(data: DeviceStatus[] | null) => void, completed?:()=> void): Promise<void> {

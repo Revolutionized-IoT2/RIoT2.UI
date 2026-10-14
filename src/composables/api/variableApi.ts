@@ -39,7 +39,7 @@ export function useVariableApi() {
 
     let url = orchestratorStore.baseUrl + Constants.urlDeleteVariable;
     url = url.replace('{id}', id);
-    return withCallback(httpClient.get<void>(url), callback, completed);
+    return withCallback(httpClient.delete<void>(url), callback, completed);
   }
 
   function getVariableTemplates(callback:(data: VariableTemplate[] | null) => void, completed?:()=> void): Promise<void> {

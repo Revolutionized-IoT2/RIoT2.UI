@@ -85,6 +85,8 @@ There is no configured lint script.
 - Dashboard commands use `POST /api/command/execute` with `{ id, value }`. Variable actions load
   `GET /api/nodes/variables`, modify only the value on the selected DTO, and save via
   `POST /api/nodes/variable/save`.
+- Never change state with `GET`. Deletes and Matter actions use the orchestrator's `/api/v2`
+  routes (`httpClient.delete` / `httpClient.post`), which need Orchestrator 1.4.0 or later.
 - If a UI label or layout change affects the screenshots used by the platform guides (`docs/guides/first-configuration.md`),
   regenerate them with
   [tools/ui-screenshots](https://github.com/Revolutionized-IoT2/.github/blob/main/tools/ui-screenshots/README.md).
