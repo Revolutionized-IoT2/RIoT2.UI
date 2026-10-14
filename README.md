@@ -5,7 +5,7 @@ served as a static single-page app by nginx and talks to the orchestrator REST A
 WebSockets.
 
 - Type: Vue 3 + TypeScript + Vite + Vuetify application
-- Runtime: nginx container, port 80
+- Runtime: nginx container, non-root, port 8080
 - MQTT transport: MQTT.js over `ws://<VITE_MQTT_SERVER>:9001/`
 
 How this UI fits into the platform: [architecture overview](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/architecture/overview.md).
@@ -66,16 +66,20 @@ The platform source of truth for environment variables and ports is
 
 ## Container deployment
 
-`Dockerfile` builds the app on Node 24 (active LTS) with `npm ci` and serves `dist/` from nginx on
-port 80. At container startup, `entrypoint.sh` renders `VITE_MQTT_SERVER`, `VITE_MQTT_USER` and
+`Dockerfile` builds the app on Node 24 (active LTS) with `npm ci` and serves `dist/` from
+`nginx-unprivileged` on port 8080, as the non-root user `nginx` (UID 101). Since 1.1.0; earlier
+images listened on port 80. At container startup, `entrypoint.sh` renders `VITE_MQTT_SERVER`, `VITE_MQTT_USER` and
 `VITE_MQTT_PASSWORD` into the built JavaScript from pristine template copies, so a container restart
 is enough to change MQTT settings.
+
+The whole stack, UI included, starts with one compose file:
+[deploy/](https://github.com/Revolutionized-IoT2/.github/tree/main/deploy).
 
 Example:
 
 ```powershell
 docker build -t riot2-ui:local .
-docker run --rm -p 8081:80 -e VITE_MQTT_SERVER=<broker-host> -e VITE_MQTT_USER=<mqtt-user> -e VITE_MQTT_PASSWORD=<mqtt-password> riot2-ui:local
+docker run --rm -p 8081:8080 -e VITE_MQTT_SERVER=<broker-host> -e VITE_MQTT_USER=<mqtt-user> -e VITE_MQTT_PASSWORD=<mqtt-password> riot2-ui:local
 ```
 
 `nginx.conf` disables caching for the SPA shell and runtime-substituted `assets/index*.js` bundles,

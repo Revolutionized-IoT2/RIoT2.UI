@@ -109,6 +109,9 @@ There is no configured lint script.
   the persisted property `isPersistant`.
 - `nginx.conf` intentionally leaves CSP commented out until the actual orchestrator and MQTT
   endpoints are known.
+- The image runs nginx as UID 101 on port 8080 (`nginx-unprivileged`). `entrypoint.sh` rewrites
+  files under `/usr/share/nginx/html/assets`, so the Dockerfile must keep those directories owned
+  by UID 101. Don't add a `listen` below 1024 or write anywhere else at runtime.
 
 ## Related work
 
@@ -116,8 +119,8 @@ There is no configured lint script.
   [13](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/open-issues.md),
   [21](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/open-issues.md) and
   [22](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/open-issues.md).
-- Optional hardening items [S2](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/optional-hardening.md)
-  and [S12](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/optional-hardening.md).
+- Optional hardening item [S2](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/optional-hardening.md).
+  S12 (non-root nginx) is done in 1.1.0.
 - [M3](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/plans/m03-split-oversized-classes.md):
   split oversized orchestrator/UI classes.
 - [M8](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/plans/m08-dotnet10-migration.md):
