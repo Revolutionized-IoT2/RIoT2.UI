@@ -44,14 +44,19 @@ npm run preview
 ```
 
 - `npm run lint` runs ESLint (`eslint.config.mjs`: `eslint-plugin-vue` and `typescript-eslint`)
-  over `src/`. Errors fail CI; the remaining `any` warnings go with plan M3 step 4.
+  over `src/`. Errors fail CI, `any` included: a JSON value is `JsonValue`.
 - `npm test` runs offline Node.js regression tests from `tests/*.test.cjs`.
   `tests/contracts.test.cjs` needs RIoT2.Core and RIoT2.Net.Orchestrator checked out next to this
   repository (CI clones them). It fails when a URL in `src/models/constants.ts` isn't in the
   orchestrator's OpenAPI document (`openapi/riot2-orchestrator.json`) with the method the UI uses,
   or when the UI can't read the [golden files](https://github.com/Revolutionized-IoT2/RIoT2.Core/blob/main/contracts/golden/README.md).
-- `npm run typecheck` runs `vue-tsc --noEmit`.
-- `npm run build` runs `vue-tsc --noEmit` and `vite build`.
+- `npm run generate` writes `src/models/generated/contracts.ts` from RIoT2.Core's
+  [contract schema](https://github.com/Revolutionized-IoT2/RIoT2.Core/blob/main/contracts/schemas/README.md)
+  (`../RIoT2.Core/contracts/schemas/`, or `RIOT2_CONTRACT_SCHEMA`). Without RIoT2.Core next to
+  this repository, as in the Docker build, the committed file is used.
+- `npm run typecheck` runs `vue-tsc --build --force` (the type check of every project).
+- `npm run build` runs `generate`, the type check and `vite build`. CI fails when it changes the
+  committed generated file.
 - `npm run preview` serves the production build on port 5050. Each route's view is its own chunk,
   and mqtt and Vue have chunks of their own (`vite.config.ts`).
 
@@ -109,6 +114,8 @@ Important implementation files:
 | `src/stores/` | Pinia stores: the data each page shows, with `loading` and `error`; failures reach the snackbar. |
 | `src/composables/api/` | Promise-based REST calls per resource (nodes, templates, commands, variables, dashboard, Matter, backup). |
 | `src/models/constants.ts` | REST routes and MQTT topic templates used by the UI. |
+| `src/models/generated/contracts.ts` | The contract types generated from RIoT2.Core's schema; the model classes that mirror one implement it, so a contract change fails the type check. |
+| `scripts/generate-models.mjs` | Generates the file above (`npm run generate`). |
 | `src/layout/AppBar.vue` | Navigation drawer and external Elsa Studio link. |
 
 ## Workflows

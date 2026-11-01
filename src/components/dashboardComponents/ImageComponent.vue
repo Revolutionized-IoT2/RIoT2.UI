@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useComponentService } from '@/composables/componentService';
+import { valueAt } from '@/composables/jsonValue';
 import type Component from '@/models/component';
 import { ComponentElement } from '@/models/componentElement';
 import { ValueType } from '@/models/enums';
@@ -42,9 +43,9 @@ function updateImage() {
       if(elem.reportTemplate?.type == ValueType.Entity &&
         reportPropertyName != null &&
         reportPropertyName != "") {
-          imageUrls.push(prevReport.value[reportPropertyName]);
+          imageUrls.push(String(valueAt(prevReport.value, [reportPropertyName]) ?? ""));
         } else {
-          imageUrls.push(prevReport.value);
+          imageUrls.push(String(prevReport.value ?? ""));
         }
     }
   }

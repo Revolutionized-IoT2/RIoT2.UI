@@ -1,3 +1,5 @@
+import type { JsonObject } from "@/composables/jsonValue";
+import type { JsonValue } from "./generated/contracts";
 import type CommandTemplate from "./commandTemplate";
 import { Report } from "./report";
 import { ReportTemplate } from "./reportTemplate";
@@ -26,7 +28,7 @@ export class ComponentElement implements IComponentElement {
     icon?: string;
     reportTemplate?: ReportTemplate;
     commandTemplate?: CommandTemplate;
-    properties?: any;
+    properties?: ElementProperties;
 
     private _report: Report | undefined;
     get report(): Report | undefined {
@@ -71,10 +73,14 @@ export interface IComponentElement {
     previousReports?: Report[];
     previousReportsAsc?: Report[];
     numberOfPreviousReports? : number; //
-    properties?: any; //
+    properties?: ElementProperties; //
 }
 
-//if property is in {} -> get value from report
+/**
+ * The settings of a dashboard element, edited as JSON values: one of the classes below. A string
+ * value in braces, such as "{temperature}", is read from that member of the element's entity report.
+ */
+export type ElementProperties = JsonObject;
 
 export class ValueElementProperties {
     value!: string;
@@ -90,9 +96,10 @@ export class ChartElementProperties {
 }
 
 export class ButtonElementProperties {
-    onValue: any;
-    offValue: any;
-    colorMapping: any; // r g b a-> define model to send: {"red": "r"}
+    // Unset until edited: the property editor shows an unset value as text.
+    onValue!: JsonValue;
+    offValue!: JsonValue;
+    colorMapping!: JsonValue; // r g b a-> define model to send: {"red": "r"}
     
 }
 
@@ -100,13 +107,19 @@ export class ImageElementProperties  {
     url!: string;
 }
 
+/** One state of a state element: shown while the report's numeric value is `value`. */
+export type ElementState = { value: number, icon: string, color: string, name: string };
+
+/** How a switch element shows one of its two positions. */
+export type SwitchPosition = { icon: string, color: string, name: string };
+
 export class StateElementProperties  {
     constructor() {
         this.states = [
             { value: 0, icon: 'home', color: 'red', name: 'state' }
         ]
     }
-    states: { value: number, icon: string, color: string, name: string } [] = [];
+    states: ElementState[] = [];
 }
 
 export class SwitchElementProperties  {
@@ -115,6 +128,6 @@ export class SwitchElementProperties  {
         this.on = { icon: 'done', color: 'green', name: 'on' };
     }
 
-    off: { icon: string, color: string, name: string };
-    on: { icon: string, color: string, name: string };
+    off: SwitchPosition;
+    on: SwitchPosition;
 }

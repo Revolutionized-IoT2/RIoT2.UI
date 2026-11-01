@@ -61,7 +61,7 @@ function updateComponent() {
       const values = componentService.getElementPreviousNumericValues(currentElement);
       
       const colorProperty = componentService.getElementProperty(currentElement, "color");
-      let colors = componentService.arrayMap<string>(prevReports, "value." + colorProperty);
+      let colors = componentService.arrayMap(prevReports, "value." + colorProperty)?.map(String) ?? null;
       
       if(colors == null)
         colors = [colorProperty];
@@ -80,7 +80,7 @@ function updateComponent() {
           const valueLabel = componentService.getElementProperty(currentElement, "label");
           if(currentElement.previousReportsAsc != undefined) {
             if(valueLabel) {
-              const labels = componentService.arrayMap<string>(currentElement.previousReportsAsc, "value." + valueLabel);
+              const labels = componentService.arrayMap(currentElement.previousReportsAsc, "value." + valueLabel)?.map(String) ?? null;
               if(labels != null)
                 lbls = labels;
             } else { 

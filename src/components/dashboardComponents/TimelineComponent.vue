@@ -19,7 +19,7 @@ const componentService = useComponentService();
 const timelinedata = ref({items: [{time: 0, val: ""}], updated: new Date(8640000000000000)});
 const resolution = ref<Resolution>(Resolution.minute);
 const values = ref<number[]>([0,0,0,0,0,0,0,0,0,0,0,0]);
-const timerId = ref<any>(null);
+const timerId = ref<ReturnType<typeof setInterval> | null>(null);
 
 watch(() => props.data.elements[0], () => {
   update();
@@ -40,7 +40,7 @@ function updateComponent() {
     for(const r of prevReports) {
       items.push({
           time: r.timeStamp *1000,
-          val: r.value
+          val: String(r.value)
         });
     }
   }
@@ -49,7 +49,7 @@ function updateComponent() {
     timelinedata.value = {items: items, updated: componentService.timeStampToDate(elem.report.timeStamp)};
 }
 
-const labels = computed<any>(() => {
+const labels = computed<string[]>(() => {
   return resolutions.map(({ labels }) => labels[resolution.value]);
 });
 
@@ -88,7 +88,7 @@ function update() {
     return;
   }
   elem = props.data.elements[0] as ComponentElement;
-  if(elem.report != undefined && elem.report.value.toString().toLocaleLowerCase() == "true") {
+  if(elem.report != undefined && String(elem.report.value).toLocaleLowerCase() == "true") {
     values.value[11] = values.value[11] + 1;
   }
 }
@@ -146,14 +146,17 @@ onUnmounted(() => {
       rounded="lg"
     >
       <v-sparkline
-        :labels="labels"
+        show-labels
         :model-value="values"
         color="white"
         line-width="2"
         padding="12"
           stroke-linecap="round"
           smooth
-      ></v-sparkline>
+      >
+        <!-- The time labels; Vuetify's labels prop takes numbers only. -->
+        <template #label="{ index }">{{ labels[index] }}</template>
+      </v-sparkline>
     </v-sheet>
   </v-card-text>
   <FooterComponent :updated="timelinedata.updated" />

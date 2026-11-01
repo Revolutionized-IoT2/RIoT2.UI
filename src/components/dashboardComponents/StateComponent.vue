@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useComponentService } from '@/composables/componentService';
 import type Component from '@/models/component';
+import type { ElementState } from '@/models/componentElement';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -8,7 +9,7 @@ const props = defineProps<{
 }>();
 const componentService = useComponentService();
 
-const states = ref<{value: number, icon: string, color: string, name: string } []>([]);
+const states = ref<ElementState[]>([]);
 const currentState = ref<{value: number, icon: string, color: string, name: string } | undefined>();
 
 const timerExpirationTime = 720000; // 12mins
@@ -71,7 +72,7 @@ onUnmounted(() => {
 });
 
 onMounted(() => {
-  const elementStates = componentService.getElementPropertyValue(props.data.elements[0], "states");
+  const elementStates = componentService.getElementPropertyValue<ElementState[]>(props.data.elements[0], "states");
   if(elementStates != undefined)
     states.value = elementStates;
 

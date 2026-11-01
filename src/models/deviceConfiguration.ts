@@ -1,7 +1,9 @@
+import type * as Contract from './generated/contracts';
+import type { MatterEndpointTemplate } from './generated/contracts';
 import CommandTemplate from "./commandTemplate";
 import { ReportTemplate } from "./reportTemplate"
 
-export default class DeviceConfiguration {
+export default class DeviceConfiguration implements Contract.DeviceConfiguration {
 
 	id: string = "";
     name: string = "";
@@ -9,5 +11,8 @@ export default class DeviceConfiguration {
     commandTemplates: CommandTemplate [] | null = null;
     reportTemplates: ReportTemplate [] | null = null;
     refreshSchedule: string = "";
-    deviceParameters: any
+    deviceParameters: Record<string, string> | null = null;
+    /** Declared by the device's plugin; the UI only passes them through. */
+    matterEndpoints: MatterEndpointTemplate[] | null = null;
+    hash?: string | null;
 }

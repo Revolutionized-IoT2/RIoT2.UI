@@ -1,3 +1,5 @@
+import type * as Contract from './generated/contracts';
+
 export enum ValueType {
     Boolean = 0,
     Text = 1,
@@ -48,3 +50,15 @@ export enum NodeType {
     dashboard = 2,
     workflow = 3
 }
+
+// The enums above keep the UI's member names; their values must be the contract's
+// (src/models/generated/contracts.ts). A mismatch fails the type check here.
+type SameValues<A extends number, B extends number> = [`${A}`] extends [`${B}`] ? ([`${B}`] extends [`${A}`] ? true : false) : false;
+type Assert<T extends true> = T;
+export type EnumsMatchTheContract = [
+    Assert<SameValues<ValueType, Contract.ValueType>>,
+    Assert<SameValues<ComponentType, Contract.DashboardComponentType>>,
+    Assert<SameValues<ComponentSize, Contract.DashboardComponentSize>>,
+    Assert<SameValues<DeviceState, Contract.DeviceState>>,
+    Assert<SameValues<NodeType, Contract.NodeType>>,
+];

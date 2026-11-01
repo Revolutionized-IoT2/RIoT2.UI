@@ -3,6 +3,7 @@ import CommandTemplate from '@/models/commandTemplate';
 import { ValueType } from '@/models/enums';
 import { ref } from 'vue';
 import Datamodel from '@/components/DatamodelComponent.vue';
+import type { JsonValue } from '@/models/generated/contracts';
 
 const emit = defineEmits<{
     save: [void],
@@ -12,7 +13,7 @@ const emit = defineEmits<{
 const model = defineModel<CommandTemplate>({ default: new CommandTemplate() });
 const valid = ref(false);
 
-function modelUpdated(m: any, type: ValueType) {
+function modelUpdated(m: JsonValue, type: ValueType) {
   model.value.type = type;
   model.value.model = m;
 }

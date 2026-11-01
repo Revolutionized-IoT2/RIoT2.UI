@@ -32,7 +32,7 @@ function toggleButton(element: IComponentElement) {
 
 function executeToggle(element: IComponentElement) {
   if(element.commandTemplate != undefined)
-    commands.send(element.commandTemplate, getValue(!isElementSelected(element), element));
+    commands.send(element.commandTemplate, getValue(!isElementSelected(element), element) ?? null);
   setElementState(!isElementSelected(element), element);
 }
 

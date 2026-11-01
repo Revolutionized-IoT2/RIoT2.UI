@@ -10,5 +10,5 @@ export default class AppError {
     text!: string;
     message?: string;
     stack?: string;
-    data?:any;
+    data?: unknown;
 }

@@ -4,7 +4,9 @@
 /* eslint-disable vue/no-mutating-props */
 import Datamodel from '@/components/DatamodelComponent.vue';
 import type Component from '@/models/component';
-import { ButtonElementProperties, ValueElementProperties, type IComponentElement, ChartElementProperties, ImageElementProperties, SwitchElementProperties, StateElementProperties } from '@/models/componentElement';
+import { ButtonElementProperties, ValueElementProperties, type IComponentElement, type ElementProperties, ChartElementProperties, ImageElementProperties, SwitchElementProperties, StateElementProperties } from '@/models/componentElement';
+import type { JsonValue } from '@/models/generated/contracts';
+import type { Report } from '@/models/report';
 import { ComponentType } from '@/models/enums';
 import { computed, reactive, ref, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -25,7 +27,7 @@ const editElementDialog = ref(false);
 const selectedEditElement = ref<IComponentElement>({ id: "", name: "" });
 
 const reportDataDialog = ref(false);
-const reportData = ref<any>(null);
+const reportData = ref<Report | null>(null);
 const loadingReport = ref(false);
 
 function editElement(e: IComponentElement) {
@@ -99,24 +101,28 @@ const actionSupported = computed(()=> {
   }
 });
 
-function getPropertyObject(): any {
+function setProperty(name: string, value: JsonValue) {
+  (selectedEditElement.value.properties ??= {})[name] = value;
+}
+
+function getPropertyObject(): ElementProperties {
   switch(props.data.type) {
     case ComponentType.button:
     case ComponentType.slideButton:
-      return new ButtonElementProperties();
+      return { ...new ButtonElementProperties() };
     case ComponentType.numericValue:
-      return new ValueElementProperties();
+      return { ...new ValueElementProperties() };
     case ComponentType.chart_bar:
     case ComponentType.chart_doughnut:
     case ComponentType.chart_line:
     case ComponentType.chart_pie:
-      return new ChartElementProperties();
+      return { ...new ChartElementProperties() };
     case ComponentType.image:
-      return new ImageElementProperties();
+      return { ...new ImageElementProperties() };
     case ComponentType.switch:
-      return new SwitchElementProperties();
+      return { ...new SwitchElementProperties() };
     case ComponentType.state:
-    return new StateElementProperties();
+    return { ...new StateElementProperties() };
     case ComponentType.timeline:
     default:
       return {};
@@ -266,7 +272,7 @@ watchEffect(() => {
               :expandable="true" 
               :editable="true" 
               :expanded="false"
-              @modelUpdated="(m: any) => selectedEditElement.properties[p] = m"
+              @modelUpdated="(m: JsonValue) => setProperty(p, m)"
             />
           </v-col>
       </template>

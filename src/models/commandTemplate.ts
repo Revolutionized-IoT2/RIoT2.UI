@@ -1,7 +1,10 @@
+import type * as Contract from './generated/contracts';
+import type { JsonValue } from './generated/contracts';
 import type { ITemplate } from './itemplate';
 import { ValueType } from './enums';
 
-export default class CommandTemplate implements ITemplate {
+/** A command template as the orchestrator lists it (NodeCommandTemplate), or as a device declares it. */
+export default class CommandTemplate implements ITemplate, Contract.NodeCommandTemplate {
 
     constructor() {
         this.nodeId = "";
@@ -22,6 +25,6 @@ export default class CommandTemplate implements ITemplate {
     id!: string;
     name!: string;
     address!: string;
-    model: any;
+    model: JsonValue;
     type!: ValueType;
 }

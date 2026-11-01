@@ -5,6 +5,30 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-01
+
+Generated contract models ([I28](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i28-narrow-references-and-generated-models-m), plans M1 step 5 and M3 UI step 4). Works with
+RIoT2.Net.Orchestrator 1.7.0 or later, as 1.4.0; no request or message changes.
+
+- Added: `npm run generate` (`scripts/generate-models.mjs`, with `json-schema-to-typescript`) writes
+  `src/models/generated/contracts.ts` from RIoT2.Core's contract schema
+  (`contracts/schemas/riot2-contracts.schema.json`, Core 1.14.0). `npm run build` runs it first;
+  CI clones RIoT2.Core and fails when the committed file is out of date. The Docker build uses the
+  committed file.
+- Changed: the model classes that mirror a Core contract type (`Report`, `Command`, the report,
+  command and variable templates, `DeviceConfiguration`, `NodeConfiguration`, `DeviceStatus`,
+  `PackageManifest`, `ConfigurationCommand`) implement the generated types, and the enums are
+  checked against the generated values, so a contract change fails the type check.
+  `DeviceConfiguration` now carries `matterEndpoints` and `hash`, `ReportTemplate` its `model`.
+- Changed: no `any` is left in `src/`. JSON values (report, command and variable values, template
+  models, dashboard element properties) are `JsonValue`, read through `src/composables/jsonValue.ts`;
+  ESLint's `no-explicit-any` is an error.
+- Fixed: `npm run typecheck` and `npm run build` type-check again (`vue-tsc --build --force`).
+  `vue-tsc --noEmit` checked nothing, because the root `tsconfig.json` lists no files; the check
+  found a wrong `Report` import in `history.ts`.
+- Fixed: adding a parameter to a device or a report template whose parameters were `null` threw;
+  the editors create the parameter list instead.
+
 ## [1.4.0] - 2026-11-01
 
 UI restructure and fixes ([I24](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i24-ui-restructure-and-fixes-m), plan M3 UI steps 1–3, backlog items 10, 13, 21 and 22,

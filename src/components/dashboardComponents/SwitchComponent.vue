@@ -2,7 +2,7 @@
 import { useComponentService } from '@/composables/componentService';
 import { useCommandsStore } from '@/stores/commandsStore';
 import type Component from '@/models/component';
-import type { IComponentElement } from '@/models/componentElement';
+import type { IComponentElement, SwitchPosition } from '@/models/componentElement';
 import { onMounted, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -14,10 +14,10 @@ const commands = useCommandsStore();
 const state1 = ref<boolean | undefined>(undefined);
 const state2 = ref<boolean | undefined>(undefined);
 
-const state1_on = ref<{ icon: string, color: string, name: string } | undefined>(undefined);
-const state1_off = ref<{ icon: string, color: string, name: string } | undefined>(undefined);
-const state2_on = ref<{ icon: string, color: string, name: string } | undefined>(undefined);
-const state2_off = ref<{ icon: string, color: string, name: string } | undefined>(undefined);
+const state1_on = ref<SwitchPosition | undefined>(undefined);
+const state1_off = ref<SwitchPosition | undefined>(undefined);
+const state2_on = ref<SwitchPosition | undefined>(undefined);
+const state2_off = ref<SwitchPosition | undefined>(undefined);
 
 watch(() => props.data.elements, () => {
   updateComponent();
@@ -55,13 +55,13 @@ function updateElement(i: 1|2, e: IComponentElement) {
 onMounted(() => {
 
   if(props.data.elements.length > 0) {
-    state1_on.value = componentService.getElementPropertyValue(props.data.elements[0], "on");
-    state1_off.value = componentService.getElementPropertyValue(props.data.elements[0], "off");
+    state1_on.value = componentService.getElementPropertyValue<SwitchPosition>(props.data.elements[0], "on");
+    state1_off.value = componentService.getElementPropertyValue<SwitchPosition>(props.data.elements[0], "off");
   }
 
   if(props.data.elements.length > 1) {
-    state2_on.value = componentService.getElementPropertyValue(props.data.elements[1], "on");
-    state2_off.value = componentService.getElementPropertyValue(props.data.elements[1], "off");
+    state2_on.value = componentService.getElementPropertyValue<SwitchPosition>(props.data.elements[1], "on");
+    state2_off.value = componentService.getElementPropertyValue<SwitchPosition>(props.data.elements[1], "off");
   }
 
   updateComponent();

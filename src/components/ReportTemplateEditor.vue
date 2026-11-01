@@ -22,14 +22,15 @@ const valueTypes = [{name: "Boolean", value: ValueType.Boolean},
 
 function removeParameter(name: string) {
 
-  delete model.value.parameters[name];
+  if(model.value.parameters != null)
+    delete model.value.parameters[name];
 }
 
 function newParameter() {
   if(newPropertyValue.value == null || newPropertyValue.value == null)
     return;
 
-  model.value.parameters[newPropertyValue.value.name] = newPropertyValue.value.value;
+  (model.value.parameters ??= {})[newPropertyValue.value.name] = newPropertyValue.value.value;
   newParameterDialog.value = false;
 }
 
@@ -99,7 +100,7 @@ function cancel() {
         <v-text-field v-model="model.refreshSchedule" required hide-details label="Refresh Schedule" />
       </v-col>-->
     </v-row>
-    <div v-if="Object.keys(model.parameters).length > 0">  
+    <div v-if="model.parameters != null && Object.keys(model.parameters).length > 0">  
     <p>Additional parameters</p>
      <v-divider class="border-opacity-100 mb-3" color="black" />
      <v-row>

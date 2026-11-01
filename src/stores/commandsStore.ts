@@ -3,6 +3,7 @@ import { useCommandApi } from '@/composables/api/commandApi';
 import { useRequests } from './requests';
 import { useVariablesStore } from './variablesStore';
 import type Command from '@/models/command';
+import type { JsonValue } from '@/models/generated/contracts';
 import type { Report } from '@/models/report';
 
 /** Device commands, dashboard controls and the latest report and command states. */
@@ -29,7 +30,7 @@ export const useCommandsStore = defineStore('commands', () => {
    * A dashboard control's value. A variable's command template (address "variable") sets the
    * variable; any other template commands its device.
    */
-  function send(template: { id: string, address?: string | null }, value: unknown): Promise<boolean> {
+  function send(template: { id: string, address?: string | null }, value: JsonValue): Promise<boolean> {
     const command: Command = { id: template.id, value };
     return template.address?.toLowerCase() == 'variable' ? variables.setValue(command) : execute(command);
   }

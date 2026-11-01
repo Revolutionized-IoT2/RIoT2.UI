@@ -51,7 +51,8 @@ function cronTooltipText() {
 }
 
 function removeParameter(name: string) {
-  delete model.value.deviceParameters[name];
+  if(model.value.deviceParameters != null)
+    delete model.value.deviceParameters[name];
 }
 
 function addParameter() {
@@ -60,7 +61,7 @@ function addParameter() {
 }
 
 function saveParameter() {
-  model.value.deviceParameters[newParameter.value.name] = newParameter.value.value;
+  (model.value.deviceParameters ??= {})[newParameter.value.name] = newParameter.value.value;
   newParameterDialog.value = false;
 }
 

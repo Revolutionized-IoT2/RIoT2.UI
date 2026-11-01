@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { ValueType } from '@/models/enums';
 import { computed, onMounted, ref } from 'vue';
+import type { JsonValue } from '@/models/generated/contracts';
 
 const emit = defineEmits<{
-    modelUpdated: [any, ValueType]
+    modelUpdated: [JsonValue, ValueType]
 }>();
 
 export interface Props {
-    datamodel: any,
+    /** The JSON value to show and edit: a value, a template model, an element property or a report. */
+    datamodel: unknown,
     labeltext?: string,
     expanded?: boolean,
     editable?: boolean,
@@ -33,18 +35,18 @@ const dataLang = computed(() => {
     return ValueType[getValueType(props.datamodel)];
 });
 
-function convertToType(val: any, type: ValueType): any {
+function convertToType(val: string, type: ValueType): JsonValue {
     switch(type) {
-        case ValueType.Boolean: return val.toString().toLocaleLowerCase() == "true";
+        case ValueType.Boolean: return val.toLocaleLowerCase() == "true";
         case ValueType.Number: return Number(val);
         case ValueType.Entity: 
-        case ValueType.TextArray: return JSON.parse(val.toString());
+        case ValueType.TextArray: return JSON.parse(val);
         case ValueType.Text:
-        default: return val.toString();
+        default: return val;
     }
 }
 
-function getValueType(val: any): ValueType {
+function getValueType(val: unknown): ValueType {
 
     if(Array.isArray(val))
         return ValueType.TextArray;
@@ -111,7 +113,7 @@ const valueTypes = computed(() => {
     }
 });
 
-function setSelectedVariableDefault(type: ValueType): any {
+function setSelectedVariableDefault(type: ValueType): JsonValue {
   switch(type) {
     case ValueType.Boolean: return false;
     case ValueType.Text: return "";
@@ -126,7 +128,7 @@ function editModeClick() {
 
     if(!editMode.value) {
         if(isPrimitive()) {
-            editJson.value = props.datamodel;
+            editJson.value = primitiveText();
         } else {
             editJson.value = JSON.stringify(props.datamodel, undefined, 2);
         }
@@ -142,19 +144,23 @@ function editModeClick() {
     }
 }
 
+function primitiveText(): string {
+    return props.datamodel == null ? "" : String(props.datamodel);
+}
+
 function valueToJson():string {
     if(isPrimitive()) {
-            return props.datamodel;
+            return primitiveText();
         } else {
             return JSON.stringify(props.datamodel, undefined, 2);
         }
 }
 
-function formatCodeBlock(json: string) {
-    if(json == null)
+function formatCodeBlock(value: unknown) {
+    if(value == null)
         return "";
         
-    json = JSON.stringify(json, undefined, 2);
+    let json = JSON.stringify(value, undefined, 2);
     json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     json = json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, function (match) {
         let cls = 'number';
@@ -222,7 +228,7 @@ defineExpose({
                         item-title="name"
                         item-value="value"
                         label="Type"
-                        @update:model-value="editJson = setSelectedVariableDefault(type)"
+                        @update:model-value="editJson = String(setSelectedVariableDefault(type))"
                       />
                     
                     <div class="content">

@@ -8,6 +8,7 @@ import { Variable } from '@/models/variable';
 import { useVariablesStore } from '@/stores/variablesStore';
 import { storeToRefs } from 'pinia';
 import { onMounted, ref } from 'vue';
+import type { JsonValue } from '@/models/generated/contracts';
 
 const contextMenuItems: ContextMenuItem[] = [
   { "text": "new", "action": "new_variable", "disabled": false, "icon": "add" }
@@ -58,7 +59,7 @@ async function saveVariable() {
   saving.value = false;
 }
 
-function updateVariableObjectValue(model: unknown) {
+function updateVariableObjectValue(model: JsonValue) {
   selectedVariable.value.value = model;
 }
 

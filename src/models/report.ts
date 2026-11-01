@@ -1,5 +1,7 @@
+import type * as Contract from './generated/contracts';
+import type { JsonValue } from './generated/contracts';
 
-export class Report implements IReport {
+export class Report implements IReport, Contract.Report {
 
     constructor(r: IReport) {
         this.id = r.id;
@@ -10,13 +12,14 @@ export class Report implements IReport {
 
     id!: string;
     timeStamp!: number;
-    value: any;
+    value: JsonValue;
     filter?: string;
 }
 
+/** A report as the UI handles it: from MQTT or a report history, with an id and a time stamp. */
 export interface IReport {
     id: string;
     timeStamp: number;
-    value: any;
+    value: JsonValue;
     filter?: string;
 }

@@ -28,15 +28,17 @@ docker build -t riot2-ui:local .
 ```
 
 - `npm run dev`: Vite dev server (`vite --force`).
-- `npm run lint`: ESLint over `src/` (`eslint.config.mjs`). Errors fail CI; `any` is a warning
-  until plan M3 step 4.
+- `npm run lint`: ESLint over `src/` (`eslint.config.mjs`). Errors fail CI; `any` is an error.
 - `npm test`: offline regressions (`node --test tests/*.test.cjs`). `tests/contracts.test.cjs`
   reads `../RIoT2.Net.Orchestrator/openapi/riot2-orchestrator.json` and
   `../RIoT2.Core/contracts/golden`; check them out next to this repository. Add every new
   orchestrator URL to `src/models/constants.ts` and call it through `httpClient` in
   `src/composables/api/`, so the route test sees it and its method.
-- `npm run typecheck`: `vue-tsc --noEmit`.
-- `npm run build`: `vue-tsc --noEmit` then `vite build`.
+- `npm run generate`: `src/models/generated/contracts.ts` from `../RIoT2.Core/contracts/schemas`
+  (`scripts/generate-models.mjs`; skipped with a warning when RIoT2.Core is missing, unless `CI=true`).
+- `npm run typecheck`: `vue-tsc --build --force`.
+- `npm run build`: `generate`, the type check, then `vite build`. CI (`verify-generated`) fails when
+  the build changes a committed file.
 - `npm run preview`: Vite preview on port 5050.
 - Every push runs `.github/workflows/ci.yml` (`npm run lint`, `npm test`, `npm run build`, image
   build, secret scan). Release is tag-driven: push a `*.*.*` tag. `release.yml` validates, then pushes
@@ -54,6 +56,7 @@ docker build -t riot2-ui:local .
 | `src/stores/` | Pinia stores (nodes, templates, variables, dashboard, commands, Matter, backup) with `loading`/`error` from `requests.ts` |
 | `src/components/nodes/`, `src/components/devices/` | Parts of the Configure page: node list, editor dialog, device list and template picker; device parameters and template tables |
 | `src/models/` | TypeScript models and constants for REST routes, topics, dashboards, nodes and variables |
+| `src/models/generated/` | `contracts.ts`, generated from the RIoT2.Core contract schema: don't edit |
 | `src/components/dashboardComponents/` | Dashboard widget components |
 | `src/views/` | Route-level pages |
 | `src/layout/` | Vuetify app shell and navigation drawer |
@@ -82,6 +85,11 @@ docker build -t riot2-ui:local .
   fail goes through `useRequests().run`, which sets `error` and shows the snackbar.
 - Keep components under about 250 lines (plan M3); move dialogs and tables into child components.
 - Prefer the `@` alias for imports from `src/`.
+- A model class that mirrors a Core contract type `implements` its generated type
+  (`import type * as Contract from './generated/contracts'`), and the enums in `enums.ts` are
+  checked against the generated unions. JSON values are `JsonValue` (helpers in
+  `src/composables/jsonValue.ts`); don't use `any`. Orchestrator-only shapes (variables as served,
+  Matter, backups) stay hand-written.
 - Vue components use `<script setup lang="ts">` and Composition API patterns.
 - Elsa 3 is the only workflow engine. Do not reintroduce the retired internal rule editor,
   simulator, `/rules` routes, `/api/rules` helpers or function-template loading.
@@ -110,6 +118,10 @@ docker build -t riot2-ui:local .
 - `src/composables/mqttService.ts` hard-codes the broker WebSocket port to 9001.
 - MQTT.js automatic resubscription is left enabled. The UI's own reconnect backoff starts at
   4 seconds, then grows to 8, 16 and a maximum of 30 seconds.
+- Type-check with `vue-tsc --build`: the root `tsconfig.json` lists no files, so `vue-tsc --noEmit`
+  checked nothing (until 1.5.0).
+- `JsonValue`'s object and array cases are named interfaces; an inline recursive type makes Vue's
+  `ref` unwrapping too deep for the compiler.
 - `src/models/variable.ts` spells the persisted property `isPersistant`; it is part of the stored
   format, so only the label says "Persistent".
 - `entrypoint.sh` renders the MQTT settings into `assets/index*.js` only, so `src/app.config.ts`
@@ -126,8 +138,6 @@ docker build -t riot2-ui:local .
 
 - Backlog item [13](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/open-issues.md)
   (the components still over 250 lines); items 10, 21 and 22 are done in 1.4.0 (I24).
-- Plan [M3](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/plans/m03-split-oversized-classes.md)
-  step 4: replace `any` with the generated contract types.
 - Optional hardening item [S2](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/optional-hardening.md).
   S12 (non-root nginx) is done in 1.1.0.
 - [M3](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/plans/m03-split-oversized-classes.md):

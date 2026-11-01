@@ -1,17 +1,20 @@
 import type { IComponentElement } from "@/models/componentElement";
 import { ValueType } from "@/models/enums";
+import type { JsonValue } from "@/models/generated/contracts";
+import { isJsonObject, valueAt } from "./jsonValue";
 
 export function useComponentService() {
     function getElementBooleanValue(element: IComponentElement, expectedPropertyValue: string = ""): boolean {
+        const value = element.report?.value;
         switch(element.reportTemplate?.type){
           case ValueType.Boolean:
-            return element.report?.value;
+            return Boolean(value);
           case ValueType.Entity:
             return getElementPropertyValue(element) === expectedPropertyValue;
           case ValueType.Number:
-            return element.report?.value > 0;
+            return Number(value) > 0;
           case ValueType.Text:
-            return element.report?.value != null &&  element.report?.value != "";
+            return value != null && value !== "";
         }
         return false;
       }
@@ -19,45 +22,44 @@ export function useComponentService() {
       function getElementTextValue(element: IComponentElement): string {
         switch(element.reportTemplate?.type){
           case ValueType.Text:
-            return element.report?.value;
+            return String(element.report?.value ?? "");
           case ValueType.Entity:
-            return getElementPropertyValue(element);
+            return String(getElementPropertyValue(element) ?? "");
           case ValueType.Boolean:
           case ValueType.Number:
           default:
             return "";
         }
-        return "";
       }
 
       function getElementNumericValue(element: IComponentElement): number {
+        const value = element.report?.value;
+        // NaN when there is no number, so the dashboard shows a placeholder.
         switch(element.reportTemplate?.type){
           case ValueType.Text:
-            return +element.report?.value;
-          case ValueType.Entity:
-            return +getElementPropertyValue(element);
-          case ValueType.Boolean:
-            return element.report?.value ? 1 : 0;
+            return Number(value);
           case ValueType.Number:
-            return element.report?.value;
+            return typeof value === "number" ? value : Number.NaN;
+          case ValueType.Entity:
+            return Number(getElementPropertyValue(element));
+          case ValueType.Boolean:
+            return value ? 1 : 0;
           default:
             return 0;
         }
-        return 0;
       }
 
-      function getElementPropertyValue(element: IComponentElement, entityPropertyName: string = "value"): any {
-        try{
-          const propertyName = getElementValuePropertyName(element, entityPropertyName);
-
-          if(propertyName != "") {
-              return element.report?.value[propertyName];
-          } else {
-            return element.properties[entityPropertyName];
-          }
-        }catch {
-          console.log("Not able to find " + entityPropertyName + " from element");
-        }
+      /**
+       * An element property (see the *ElementProperties classes), or, when the property names a
+       * member of an entity report as "{member}", that member of the current report. T is the shape
+       * the caller expects; it is not checked at run time.
+       */
+      function getElementPropertyValue<T extends JsonValue = JsonValue>(element: IComponentElement, entityPropertyName: string = "value"): T | undefined {
+        const propertyName = getElementValuePropertyName(element, entityPropertyName);
+        const value = propertyName != ""
+          ? valueAt(element.report?.value, [propertyName])
+          : element.properties?.[entityPropertyName];
+        return value as T | undefined;
       }
 
       function getElementValuePropertyName(element: IComponentElement, entityPropertyName: string = "value"): string {
@@ -66,11 +68,10 @@ export function useComponentService() {
           return "";
 
         const propertyName = element.properties[entityPropertyName];
-        if(propertyName == undefined || propertyName == "")
+        if(typeof propertyName !== "string" || propertyName == "")
           return "";
         
-        if(element.properties[entityPropertyName].startsWith("{") &&
-          element.properties[entityPropertyName].endsWith("}")) {
+        if(propertyName.startsWith("{") && propertyName.endsWith("}")) {
             return propertyName.substring(1, propertyName.length-1);
         } else {
           return propertyName;
@@ -78,45 +79,30 @@ export function useComponentService() {
       }
 
       function getPreviousNumericValues(element: IComponentElement): number[] {
-        let values: number[] |null = [];
+        let values: JsonValue[] | null = [];
         if(element.reportTemplate?.type == ValueType.Number) {
           if(element.previousReportsAsc != undefined) {
-            values = getArrayMap<number>(element.previousReportsAsc, "value");
+            values = getArrayMap(element.previousReportsAsc, "value");
           }
         } if(element.reportTemplate?.type == ValueType.Entity) {
           const propertyName = getElementValuePropertyName(element);
           if(propertyName != "")
-            values = getArrayMap<number>(element.previousReportsAsc, "value." + propertyName);
+            values = getArrayMap(element.previousReportsAsc, "value." + propertyName);
         }
 
-        if(values == null)
-          return [];
-        else 
-          return values;
+        return values == null ? [] : values.map(v => Number(v));
       }
 
-      function getDescendantProp(obj: any, desc: string) {
-        if(desc.indexOf('.') == -1)
-          return obj[desc];
-
-        const arr: any[] = desc.split(".");
-        while(arr.length && (obj = obj[arr.shift()]));
-        return obj;
-      }
-
-      function getArrayMap<T>(objArray: any[] | undefined, propertyName: string): T[] | null  {
-        if(objArray == undefined)
+      /** The value at a dotted path ("value.temperature") of each report; null when none has it. */
+      function getArrayMap(reports: { value: JsonValue }[] | undefined, path: string): JsonValue[] | null  {
+        if(reports == undefined)
           return null;
-        let map = objArray.map<T>(a => getDescendantProp(a, propertyName));
-
-        map = map.filter(function(e) {
-          return e !== undefined;
-        });
+        const [first, ...rest] = path.split(".");
+        const map = reports
+          .map(report => first == "value" ? valueAt(report.value, rest) : undefined)
+          .filter((e): e is JsonValue => e !== undefined);
         
-        if(map.length > 0)
-          return map;
-        else
-          return null;
+        return map.length > 0 ? map : null;
       }
 
       function formatDate(date: Date) {
@@ -144,8 +130,8 @@ export function useComponentService() {
       return d;
     }
 
-    function areEqual(object1: any, object2: any) {
-      if (!isObject(object1) || !isObject(object2))
+    function areEqual(object1: JsonValue | undefined, object2: JsonValue | undefined): boolean {
+      if (!isJsonObject(object1) || !isJsonObject(object2))
         return Object.is(object1, object2);
 
       const keys1 = Object.keys(object1);
@@ -156,7 +142,7 @@ export function useComponentService() {
       for (const key of keys1) {
         const val1 = object1[key];
         const val2 = object2[key];
-        const areObjects = isObject(val1) && isObject(val2);
+        const areObjects = isJsonObject(val1) && isJsonObject(val2);
         if (
           areObjects && !areEqual(val1, val2) ||
           !areObjects && val1 !== val2
@@ -165,10 +151,6 @@ export function useComponentService() {
         }
       }
       return true;
-    }
-
-    function isObject(object: any) {
-      return object != null && typeof object === 'object';
     }
 
       return {

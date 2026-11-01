@@ -6,6 +6,7 @@ import DeviceConfiguration from '@/models/deviceConfiguration';
 import CommandTemplateEditor from '@/components/CommandTemplateEditor.vue';
 import Datamodel from '@/components/DatamodelComponent.vue';
 import { useCommandsStore } from '@/stores/commandsStore';
+import type { JsonValue } from '@/models/generated/contracts';
 
 const model = defineModel<DeviceConfiguration>({ default: new DeviceConfiguration() });
 
@@ -128,7 +129,7 @@ async function execute() {
       <v-card-subtitle class="pb-1 text-subtitle-1">{{ editing.device }}</v-card-subtitle>
       <v-card-text>
         <Datamodel :datamodel="editing.model" :expanded="true" :editable="true" :expandable="false"
-          @modelUpdated="(value: unknown) => { editing.model = value }" />
+          @modelUpdated="(value: JsonValue) => { editing.model = value }" />
       </v-card-text>
       <v-card-actions>
         <v-btn @click="execute" :loading="executing" color="primary" variant="tonal">

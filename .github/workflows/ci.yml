@@ -19,10 +19,14 @@ jobs:
     uses: Revolutionized-IoT2/.github/.github/workflows/node-validate.yml@main
     with:
       node-version: "24"
-      # lint is ESLint (eslint.config.mjs); build runs vue-tsc first, so it also type-checks.
+      # lint is ESLint (eslint.config.mjs). build generates src/models/generated from RIoT2.Core's
+      # contract schema, then type-checks (vue-tsc --build) and bundles.
       scripts: lint test build
-      # tests/contracts.test.cjs reads the golden files and the orchestrator's OpenAPI document.
+      # tests/contracts.test.cjs reads the golden files and the orchestrator's OpenAPI document;
+      # build reads RIoT2.Core/contracts/schemas.
       siblings: RIoT2.Core RIoT2.Net.Orchestrator
+      # The generated models must be committed as the current schema produces them.
+      verify-generated: true
 
   image:
     uses: Revolutionized-IoT2/.github/.github/workflows/docker-publish.yml@main

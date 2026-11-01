@@ -10,7 +10,7 @@ export default defineConfigWithVueTs(
   },
   {
     name: 'app/files-to-ignore',
-    ignores: ['dist/**', 'node_modules/**', 'tests/**', '*.config.*', 'env.d.ts'],
+    ignores: ['dist/**', 'node_modules/**', 'tests/**', '*.config.*', 'env.d.ts', 'src/models/generated/**'],
   },
   pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
@@ -19,8 +19,8 @@ export default defineConfigWithVueTs(
     rules: {
       // Vuetify names its data-table slots after the column, for example v-slot:item.name.
       'vue/valid-v-slot': ['error', { allowModifiers: true }],
-      // Plan M3 step 4 replaces the remaining `any` with the generated contract types.
-      '@typescript-eslint/no-explicit-any': 'warn',
+      // JSON values are JsonValue from the generated contract types (plan M3 step 4, I28).
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
   {

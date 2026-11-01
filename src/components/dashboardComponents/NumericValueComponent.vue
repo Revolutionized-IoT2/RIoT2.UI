@@ -29,7 +29,7 @@ function updateComponent() {
   
   const lastUpdated = componentService.timeStampToDate(elem.report.timeStamp);
   const numericValue = componentService.getElementNumericValue(elem);
-  const unit = componentService.getElementPropertyValue(elem, "unit");
+  const unit = String(componentService.getElementPropertyValue(elem, "unit") ?? "");
   const configuredDigits = Number(componentService.getElementPropertyValue(elem, "digits") ?? 0);
   const digits = Number.isFinite(configuredDigits) ? Math.min(100, Math.max(0, Math.trunc(configuredDigits))) : 0;
 
@@ -52,7 +52,7 @@ function updateComponent() {
   numValue.value = {value: Number.isFinite(numericValue) ? numericValue.toFixed(digits) : "-", prevValue: pValue, updated: lastUpdated, unit: unit, trendIcon: trendIcon};
 }
 
-function getTrendIcon(previousValues: any[]) :string {
+function getTrendIcon(previousValues: number[]) :string {
 
   let trend = "";
 
@@ -74,7 +74,7 @@ function getTrendIcon(previousValues: any[]) :string {
   return trend;
 }
 
-function lineFitter(data: any[], x: number)
+function lineFitter(data: number[], x: number)
 {
     let count = 0;
     let sumX = 0;
