@@ -78,6 +78,18 @@ const router = createRouter({
       ],
     },
     {
+      path: '/backup',
+      name: 'backup',
+      component: () => import('@/layout/Default.vue'),
+      children: [
+        {
+          path: '',
+          name: 'Backup and restore',
+          component: () => import('@/views/BackupView.vue'),
+        },
+      ],
+    },
+    {
       path: '/dash',
       name: 'dash',
       component: () => import('@/layout/Default.vue'),

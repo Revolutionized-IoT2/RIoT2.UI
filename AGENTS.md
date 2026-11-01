@@ -49,7 +49,7 @@ There is no configured lint script.
 | `src/app.config.ts` | `VITE_MQTT_SERVER`, `VITE_MQTT_USER`, `VITE_MQTT_PASSWORD` exports |
 | `src/composables/mqttService.ts` | MQTT.js WebSocket client, reconnect backoff, subscribe/publish/disconnect |
 | `src/composables/orchestratorService.ts` | Higher-level orchestrator REST API wrapper |
-| `src/composables/api/` | API helpers for dashboard, nodes, Matter, commands/reports and variables |
+| `src/composables/api/` | API helpers for dashboard, nodes, Matter, backups, commands/reports and variables |
 | `src/models/` | TypeScript models and constants for REST routes, topics, dashboards, nodes and variables |
 | `src/components/dashboardComponents/` | Dashboard widget components |
 | `src/views/` | Route-level pages |

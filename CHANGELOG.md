@@ -5,6 +5,17 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-01
+
+Needs RIoT2.Net.Orchestrator 1.7.0 or later ([I21](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i21-backup-and-restore-m)).
+
+- Added: a **Backup** page (menu *Backup*, `/backup`). *Download backup* saves a configuration
+  backup, *Restore from file* restores one after a confirmation, and the list shows the
+  orchestrator's saved backups (scheduled and pre-restore) to download or restore, with the
+  schedule, the next run and the last result.
+- Changed: an HTTP error message includes the orchestrator's reason (the problem `detail` or a
+  text body), and `get`/`post` take optional axios request settings.
+
 ## [1.2.0] - 2026-10-14
 
 Needs RIoT2.Net.Orchestrator 1.4.0 or later ([I15](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i15-command-results-and-api-v2-m), backlog item 7).

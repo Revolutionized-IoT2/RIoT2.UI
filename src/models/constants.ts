@@ -30,6 +30,12 @@ export const Constants = {
     urlRefreshMatterDevices: "/api/v2/matter/devices/refresh",
     urlResetMatter: "/api/v2/matter/reset",
 
+    urlGetBackups: "/api/v2/backups",
+    urlCreateBackup: "/api/v2/backup",
+    urlRestoreBackup: "/api/v2/restore",
+    urlRestoreSavedBackup: "/api/v2/backups/{name}/restore",
+    urlDownloadBackup: "/api/v2/backups/{name}",
+
     topicReport: "riot2/node/+/report",
     topicCommand: "riot2/node/{id}/command",
     topicConfigure: "riot2/node/{id}/configuration",

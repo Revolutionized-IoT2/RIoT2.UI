@@ -15,6 +15,8 @@ How this UI fits into the platform: [architecture overview](https://github.com/R
 - Shows dashboards with charts, numeric values, switches, states, images, timelines and buttons.
 - Manages nodes, device configuration, variables and Matter bridge settings through the
   orchestrator API.
+- Downloads and restores configuration backups, and lists the orchestrator's saved backups
+  (*Backup* page, orchestrator 1.7.0 or later).
 - Opens the external Elsa Studio workflow node from the navigation drawer.
 - Subscribes to live report messages over MQTT and sends dashboard-node presence on page load.
 
@@ -101,7 +103,7 @@ Important implementation files:
 | `src/App.vue` | Creates the dashboard MQTT client id, subscribes, announces online and waits for configuration. |
 | `src/composables/mqttService.ts` | MQTT.js connection, reconnect backoff, subscriptions and publishing. |
 | `src/composables/orchestratorService.ts` | Higher-level orchestrator REST calls. |
-| `src/composables/api/` | Dashboard, node, Matter, command/report and variable API helpers. |
+| `src/composables/api/` | Dashboard, node, Matter, backup, command/report and variable API helpers. |
 | `src/models/constants.ts` | REST routes and MQTT topic templates used by the UI. |
 | `src/layout/AppBar.vue` | Navigation drawer and external Elsa Studio link. |
 
