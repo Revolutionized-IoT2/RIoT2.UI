@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import { useComponentService } from '@/composables/componentService';
-import { useOrchestrator } from '@/composables/orchestratorService';
-import Command from '@/models/command';
+import { useCommandsStore } from '@/stores/commandsStore';
 import type Component from '@/models/component';
 import type { IComponentElement } from '@/models/componentElement';
-import { InjectionKeys } from '@/models/injectionKeys';
-import { inject, onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
 const props = defineProps<{
   data: Component
 }>();
 const componentService = useComponentService();
-const orchestrator = useOrchestrator();
+const commands = useCommandsStore();
 
 const state1 = ref<boolean | undefined>(undefined);
 const state2 = ref<boolean | undefined>(undefined);
@@ -36,7 +34,7 @@ function updateComponent() {
 
 function updateElement(i: 1|2, e: IComponentElement) {
   let changed = false;
-      let val = componentService.getElementBooleanValue(e);     
+      const val = componentService.getElementBooleanValue(e);     
       changed = val != (i==1 ? state1.value : state2.value);
   
       if(changed && i == 1) {
@@ -49,18 +47,9 @@ function updateElement(i: 1|2, e: IComponentElement) {
  }
 
  function switchState(i: 1|2, val: boolean) {
-  let e = props.data.elements[i-1];
-  if(e.commandTemplate != undefined) {
-    let cmd = new Command();
-    cmd.id = e.commandTemplate.id;
-    cmd.value = val;
-
-    if(e.commandTemplate.address?.toLowerCase() == "variable") {
-      orchestrator.setVariableValue(cmd, () => {});
-    } else {
-      orchestrator.executeCommand(cmd, () => {});
-    }
-  }
+  const e = props.data.elements[i-1];
+  if(e.commandTemplate != undefined)
+    commands.send(e.commandTemplate, val);
 }
 
 onMounted(() => {

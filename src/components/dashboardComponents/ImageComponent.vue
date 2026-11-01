@@ -31,14 +31,14 @@ function updateImage() {
   if(elem.report == undefined)
     return;
 
-  let lastUpdated = componentService.timeStampToDate(elem.report.timeStamp);
-  let imageUrls: string[] = []; 
+  const lastUpdated = componentService.timeStampToDate(elem.report.timeStamp);
+  const imageUrls: string[] = []; 
   //imageUrls.push(componentService.getElementTextValue(props.data.elements[0]));
   
-  let reportPropertyName = componentService.getElementProperty(elem, "url");
+  const reportPropertyName = componentService.getElementProperty(elem, "url");
   
   if(elem.previousReports != undefined) {
-    for(let prevReport of elem.previousReports) {
+    for(const prevReport of elem.previousReports) {
       if(elem.reportTemplate?.type == ValueType.Entity &&
         reportPropertyName != null &&
         reportPropertyName != "") {
@@ -54,7 +54,7 @@ function updateImage() {
 <template>
     <v-card-text class="py-0">
       <v-carousel :show-arrows="image.url.length > 1" :hide-delimiters="image.url.length < 2" v-model="selectedImage">
-        <v-carousel-item v-for="img, i in image.url"
+        <v-carousel-item v-for="img, i in image.url" :key="i"
           :src="img"
           :value="i"
         ></v-carousel-item>

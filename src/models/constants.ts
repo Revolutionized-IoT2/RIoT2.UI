@@ -40,6 +40,7 @@ export const Constants = {
     topicCommand: "riot2/node/{id}/command",
     topicConfigure: "riot2/node/{id}/configuration",
     topicOnline: "riot2/node/{id}/online",
+    topicOrchestratorOnline: "riot2/orchestrator/online",
     //https://github.com/json-editor/json-editor
     nodeConfigurationSchema: {
         type: "object",

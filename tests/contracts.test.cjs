@@ -94,22 +94,20 @@ test('the route check rejects a route or method the orchestrator does not have',
   assert.equal(findRoute(routes, '/api/nodes/report/templates/extra', 'get'), undefined);
 });
 
+// The UI's real MQTT handler, with the stores it hands the messages to replaced by recorders.
 function loadApp(store, reports) {
-  const app = loadSource('src/App.vue', {
-    expose: ['mqttMessageReceived', 'configureDashboardTopic', 'emitter'],
+  return loadSource('src/App.vue', {
+    expose: ['mqttMessageReceived', 'configureDashboardTopic'],
     mocks: {
-      mitt: { default: require('mitt').default ?? require('mitt') },
       uuid: { v4: () => 'ui-test' },
       '@/composables/mqttService': { useMqtt: () => ({ connect() {}, subscribe() {}, sendMessage() {}, disConnect() {}, status: {} }) },
-      './composables/orchestratorService': {
-        useOrchestrator: () => ({ getReportTemplates() {}, getCommandTemplates() {}, getVariableTemplates() {} }),
-      },
       './stores/orchestratorStore': { useOrchestratorStore: () => store },
-      './stores/errorStore': { useErrorStore: () => ({ setError: error => { throw new Error(error.message); } }) },
+      './stores/errorStore': { useErrorStore: () => ({ setError: error => { throw new Error(error.text + ' ' + error.data); } }) },
+      './stores/templatesStore': { useTemplatesStore: () => ({ load() {} }) },
+      './stores/dashboardStore': { useDashboardStore: () => ({ applyReport: report => reports.push(report) }) },
+      './stores/variablesStore': { useVariablesStore: () => ({ applyReport() {} }) },
     },
   });
-  app.state.emitter.on('mqttReportReceived', report => reports.push(report));
-  return app;
 }
 
 test('the UI reads every golden report message', t => {

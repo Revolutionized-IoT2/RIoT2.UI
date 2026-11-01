@@ -1,4 +1,3 @@
-import { ValueElementProperties } from './componentElement';
 
 export class Report implements IReport {
 

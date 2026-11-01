@@ -5,6 +5,38 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-01
+
+UI restructure and fixes ([I24](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i24-ui-restructure-and-fixes-m), plan M3 UI steps 1–3, backlog items 10, 13, 21 and 22,
+divergence D3). Works with RIoT2.Net.Orchestrator 1.7.0 or later, as 1.3.0.
+
+- Fixed: the UI announces itself on every MQTT connection and again when the orchestrator comes
+  back online (a live `riot2/orchestrator/online` with `isOnline: true`), so it no longer stays on
+  "Connecting..." after a broker or orchestrator restart (backlog item 21).
+- Changed: the presence and last will are camelCase (`{"isOnline":true,"name":…,"nodeType":2}`),
+  like every other node's (D3). The orchestrator reads both casings.
+- Fixed: the menu labels "Workflows" (was "Rules") and "Variables" (was "Varibles"), and
+  "Persistent" in the variables view (was "Persistant") (backlog item 22). The stored property is
+  still `isPersistant`.
+- Added: deleting a variable (it showed "todo"). Closing the variable dialog no longer keeps
+  unsaved edits in the list.
+- Changed: a failed save keeps the node editor open and no longer reports "Node saved"; the error
+  snackbar shows the orchestrator's reason.
+- Changed: data access lives in Pinia stores (`src/stores/`: nodes, templates, variables,
+  dashboard, commands, Matter, backup), each with `loading` and `error`. The API modules in
+  `src/composables/api/` return promises and reject with an `ApiError`; `orchestratorService`, the
+  provide/inject template keys and the `mitt` event bus are gone.
+- Changed: `NodesView` is split into a node list, a node editor dialog, a device template picker
+  and a device list, and `DeviceConfigurationComponent` into a parameters form and report and
+  command template tables.
+- Changed: every route loads its view on demand, and mqtt and Vue have chunks of their own: the
+  main chunk is 181 kB (64 kB gzip) instead of 896 kB (backlog item 10).
+- Added: ESLint (`npm run lint`, `eslint.config.mjs`: `eslint-plugin-vue` and `typescript-eslint`),
+  run in CI and before a release. It found a missing space in the button component's colour
+  picker attributes and a stray `v-if` on the context menu template.
+- Removed: unused scaffolding (`stores/counter.ts`, `HelloWorld`, `TheWelcome`, `WelcomeItem`, the
+  icon components, `AboutView` and its `/about` route) and the unused dashboard editor components.
+
 ## [1.3.0] - 2026-11-01
 
 Needs RIoT2.Net.Orchestrator 1.7.0 or later ([I21](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i21-backup-and-restore-m)).

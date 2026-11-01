@@ -98,7 +98,7 @@ function closeDialog() {
 
 const valueTypes = computed(() => {
 
-    let allTypes = [{name: "Boolean", value: ValueType.Boolean},
+    const allTypes = [{name: "Boolean", value: ValueType.Boolean},
                     {name: "Entity", value: ValueType.Entity},
                     {name: "Number", value: ValueType.Number},
                     {name: "Text", value: ValueType.Text},
@@ -133,7 +133,7 @@ function editModeClick() {
         editMode.value = true;
     } else {
         try{
-            let obj = convertToType(editJson.value, type.value);
+            const obj = convertToType(editJson.value, type.value);
             emit('modelUpdated', obj, type.value);
             closeDialog();
         } catch(e) {
@@ -157,7 +157,7 @@ function formatCodeBlock(json: string) {
     json = JSON.stringify(json, undefined, 2);
     json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     json = json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, function (match) {
-        var cls = 'number';
+        let cls = 'number';
         if (/^"/.test(match)) {
             if (/:$/.test(match)) {
                 cls = 'key';

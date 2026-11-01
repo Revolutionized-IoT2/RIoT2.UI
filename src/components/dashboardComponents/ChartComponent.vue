@@ -2,7 +2,6 @@
 import { useComponentService } from '@/composables/componentService';
 import type Component from '@/models/component';
 import { ChartType } from '@/models/enums';
-import { Report } from '@/models/report';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -50,18 +49,18 @@ function updateComponent() {
     return;
   }
 
-  let timeStamp = componentService.timeStampToDate(props.data.elements[0].report.timeStamp);
-  let ds: {label: string, backgroundColor: string[], data: number[]}[] = [];
+  const timeStamp = componentService.timeStampToDate(props.data.elements[0].report.timeStamp);
+  const ds: {label: string, backgroundColor: string[], data: number[]}[] = [];
   let lbls: string[] = [];
 
   for(let i = 0; i < props.data.elements.length; i++) {
-    let currentElement = props.data.elements[i];
-    let prevReports = currentElement.previousReportsAsc;
+    const currentElement = props.data.elements[i];
+    const prevReports = currentElement.previousReportsAsc;
 
     if(prevReports != undefined) {
-      let values = componentService.getElementPreviousNumericValues(currentElement);
+      const values = componentService.getElementPreviousNumericValues(currentElement);
       
-      let colorProperty = componentService.getElementProperty(currentElement, "color");
+      const colorProperty = componentService.getElementProperty(currentElement, "color");
       let colors = componentService.arrayMap<string>(prevReports, "value." + colorProperty);
       
       if(colors == null)
@@ -78,14 +77,14 @@ function updateComponent() {
 
         //get lebels from first element -> these labels are used for all elemnets
         if(i == 0) {
-          let valueLabel = componentService.getElementProperty(currentElement, "label");
+          const valueLabel = componentService.getElementProperty(currentElement, "label");
           if(currentElement.previousReportsAsc != undefined) {
             if(valueLabel) {
-              let labels = componentService.arrayMap<string>(currentElement.previousReportsAsc, "value." + valueLabel);
+              const labels = componentService.arrayMap<string>(currentElement.previousReportsAsc, "value." + valueLabel);
               if(labels != null)
                 lbls = labels;
             } else { 
-              for(let t of currentElement.previousReportsAsc) {
+              for(const t of currentElement.previousReportsAsc) {
                 lbls.push(componentService.formatDate(componentService.timeStampToDate(t.timeStamp)));
               }
             } 

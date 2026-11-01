@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { AxiosError } = require('axios');
+const { createPinia, setActivePinia } = require('pinia');
 const { loadSource } = require('./source-loader.cjs');
 
 // Objects made in the loaded source belong to another VM context.
@@ -13,7 +14,6 @@ function loadApi(calls) {
     mocks: {
       '@/stores/orchestratorStore': { useOrchestratorStore: () => ({ baseUrl: 'http://orchestrator:8080' }) },
       '@/composables/httpClientService': {
-        withCallback: async (request, callback, completed) => { callback(await request); completed?.(); },
         useHttpClient: () => ({
           get: async url => { calls.push({ method: 'get', url }); return { backups: [] }; },
           post: async (url, data, config) => { calls.push({ method: 'post', url, data, config }); return { nodes: 1 }; },
@@ -32,11 +32,10 @@ test('the backup API sends the zip as the body and encodes backup names', async 
   const calls = [];
   const api = loadApi(calls).useBackupApi();
   const file = { name: 'riot2-backup-20261101T030000Z.zip' };
-  let result;
 
-  await api.createBackup(() => {});
-  await api.restore(file, data => { result = data; });
-  await api.restoreSaved('riot2-backup-20261101T030000Z.zip', () => {});
+  await api.createBackup();
+  const result = await api.restore(file);
+  await api.restoreSaved('riot2-backup-20261101T030000Z.zip');
 
   assert.deepEqual(plain(calls[0]), { method: 'post', url: 'http://orchestrator:8080/api/v2/backup', data: null, config: { responseType: 'blob' } });
   assert.equal(calls[1].url, 'http://orchestrator:8080/api/v2/restore');
@@ -58,6 +57,7 @@ test('errors carry the detail of the orchestrator\'s answer', () => {
 });
 
 test('the Backup view restores a saved backup only after confirmation, then reloads the list', async t => {
+  setActivePinia(createPinia());
   const calls = [];
   const view = loadSource('src/views/BackupView.vue', {
     expose: ['summary', 'confirmDialog', 'restored', 'restoring', 'chooseSaved', 'cancelRestore', 'restore'],
@@ -65,8 +65,8 @@ test('the Backup view restores a saved backup only after confirmation, then relo
       '@/composables/api/backupApi': {
         backupFileName: () => 'x.zip',
         useBackupApi: () => ({
-          getSummary: (callback, completed) => { calls.push('summary'); callback({ schedule: null, backups: [{ name: 'b.zip' }] }); completed(); },
-          restoreSaved: (name, callback, completed) => { calls.push('restore ' + name); callback({ nodes: 2, safetyBackup: 'p.zip' }); completed(); },
+          getSummary: async () => { calls.push('summary'); return { schedule: null, backups: [{ name: 'b.zip' }] }; },
+          restoreSaved: async name => { calls.push('restore ' + name); return { nodes: 2, safetyBackup: 'p.zip' }; },
           restore() { throw new Error('no file was chosen'); },
           getDownloadUrl: name => name,
         }),
@@ -82,11 +82,40 @@ test('the Backup view restores a saved backup only after confirmation, then relo
   assert.deepEqual(calls, []);
 
   state.chooseSaved('b.zip');
-  state.restore();
+  await state.restore();
 
   assert.equal(state.confirmDialog.value, false);
   assert.equal(state.restoring.value, false);
   assert.deepEqual(calls, ['restore b.zip', 'summary']);
   assert.equal(state.restored.value.safetyBackup, 'p.zip');
   assert.equal(state.summary.value.backups[0].name, 'b.zip');
+});
+
+test('a failed restore shows the orchestrator\'s reason and still reloads the list', async t => {
+  setActivePinia(createPinia());
+  const errors = [];
+  let summaries = 0;
+  const view = loadSource('src/views/BackupView.vue', {
+    expose: ['restored', 'restoring', 'chooseSaved', 'restore'],
+    mocks: {
+      '@/composables/api/backupApi': {
+        backupFileName: () => 'x.zip',
+        useBackupApi: () => ({
+          getSummary: async () => { summaries++; return { backups: [] }; },
+          restoreSaved: async () => { throw new Error('Request failed with status code 400: v.json is not valid JSON.'); },
+          getDownloadUrl: name => name,
+        }),
+      },
+      './errorStore': { useErrorStore: () => ({ report: error => errors.push(error.message) }) },
+    },
+  });
+  t.after(view.dispose);
+
+  view.state.chooseSaved('b.zip');
+  await view.state.restore();
+
+  assert.equal(view.state.restored.value, null);
+  assert.equal(view.state.restoring.value, false);
+  assert.deepEqual(errors, ['Request failed with status code 400: v.json is not valid JSON.']);
+  assert.equal(summaries, 1);
 });

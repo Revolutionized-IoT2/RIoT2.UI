@@ -1,16 +1,14 @@
-import axios, { AxiosError, type AxiosRequestConfig } from 'axios';
-import AppError from '@/models/appError';
-import { useErrorStore } from '@/stores/errorStore';
+import axios, { type AxiosRequestConfig } from 'axios';
 
 /**
- * Awaits `request`, then forwards the result to `callback` and invokes
- * `completed` (if provided). Centralizes the callback/completed bridging
- * so API composables don't have to repeat it after every request.
+ * A failed orchestrator request: the URL, the HTTP status (0 when there was no response) and the
+ * reason the orchestrator gave, if any. The message combines the HTTP error with that reason.
  */
-export async function withCallback<T>(request: Promise<T | null>, callback: (data: T | null) => void, completed?: () => void): Promise<void> {
-    const data = await request;
-    callback(data);
-    completed?.();
+export class ApiError extends Error {
+    constructor(message: string, readonly url: string, readonly status: number, readonly detail: string | null) {
+        super(message);
+        this.name = 'ApiError';
+    }
 }
 
 /**
@@ -28,65 +26,55 @@ export function responseDetail(error: unknown): string | null {
     return null;
 }
 
+export function toApiError(error: unknown, url: string): ApiError {
+    if (error instanceof ApiError)
+        return error;
+    if (axios.isAxiosError(error)) {
+        const detail = responseDetail(error);
+        const message = detail == null ? error.message : error.message + ': ' + detail;
+        return new ApiError(message, url, error.response?.status ?? 0, detail);
+    }
+    return new ApiError(error instanceof Error ? error.message : String(error), url, 0, null);
+}
+
+// An empty body (204, or 200 without content) is null.
+function body<T>(data: T): T | null {
+    return data == null || (data as unknown) === '' ? null : data;
+}
+
+/**
+ * The orchestrator's HTTP client. Every method resolves to the response body (null when empty)
+ * and rejects with an {@link ApiError}; the stores report failures.
+ */
 export function useHttpClient() {
 
-    const e = useErrorStore();
-
-    function handleError(error: Error | AxiosError, url: string): void {
-        if(e == undefined)
-            return;
-
-        if(axios.isAxiosError(error)) {
-            const detail = responseDetail(error);
-            const message = detail == null ? error.message : error.message + ': ' + detail;
-            e.setError(new AppError("Error in HTTP Client", message, error.stack, url));
-        } else {
-            e.setError(new AppError("Error in HTTP Client", (error as Error).message, error.stack, url));
+    async function get<T>(url: string, config?: AxiosRequestConfig): Promise<T | null> {
+        try {
+            return body((await axios.get<T>(url, config)).data);
+        } catch (error) {
+            throw toApiError(error, url);
         }
     }
 
-    async function axiosHttpGet<T>(url: string, config?: AxiosRequestConfig): Promise<T | null> {
+    async function post<T, R>(url: string, data: T, config?: AxiosRequestConfig): Promise<R | null> {
         try {
-            const response = await axios.get<T>(url, config);
-            if(response == null || response.data == null || (response.data as unknown) === '')
-                return null;
-
-            return response.data;
+            return body((await axios.post<R>(url, data, config)).data);
         } catch (error) {
-            handleError(error as Error | AxiosError, url);
-            return null;
+            throw toApiError(error, url);
         }
     }
 
-    async function axiosHttpPost<T, R>(url: string, data: T, config?: AxiosRequestConfig): Promise<R | null> {
+    async function remove<R>(url: string): Promise<R | null> {
         try {
-            const response = await axios.post<R>(url, data, config);
-            if(response == null || response.data == null || (response.data as unknown) === '')
-                return null;
-
-            return response.data;
+            return body((await axios.delete<R>(url)).data);
         } catch (error) {
-            handleError(error as Error | AxiosError, url);
-            return null;
-        }
-    }
-
-    async function axiosHttpDelete<R>(url: string): Promise<R | null> {
-        try {
-            const response = await axios.delete<R>(url);
-            if(response == null || response.data == null || (response.data as unknown) === '')
-                return null;
-
-            return response.data;
-        } catch (error) {
-            handleError(error as Error | AxiosError, url);
-            return null;
+            throw toApiError(error, url);
         }
     }
 
     return {
-        get: axiosHttpGet,
-        post: axiosHttpPost,
-        delete: axiosHttpDelete
-      };
+        get,
+        post,
+        delete: remove
+    };
 }

@@ -32,8 +32,8 @@ const timerPercentage = computed(() => {
 function updateComponent() { 
   if(props.data.elements.length > 0 && props.data.elements[0].report != undefined) {
       let changed = false;
-      let numValue = componentService.getElementNumericValue(props.data.elements[0]);
-      var state = states.value.find(x => x.value == numValue);
+      const numValue = componentService.getElementNumericValue(props.data.elements[0]);
+      const state = states.value.find(x => x.value == numValue);
       changed = !(numValue == state?.value);
       currentState.value = state;
 
@@ -71,7 +71,7 @@ onUnmounted(() => {
 });
 
 onMounted(() => {
-  let elementStates = componentService.getElementPropertyValue(props.data.elements[0], "states");
+  const elementStates = componentService.getElementPropertyValue(props.data.elements[0], "states");
   if(elementStates != undefined)
     states.value = elementStates;
 

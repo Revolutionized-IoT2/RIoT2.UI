@@ -1,124 +1,80 @@
 <script setup lang="ts">
-import mitt from 'mitt';
-import { provide, ref, type Ref, onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import { RouterView } from 'vue-router'
-import { InjectionKeys } from '@/models/injectionKeys';
 import AppError from '@/models/appError';
 import { useMqtt } from '@/composables/mqttService';
+import { orchestratorCameOnline, presenceMessage } from '@/composables/presence';
 import { v4 as uuidv4 } from 'uuid';
 import { Constants } from './models/constants';
 import type ConfigurationCommand from './models/configurationCommand';
-import type Command from './models/command';
 import { Report } from '@/models/report';
-import { useOrchestrator } from './composables/orchestratorService';
 import { useOrchestratorStore } from './stores/orchestratorStore';
 import { useErrorStore } from './stores/errorStore';
-import { ReportTemplate } from './models/reportTemplate';
-import CommandTemplate from './models/commandTemplate';
-import VariableTemplate from './models/variableTemplate';
-
-const emitter = mitt();
+import { useTemplatesStore } from './stores/templatesStore';
+import { useDashboardStore } from './stores/dashboardStore';
+import { useVariablesStore } from './stores/variablesStore';
 
 const errorHandler = useErrorStore();
-
-const reportTemplates = ref<ReportTemplate[]>([]);
-const commandTemplates = ref<CommandTemplate[]>([]);
-const variableTemplates = ref<VariableTemplate[]>([]);
-//provide(InjectionKeys.errorHandler, setError);
-provide(InjectionKeys.emitter, emitter);
-
-provide(InjectionKeys.reportTemplates, reportTemplates);
-provide(InjectionKeys.commandTemplates, commandTemplates);
-provide(InjectionKeys.variableTemplates, variableTemplates);
-provide(InjectionKeys.templateDataUpdated, loadTemplates); // Call this if templates need to be reloaded
-
-//const error: Ref<AppError | null> = ref(null);
-//const showSnackbar: Ref<boolean> = ref(false);
-//const configured: Ref<boolean> = ref(false);
-
-const id = uuidv4(); //create new id everytime dashboard is created
-const mqttService = useMqtt(id);
-const orchestrator = useOrchestrator();
 const orchestratorStore = useOrchestratorStore();
+const templates = useTemplatesStore();
+const dashboard = useDashboardStore();
+const variables = useVariablesStore();
+
+const id = uuidv4(); // A new id for every page load: each open UI is its own dashboard node.
+const mqttService = useMqtt(id);
 
 const configureDashboardTopic = Constants.topicConfigure.replace("{id}", id);
 const dashboardOnlineTopic = Constants.topicOnline.replace("{id}", id);
-/*
-function setError(err: AppError): void {
-  //console.dir(err);
-  error.value = err; 
-  showSnackbar.value = true;
-}*/
+const productName = globalThis.navigator?.product ?? "Dashboard";
 
-function loadTemplates() {
-  orchestrator.getReportTemplates((data: ReportTemplate [] | null) => {
-    if(data != null)
-      reportTemplates.value = data;
-  });
-
-  orchestrator.getCommandTemplates((data: CommandTemplate [] | null) => {
-    if(data != null)
-      commandTemplates.value = data;
-  });
-
-  orchestrator.getVariableTemplates((data: VariableTemplate [] | null) => {
-    if(data != null)
-    variableTemplates.value = data;
-  });
+// The orchestrator answers with the configuration command, which carries its API URL.
+function announce() {
+  mqttService.sendMessage(dashboardOnlineTopic, presenceMessage(productName));
 }
 
-//TODO LIST
-// track when workflow engine is online / offline-> enable link button
-//add plugin installation option to device
-//verify file link
-//display current version
-//display current plugins versions
-//parameters -> add help text
-//
-
 onMounted(() => {
-    mqttService.connect(mqttMessageReceived);
-    mqttService.subscribe(Constants.topicReport);
-    mqttService.subscribe(configureDashboardTopic);
-    console.log(`the component is now mounted.`);
-    
-    const productName = navigator.product ?? "Dashboard";
-    mqttService.sendMessage(dashboardOnlineTopic, JSON.stringify({ IsOnline: true, Name: productName, NodeType: 2 })); //TODO check required content -> this will indicate that dashboard is online!
-    //orchestratorService.loadDashboard("for debugging");
-    //console.log(dashboardConfiguration.value);
+  mqttService.connect(mqttMessageReceived, announce);
+  mqttService.subscribe(Constants.topicReport);
+  mqttService.subscribe(configureDashboardTopic);
+  mqttService.subscribe(Constants.topicOrchestratorOnline);
 });
 
 onUnmounted(() => {
-    mqttService.disConnect();
+  mqttService.disConnect();
 });
 
-function toCamelCase(key: string, value: any) {
-  if (value && typeof value === 'object'){
-    for (var k in value) {
-      if (/^[A-Z]/.test(k) && Object.hasOwnProperty.call(value, k)) {
-        value[k.charAt(0).toLowerCase() + k.substring(1)] = value[k];
-        delete value[k];
+// Older nodes and orchestrators send PascalCase; the UI's models are camelCase.
+function toCamelCase(key: string, value: unknown) {
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    for (const k of Object.keys(record)) {
+      if (/^[A-Z]/.test(k)) {
+        record[k.charAt(0).toLowerCase() + k.substring(1)] = record[k];
+        delete record[k];
       }
     }
-  } 
+  }
   return value;
 }
 
-function mqttMessageReceived(topic: string, message: string) {
-    //var decoded = new TextDecoder("utf-8").decode(message);
-    try {
-      if(topic == configureDashboardTopic) {
-        let configurationCmd: ConfigurationCommand = JSON.parse(message, toCamelCase);
-        orchestratorStore.baseUrl = configurationCmd.apiBaseUrl;
-        loadTemplates();
-      } else { 
-          emitter.emit("mqttReportReceived", new Report(JSON.parse(message, toCamelCase)));
-      }
-    } catch(e) {
-      if(errorHandler.setError != undefined)
-        errorHandler.setError(new AppError("Could not parse incoming MQTT message", "", "", message));
+function mqttMessageReceived(topic: string, message: string, retained = false) {
+  try {
+    if (topic == configureDashboardTopic) {
+      const configurationCmd: ConfigurationCommand = JSON.parse(message, toCamelCase);
+      orchestratorStore.baseUrl = configurationCmd.apiBaseUrl;
+      templates.load();
+    } else if (topic == Constants.topicOrchestratorOnline) {
+      if (orchestratorCameOnline(message, retained))
+        announce();
+    } else {
+      const report = new Report(JSON.parse(message, toCamelCase));
+      dashboard.applyReport(report);
+      variables.applyReport(report);
     }
+  } catch {
+    errorHandler.setError(new AppError("Could not parse incoming MQTT message", "", "", message));
   }
+}
 
 </script>
 
@@ -141,7 +97,7 @@ function mqttMessageReceived(topic: string, message: string) {
       </v-row>
     </v-container>
     <v-snackbar v-model="errorHandler.showSnackbar" color="error">
-      {{errorHandler.error?.text}}
+      {{errorHandler.error?.text}}<template v-if="errorHandler.error?.message">: {{errorHandler.error.message}}</template>
       <template v-slot:actions>
         <v-btn
           color="white"

@@ -19,6 +19,7 @@ Run from the repository root (`C:\Src\RIoT2\RIoT2.UI`), in PowerShell:
 ```powershell
 npm install
 npm run dev
+npm run lint
 npm test
 npm run typecheck
 npm run build
@@ -27,6 +28,8 @@ docker build -t riot2-ui:local .
 ```
 
 - `npm run dev`: Vite dev server (`vite --force`).
+- `npm run lint`: ESLint over `src/` (`eslint.config.mjs`). Errors fail CI; `any` is a warning
+  until plan M3 step 4.
 - `npm test`: offline regressions (`node --test tests/*.test.cjs`). `tests/contracts.test.cjs`
   reads `../RIoT2.Net.Orchestrator/openapi/riot2-orchestrator.json` and
   `../RIoT2.Core/contracts/golden`; check them out next to this repository. Add every new
@@ -35,21 +38,21 @@ docker build -t riot2-ui:local .
 - `npm run typecheck`: `vue-tsc --noEmit`.
 - `npm run build`: `vue-tsc --noEmit` then `vite build`.
 - `npm run preview`: Vite preview on port 5050.
-- Every push runs `.github/workflows/ci.yml` (`npm test`, `npm run build`, image build, secret
-  scan). Release is tag-driven: push a `*.*.*` tag. `release.yml` validates, then pushes
+- Every push runs `.github/workflows/ci.yml` (`npm run lint`, `npm test`, `npm run build`, image
+  build, secret scan). Release is tag-driven: push a `*.*.*` tag. `release.yml` validates, then pushes
   `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>` ([CI guide](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/guides/ci.md)).
-
-There is no configured lint script.
 
 ## Layout
 
 | Path | Contents |
 |---|---|
-| `src/App.vue` | App shell, random dashboard id, MQTT subscriptions, online announcement, configuration handling |
+| `src/App.vue` | App shell, random dashboard id, MQTT subscriptions, presence, configuration handling; hands reports to the stores |
 | `src/app.config.ts` | `VITE_MQTT_SERVER`, `VITE_MQTT_USER`, `VITE_MQTT_PASSWORD` exports |
 | `src/composables/mqttService.ts` | MQTT.js WebSocket client, reconnect backoff, subscribe/publish/disconnect |
-| `src/composables/orchestratorService.ts` | Higher-level orchestrator REST API wrapper |
-| `src/composables/api/` | API helpers for dashboard, nodes, Matter, backups, commands/reports and variables |
+| `src/composables/presence.ts` | Presence and last-will payloads; `orchestratorCameOnline` |
+| `src/composables/api/` | Promise-based REST calls per resource; they reject with `ApiError` (`httpClientService.ts`) |
+| `src/stores/` | Pinia stores (nodes, templates, variables, dashboard, commands, Matter, backup) with `loading`/`error` from `requests.ts` |
+| `src/components/nodes/`, `src/components/devices/` | Parts of the Configure page: node list, editor dialog, device list and template picker; device parameters and template tables |
 | `src/models/` | TypeScript models and constants for REST routes, topics, dashboards, nodes and variables |
 | `src/components/dashboardComponents/` | Dashboard widget components |
 | `src/views/` | Route-level pages |
@@ -62,7 +65,7 @@ There is no configured lint script.
 - [mqtt-topics.md](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/mqtt-topics.md):
   `src/models/constants.ts`, `src/App.vue`, `src/composables/mqttService.ts`.
 - [http-api.md](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/http-api.md):
-  `src/models/constants.ts`, `src/composables/orchestratorService.ts`, `src/composables/api/`.
+  `src/models/constants.ts`, `src/composables/api/`.
 - [env-vars.md](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/env-vars.md):
   `src/app.config.ts`, `Dockerfile`, `entrypoint.sh`, `nginx.conf`.
 
@@ -74,14 +77,17 @@ There is no configured lint script.
   browser-visible JavaScript at container start.
 - Preserve runtime env substitution in `entrypoint.sh`: render from pristine template copies on
   every start, and don't log secret values.
-- Use `orchestratorService` or helpers under `src/composables/api/` for REST, and `mqttService` for
-  MQTT. Don't call Axios or MQTT.js directly from components.
+- Components get data from the Pinia stores in `src/stores/`; stores call `src/composables/api/`,
+  and only `httpClientService` calls Axios. Use `mqttService` for MQTT. A store action that can
+  fail goes through `useRequests().run`, which sets `error` and shows the snackbar.
+- Keep components under about 250 lines (plan M3); move dialogs and tables into child components.
 - Prefer the `@` alias for imports from `src/`.
 - Vue components use `<script setup lang="ts">` and Composition API patterns.
 - Elsa 3 is the only workflow engine. Do not reintroduce the retired internal rule editor,
   simulator, `/rules` routes, `/api/rules` helpers or function-template loading.
-- Preserve the workflow-node discovery contract in `src/layout/AppBar.vue`: `GET /api/nodes/online`
-  finds `NodeType.workflow` (`3`) and uses its `nodeBaseUrl` for the external Studio link.
+- Preserve the workflow-node discovery contract (`useNodesStore().workflowNode`, shown in
+  `src/layout/AppBar.vue`): `GET /api/nodes/online` finds `NodeType.workflow` (`3`) and uses its
+  `nodeBaseUrl` for the external Studio link.
 - Dashboard commands use `POST /api/command/execute` with `{ id, value }`. Variable actions load
   `GET /api/nodes/variables`, modify only the value on the selected DTO, and save via
   `POST /api/nodes/variable/save`.
@@ -94,21 +100,22 @@ There is no configured lint script.
 ## Pitfalls
 
 - `src/App.vue` creates a new random UUID on every page load and announces the UI as a Dashboard
-  node (`nodeType` 2) once on `riot2/node/{id}/online`. The payload is PascalCase:
-  `{"IsOnline":true,"Name":...,"NodeType":2}`. This is contract divergence D3.
+  node (`nodeType` 2) on `riot2/node/{id}/online` after every MQTT connection, and again when a
+  live (not retained) `riot2/orchestrator/online` says `isOnline: true`. The payload is camelCase
+  since 1.4.0 (D3 resolved).
 - The UI learns the orchestrator base URL only from its own
   `riot2/node/{id}/configuration` message and stores `apiBaseUrl` in
   `src/stores/orchestratorStore.ts`. Until that arrives, the router is hidden behind
   "Connecting...".
-- The UI does not re-announce on MQTT reconnect and does not subscribe or react to
-  `riot2/orchestrator/online`; if the first online message is lost, it can stay on
-  "Connecting..." until reload (backlog item 21).
 - `src/composables/mqttService.ts` hard-codes the broker WebSocket port to 9001.
 - MQTT.js automatic resubscription is left enabled. The UI's own reconnect backoff starts at
   4 seconds, then grows to 8, 16 and a maximum of 30 seconds.
-- Stale visible labels remain in code: "Rules" for the Elsa Studio link, "Varibles" in the app bar,
-  and "Persistant" in the variables view (backlog item 22). `src/models/variable.ts` also spells
-  the persisted property `isPersistant`.
+- `src/models/variable.ts` spells the persisted property `isPersistant`; it is part of the stored
+  format, so only the label says "Persistent".
+- `entrypoint.sh` renders the MQTT settings into `assets/index*.js` only, so `src/app.config.ts`
+  must stay in the entry chunk (see `manualChunks` in `vite.config.ts`).
+- The tests load source files into a VM context: errors thrown there aren't `instanceof Error` in
+  the test, and stores need `setActivePinia(createPinia())` first.
 - `nginx.conf` intentionally leaves CSP commented out until the actual orchestrator and MQTT
   endpoints are known.
 - The image runs nginx as UID 101 on port 8080 (`nginx-unprivileged`). `entrypoint.sh` rewrites
@@ -117,10 +124,10 @@ There is no configured lint script.
 
 ## Related work
 
-- Backlog items [10](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/open-issues.md),
-  [13](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/open-issues.md),
-  [21](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/open-issues.md) and
-  [22](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/open-issues.md).
+- Backlog item [13](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/open-issues.md)
+  (the components still over 250 lines); items 10, 21 and 22 are done in 1.4.0 (I24).
+- Plan [M3](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/plans/m03-split-oversized-classes.md)
+  step 4: replace `any` with the generated contract types.
 - Optional hardening item [S2](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/backlog/optional-hardening.md).
   S12 (non-root nginx) is done in 1.1.0.
 - [M3](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/plans/m03-split-oversized-classes.md):

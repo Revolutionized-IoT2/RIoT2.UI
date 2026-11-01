@@ -1,58 +1,32 @@
 import { Constants } from '@/models/constants';
-import { useHttpClient, withCallback } from '@/composables/httpClientService';
+import { useHttpClient } from '@/composables/httpClientService';
 import { useOrchestratorStore } from '@/stores/orchestratorStore';
 import type { Variable } from '@/models/variable';
-import type VariableTemplate from '@/models/variableTemplate';
-import type Command from '@/models/command';
 
+/** Variables: list, save and delete. */
 export function useVariableApi() {
 
   const httpClient = useHttpClient();
   const orchestratorStore = useOrchestratorStore();
 
-  function getVariables(callback:(data: Variable[] | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlGetVariables;
-    return withCallback(httpClient.get<Variable[] | null>(url), callback, completed);
+  function getVariables(): Promise<Variable[] | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlGetVariables;
+    return httpClient.get<Variable[]>(url);
   }
 
-  function saveVariable(variable: Variable, callback:(data: void | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlSaveVariable;
-    return withCallback(httpClient.post<Variable, void | null>(url, variable), callback, completed);
+  function saveVariable(variable: Variable): Promise<null> {
+    const url = orchestratorStore.baseUrl + Constants.urlSaveVariable;
+    return httpClient.post<Variable, null>(url, variable);
   }
 
-  async function setVariableValue(command: Command, callback:(data: void | null) => void, completed?:()=> void): Promise<void> {
-    const variables = await httpClient.get<Variable[]>(orchestratorStore.baseUrl + Constants.urlGetVariables);
-    const variable = variables?.find(v => v.id === command.id);
-    if (variable == null) {
-      callback(null);
-      completed?.();
-      return;
-    }
-
-    // The save endpoint requires the full DTO; retain its current metadata.
-    return saveVariable({ ...variable, value: command.value }, callback, completed);
-  }
-
-  function deleteVariable(id: string, callback:(data: void | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlDeleteVariable;
-    url = url.replace('{id}', id);
-    return withCallback(httpClient.delete<void>(url), callback, completed);
-  }
-
-  function getVariableTemplates(callback:(data: VariableTemplate[] | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlGetVariableTemplates;
-    return withCallback(httpClient.get<VariableTemplate[] | null>(url), callback, completed);
+  function deleteVariable(id: string): Promise<null> {
+    const url = orchestratorStore.baseUrl + Constants.urlDeleteVariable.replace('{id}', encodeURIComponent(id));
+    return httpClient.delete<null>(url);
   }
 
   return {
     getVariables,
     saveVariable,
-    setVariableValue,
-    deleteVariable,
-    getVariableTemplates
+    deleteVariable
   };
 }

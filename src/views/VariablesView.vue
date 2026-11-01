@@ -2,27 +2,24 @@
 
 import Datamodel from '@/components/DatamodelComponent.vue';
 import ContextMenu from '@/components/ContextMenuComponent.vue';
-import { useOrchestrator } from '@/composables/orchestratorService';
 import type { ContextMenuItem } from '@/models/contextMenuItem';
 import { ValueType } from '@/models/enums';
 import { Variable } from '@/models/variable';
-import { inject, onBeforeUnmount, onMounted, ref } from 'vue';
-import { InjectionKeys } from '@/models/injectionKeys';
-import type Report from '@/models/report';
+import { useVariablesStore } from '@/stores/variablesStore';
+import { storeToRefs } from 'pinia';
+import { onMounted, ref } from 'vue';
 
 const contextMenuItems: ContextMenuItem[] = [
   { "text": "new", "action": "new_variable", "disabled": false, "icon": "add" }
 ];
 
-const emitter = inject(InjectionKeys.emitter);
-const templateDataUpdated = inject(InjectionKeys.templateDataUpdated);
-const orchestrator = useOrchestrator();
-
-const variables = ref<Variable[]>([]);
+const store = useVariablesStore();
+// The store keeps the values current from the reports the UI receives.
+const { variables, loading } = storeToRefs(store);
 const search = ref("");
-const filter = ref("");
 const editVariableDialog = ref(false);
-const loading = ref(false);
+const deleteVariableDialog = ref(false);
+const saving = ref(false);
 
 const selectedVariable = ref<Variable>(new Variable());
 
@@ -32,12 +29,10 @@ const valueTypes = [{name: "Boolean", value: ValueType.Boolean},
                     {name: "Text", value: ValueType.Text},
                     {name: "TextArray", value: ValueType.TextArray}];
 
-
-
-const headers: any [] = [
-  { title: 'Name', align: 'left', sortable: true, value: 'name' },
+const headers = [
+  { title: 'Name', align: 'start' as const, sortable: true, value: 'name' },
   { title: 'Description', value: 'description', sortable: true, },
-  { title: 'Persistant', align: 'left', value: 'isPersistant', sortable: false },
+  { title: 'Persistent', align: 'start' as const, value: 'isPersistant', sortable: false },
   { title: 'Type', value: 'type', sortable: false },
   { title: 'Value', value: 'value', sortable: false },
   { title: 'Actions', value: 'action', sortable: false },
@@ -50,23 +45,20 @@ function contextMenuAction(action : string){
   }
 }
 
+// The dialog edits a copy, so Close leaves the listed variable as it was.
 function editItem(item: Variable){
-  selectedVariable.value = item;
+  selectedVariable.value = JSON.parse(JSON.stringify(item));
   editVariableDialog.value = true;
 }
 
-function saveVarible() {
-  loading.value = true;
-  orchestrator.saveVariable(selectedVariable.value, () => {
+async function saveVariable() {
+  saving.value = true;
+  if (await store.save(selectedVariable.value))
     editVariableDialog.value = false;
-    loadVariables();
-    templateDataUpdated?.(); 
-  }, ()=>{
-    loading.value = false;
-  })
+  saving.value = false;
 }
 
-function updateVariableObjectValue(model: any) {
+function updateVariableObjectValue(model: unknown) {
   selectedVariable.value.value = model;
 }
 
@@ -81,40 +73,20 @@ function setSelectedVariableDefault() {
 }
 
 function deleteItem(item : Variable){
-  alert("todo");
+  selectedVariable.value = item;
+  deleteVariableDialog.value = true;
 }
 
-function loadVariables() {
-  loading.value = true;
-  orchestrator.getVariables((data: Variable[] | null) => {
-    if(data != null) {
-      variables.value = data;
-    }
-  }, () => {
-    loading.value = false;
-  });
+async function completeDelete() {
+  saving.value = true;
+  if (await store.remove(selectedVariable.value.id))
+    deleteVariableDialog.value = false;
+  saving.value = false;
 }
-
-function handleReportReceived(data: any) {
-    var report = data as Report;
-
-    if(report == null)
-      return;
-
-    let variable = variables.value.find(x => x.id == report.id);
-    if(variable != null) {
-      variable.value = report.value;
-    }
-  }
 
 onMounted(() => {
-  loadVariables();
-  emitter?.on("mqttReportReceived", handleReportReceived);
+  store.load();
 });
-
-onBeforeUnmount(() => {
-    emitter?.off("mqttReportReceived", handleReportReceived);
-  })
 </script>
 
 <template>
@@ -131,6 +103,7 @@ onBeforeUnmount(() => {
         :headers="headers"
         :items="variables"
         :sort-by="[{ key: 'name' }]"
+        :loading="loading"
         dense
         class="elevation-1 mt-2"
       >
@@ -220,7 +193,7 @@ onBeforeUnmount(() => {
                     <v-switch
                       v-model="selectedVariable.isPersistant"
                       color="primary"
-                      label="Persistant"
+                      label="Persistent"
                       hide-details
                       />
                   </v-col>
@@ -259,7 +232,8 @@ onBeforeUnmount(() => {
                color="blue" 
                variant="text"
     
-               @click="saveVarible">
+               :loading="saving"
+               @click="saveVariable">
                Save</v-btn>
               <v-btn
                 color="blue darken-1"
@@ -273,5 +247,24 @@ onBeforeUnmount(() => {
            </v-form>
           </v-card>
         </v-dialog>
+
+   <!-- delete variable dialog -->
+   <v-dialog v-model="deleteVariableDialog" max-width="400">
+    <v-card>
+      <v-toolbar color="primary" density="compact" flat>
+        <v-toolbar-title class="text-body-2 font-weight-bold">
+          Delete variable?
+        </v-toolbar-title>
+      </v-toolbar>
+      <v-card-text class="pa-4">
+        Delete {{ selectedVariable.name }}? Workflows and dashboard elements that use it stop working.
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn color="grey" @click="deleteVariableDialog = false">Cancel</v-btn>
+        <v-btn color="primary" :loading="saving" @click="completeDelete">Delete</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 
 </template>

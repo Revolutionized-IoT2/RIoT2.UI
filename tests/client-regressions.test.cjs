@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vue = require('vue');
 const { compile, baseParse } = require('@vue/compiler-dom');
+const { createPinia, setActivePinia } = require('pinia');
 const { loadSource } = require('./source-loader.cjs');
 
 const { ValueType, ChartType } = loadSource('src/models/enums.ts');
@@ -64,6 +65,7 @@ test('charts render existing history immediately, replace history, and handle em
 });
 
 test('page and component IDs stay unique and stable after delete/add/edit and JSON round trip', t => {
+  setActivePinia(createPinia());
   const screen = loadSource('src/views/DashboardView.vue', { expose: [
     'dashboardConfiguration', 'selectedPage', 'editPage', 'editComponent',
     'savePage', 'deletePage', 'saveComponent', 'deleteComponent',
@@ -100,6 +102,7 @@ test('page and component IDs stay unique and stable after delete/add/edit and JS
 });
 
 test('element IDs stay unique after delete/add and target the correct item on edit/delete', t => {
+  setActivePinia(createPinia());
   const props = vue.reactive({ data: { elements: ['1', '2', '3'].map(id => ({ id, name: id })) } });
   const editor = loadSource('src/components/dashboardComponents/EditModeComponent.vue',
     { props, expose: ['selectedEditElement', 'saveElement', 'deleteElement'] });
@@ -162,7 +165,7 @@ test('button state compares configured onValue with report value', t => {
   const widget = loadSource('src/components/dashboardComponents/ButtonComponent.vue', {
     props,
     expose: ['getStateFromReport'],
-    mocks: { '@/composables/orchestratorService': { useOrchestrator: () => ({ executeCommand() {}, setVariableValue() {} }) } },
+    mocks: { '@/stores/commandsStore': { useCommandsStore: () => ({ send() {} }) } },
   });
   t.after(widget.dispose);
   assert.equal(widget.state.getStateFromReport({
@@ -175,38 +178,6 @@ test('button state compares configured onValue with report value', t => {
     report: { value: 1 },
     properties: { onValue: 2 },
   }), false);
-});
-
-test('variable command update uses existing orchestrator endpoints', async t => {
-  const calls = [];
-  const httpClient = {
-    async get(url) {
-      calls.push(['get', url]);
-      return [{ id: 'var-1', name: 'Variable', value: false }];
-    },
-    async post(url, data) {
-      calls.push(['post', url, data]);
-      return null;
-    },
-  };
-  const module = loadSource('src/composables/api/variableApi.ts', {
-    mocks: {
-      '@/stores/orchestratorStore': { useOrchestratorStore: () => ({ baseUrl: 'https://api.example' }) },
-      '@/composables/httpClientService': {
-        useHttpClient: () => httpClient,
-        withCallback: async (request, callback, completed) => { callback(await request); completed?.(); },
-      },
-    },
-  });
-  t.after(module.dispose);
-  const api = module.useVariableApi();
-  let completed = false;
-  await api.setVariableValue({ id: 'var-1', value: true }, () => {}, () => { completed = true; });
-  assert.equal(completed, true);
-  assert.deepEqual(calls[0], ['get', 'https://api.example/api/nodes/variables']);
-  assert.equal(calls[1][0], 'post');
-  assert.equal(calls[1][1], 'https://api.example/api/nodes/variable/save');
-  assert.deepEqual(plain(calls[1][2]), { id: 'var-1', name: 'Variable', value: true });
 });
 
 function mqttFixture(t) {

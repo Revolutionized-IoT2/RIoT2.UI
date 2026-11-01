@@ -1,97 +1,50 @@
 <script setup lang="ts">
 import NodeConfiguration from '@/models/nodeConfiguration';
-import { computed, nextTick, onMounted, ref } from 'vue';
-import systemNode from '@/models/systemNode';
-import { useOrchestrator } from '@/composables/orchestratorService';
+import { computed, onMounted, ref } from 'vue';
+import type SystemNode from '@/models/systemNode';
 import type { PluginFile } from '@/models/pluginFile';
-import DeviceConfigurationComponent from '@/components/DeviceConfigurationComponent.vue';
-import DeviceStatus from '@/models/deviceStatus';
+import type DeviceStatus from '@/models/deviceStatus';
+import DeviceList from '@/components/nodes/DeviceList.vue';
+import { useNodesStore } from '@/stores/nodesStore';
 
 const model = defineModel<NodeConfiguration>({ default: new NodeConfiguration() });
-const orchestrator = useOrchestrator();
+const nodes = useNodesStore();
 
 const props = defineProps<{
-  enabled: boolean,
-  title: string,
-  onlineNodes: systemNode[] | null
+  onlineNodes: SystemNode[]
 }>();
 
 const emit = defineEmits<{
-    delete: [number],
     reloadDevice: [string]
 }>();
 
 const valid = ref(false);
 const deviceStatuses = ref<DeviceStatus[] | null>(null);
 
-const nodeIdOptions = computed(()=> { 
-  return props.onlineNodes?.filter(x => x.name == null || x.name == '');
-});
+// Online nodes without a name have no configuration yet, so their ids can be chosen.
+const nodeIdOptions = computed(() => props.onlineNodes.filter(x => x.name == null || x.name == ''));
 
-
-const newSaved = ref(false);
 const validatingUrl = ref(false);
-const checkedPluginFile = ref<PluginFile|null>(null);
+const checkedPluginFile = ref<PluginFile | null>(null);
 
-function deleteDevice(deviceid: string) {
-  let idx = model.value.deviceConfigurations.findIndex(x => x.id == deviceid);
-  if(idx == -1)
-    return;
-
-  model.value.deviceConfigurations.splice(idx, 1);
-}
-
-function validatePluginUrl(focused: boolean) {
-  if(focused || model.value.pluginPackageUrl == null || model.value.pluginPackageUrl == "")
+async function validatePluginUrl(focused: boolean) {
+  if (focused || model.value.pluginPackageUrl == null || model.value.pluginPackageUrl == "")
     return;
 
   validatingUrl.value = true;
-
-  orchestrator.checkPlugin({
-    url: model.value.pluginPackageUrl
-    },
-    (data: PluginFile | null) => {
-      checkedPluginFile.value = data;
-    },
-    () => {
-      validatingUrl.value = false;
-    });
+  checkedPluginFile.value = await nodes.checkPlugin(model.value.pluginPackageUrl);
+  validatingUrl.value = false;
 }
 
-const isPluginValid = computed(()=> {
-  if(checkedPluginFile.value == null || checkedPluginFile.value == undefined)
+const isPluginValid = computed(() => {
+  if (checkedPluginFile.value == null)
     return null;
-
-  if(checkedPluginFile.value.name == undefined || checkedPluginFile.value.name == "")
-    return false;
-
-  return true;
+  return checkedPluginFile.value.name != undefined && checkedPluginFile.value.name != "";
 });
 
-function getDeviceState(deviceId: string) : DeviceStatus | null {
-
-  if(deviceStatuses.value == null)
-    return null;
-
-  let state = deviceStatuses.value?.find(x => x.id == deviceId);
-  if(state == null || state == undefined)
-    return null;
-
-  return state;
-}
-
-function reloadDevice(deviceId: string) {
-  emit("reloadDevice", deviceId);
-}
-
-onMounted(() => {
-
-  if(model.value.id == null)
-    return;
-
-    orchestrator.getNodeDevicesStatus(model.value.id, (data: DeviceStatus[] | null) => {
-      deviceStatuses.value = data;
-    });
+onMounted(async () => {
+  if (model.value.id != null)
+    deviceStatuses.value = await nodes.getDeviceStatuses(model.value.id);
 });
 </script>
 
@@ -108,7 +61,6 @@ onMounted(() => {
       </v-col>
       <v-col cols="4">
         <v-combobox
-          :disabled="newSaved"
           dense
           required
           variant="solo"
@@ -119,7 +71,7 @@ onMounted(() => {
           :items="nodeIdOptions"
           label="Node Id"
         >
-        <template v-slot:selection="{ item, index }">
+        <template v-slot:selection="{ item }">
         <v-chip
           size="small"
           variant="flat"
@@ -159,14 +111,7 @@ onMounted(() => {
       </v-col>
     </v-row>
 
-    <div v-if="model?.deviceConfigurations.length > 0" class="text-subtitle-1 mb-2 font-weight-bold">Device configurations
-      <v-divider class="border-opacity-100 mb-3" color="black" />
-    </div>
-    <v-expansion-panels class="mt-6">
-      <template v-for="(device, i) in model.deviceConfigurations" :key="i">
-        <DeviceConfigurationComponent v-model="model.deviceConfigurations[i]" :state="getDeviceState(device.id)" @delete="deleteDevice" @reload="reloadDevice" />
-      </template>
-    </v-expansion-panels>
+    <DeviceList v-model="model.deviceConfigurations" :statuses="deviceStatuses" @reload="id => emit('reloadDevice', id)" />
   </v-container>
 </v-form>
 </template>

@@ -11,7 +11,6 @@ import StateComponent from './dashboardComponents/StateComponent.vue';
 import SwitchComponent from './dashboardComponents/SwitchComponent.vue';
 import { computed } from 'vue';
 import NoDataComponent from './dashboardComponents/NoDataComponent.vue';
-import { ComponentElement } from '@/models/componentElement';
 
 const props = defineProps<{
   data: Component,
@@ -38,7 +37,7 @@ const hasData = computed(() => {
     props.data.type == ComponentType.state)
       return true;
 
-  for(let e of props.data.elements) {
+  for(const e of props.data.elements) {
     if(e.report != null)
       return true; 
   }

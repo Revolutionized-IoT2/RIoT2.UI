@@ -34,10 +34,10 @@ function updateComponent() {
   }
   
   elem = props.data.elements[0] as ComponentElement;
-  let prevReports = elem.previousReportsAsc;
-  let items = [];
+  const prevReports = elem.previousReportsAsc;
+  const items = [];
   if(prevReports != null) {
-    for(let r of prevReports) {
+    for(const r of prevReports) {
       items.push({
           time: r.timeStamp *1000,
           val: r.value
@@ -95,18 +95,18 @@ function update() {
 
 function setValues() {
 
-  let interval = resolutionInMillis();
+  const interval = resolutionInMillis();
 
   for(let i = 0; i < 12; i++) {
-    let timeStart = Date.now() - (interval * (12-i));
-    let timeEnd = Date.now() - (interval * (11-i));
+    const timeStart = Date.now() - (interval * (12-i));
+    const timeEnd = Date.now() - (interval * (11-i));
      
     //items in time period
-    let itemsInPeriod = timelinedata.value.items.filter(x => x.time > timeStart && x.time < timeEnd);
+    const itemsInPeriod = timelinedata.value.items.filter(x => x.time > timeStart && x.time < timeEnd);
 
-      let valuesInPeriod = itemsInPeriod.map(({val}) => val);
+      const valuesInPeriod = itemsInPeriod.map(({val}) => val);
       let countOfTrue = 0;
-      for(let v of valuesInPeriod) {
+      for(const v of valuesInPeriod) {
   
         if(v.toString().toLocaleLowerCase() == "true")
           countOfTrue++;

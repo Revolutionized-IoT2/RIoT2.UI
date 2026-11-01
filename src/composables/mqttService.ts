@@ -1,17 +1,20 @@
-import { inject, ref } from 'vue'
+import { ref } from 'vue'
 import type { Ref } from 'vue'
 import type { QoS } from 'mqtt/dist/mqtt.min';
 import mqtt, { MqttClient } from 'mqtt/dist/mqtt.min';
-import { InjectionKeys } from '@/models/injectionKeys';
 import AppError from '@/models/appError';
 import { Constants } from '@/models/constants';
 import { useErrorStore } from '@/stores/errorStore';
+import { offlineMessage } from '@/composables/presence';
 import { mqttServer, mqttUser, mqttPassword } from '@/app.config';
+
+/** Receives every message: its topic, its payload as text, and whether the broker retained it. */
+export type MessageHandler = (topic: string, message: string, retained: boolean) => void;
 
 const initialReconnectPeriod = 4000;
 const maximumReconnectPeriod = 30000;
 
-let connection = {
+const connection = {
     protocol: "ws",
     host: mqttServer,
     // ws: 8083; wss: 8084
@@ -26,7 +29,7 @@ let connection = {
     password: mqttPassword,
     will: {
       topic:  "",
-      payload: '{ "IsOnline": false }',
+      payload: offlineMessage,
       qos: 1 as QoS,
       retain: false
     },
@@ -37,12 +40,9 @@ export function useMqtt(id: string): IMqttService {
   connection.clientId = id;
   connection.will.topic = Constants.topicOnline.replace("{id}", id);
 
-  //const errorHandler = inject(InjectionKeys.errorHandler);
   const e = useErrorStore();
-  
+
   let client: MqttClient;
-  let subscribeSuccess: boolean = false;
-  let connecting: boolean = false;
   let reconnectPeriod = initialReconnectPeriod;
   let stopped = true;
   const status: Ref<boolean> = ref(false);
@@ -57,8 +57,6 @@ export function useMqtt(id: string): IMqttService {
   function initData() {
     status.value = false;
     reconnectPeriod = initialReconnectPeriod;
-    connecting = false;
-    subscribeSuccess = false;
   }
 
   function handleOnReConnect() {
@@ -71,9 +69,12 @@ export function useMqtt(id: string): IMqttService {
       client.options.reconnectPeriod = reconnectPeriod;
   }
 
-  function createConnection(callback: (topic: string, message: string) => void) {
+  /**
+   * Connects, and keeps reconnecting until disconnect. `connected` runs after every successful
+   * connection, including each reconnect, so the caller can announce itself again.
+   */
+  function createConnection(callback: MessageHandler, connected?: () => void) {
       try {
-          connecting = true;
           stopped = false;
           reconnectPeriod = initialReconnectPeriod;
           status.value = false;
@@ -86,9 +87,8 @@ export function useMqtt(id: string): IMqttService {
                 return;
               reconnectPeriod = initialReconnectPeriod;
               client.options.reconnectPeriod = initialReconnectPeriod;
-              connecting = false;
-              console.log("Connection succeeded: " + client.connected);
               status.value = client.connected;
+              connected?.();
           });
 
           client.on("reconnect", handleOnReConnect);
@@ -97,10 +97,9 @@ export function useMqtt(id: string): IMqttService {
             handleError(error.message);
           });
 
-          client.on("message", callback);
+          client.on("message", (topic, payload, packet) => callback(topic, String(payload), packet?.retain === true));
 
-      } catch (error) {
-        connecting = false;
+      } catch {
         status.value = false;
         handleError("Could not connect to mqtt")
       }
@@ -111,23 +110,10 @@ export function useMqtt(id: string): IMqttService {
         handleError("Could not subscribe before MQTT connection was created: " + topic);
         return;
       }
-      client.subscribe(topic, (error, res) => {
+      client.subscribe(topic, error => {
         if (error) {
           handleError("Could not subscribe to topic: " + topic);
           status.value = false;
-          return;
-        }
-        subscribeSuccess = true;
-        console.log('Subscribe to topics res', res);
-      })
-  }
-
-  function doUnSubscribe(topic: string) {
-      if (!client)
-        return;
-      client.unsubscribe(topic, undefined, error => {
-        if (error) {
-          handleError("Could not un-subscribe to topic: " + topic);
         }
       })
   }
@@ -151,9 +137,8 @@ export function useMqtt(id: string): IMqttService {
         try {
           client.end(!client.connected, () => {
             initData()
-            console.log('Successfully disconnected!')
           })
-        } catch (error: any) {
+        } catch {
           handleError("MQTT Disconnect failed");
         }
       }
@@ -169,7 +154,7 @@ export function useMqtt(id: string): IMqttService {
 }
 
 export interface IMqttService {
-  connect: (callback: (topic: string, message: string) => void) => void;
+  connect: (callback: MessageHandler, connected?: () => void) => void;
   subscribe: (topic: string) => void,
   sendMessage:(topic: string, message: string) => void;
   disConnect: () => void;

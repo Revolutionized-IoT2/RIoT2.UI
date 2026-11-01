@@ -1,13 +1,13 @@
 <script setup lang="ts">
 
-import { backupFileName, useBackupApi } from '@/composables/api/backupApi';
-import { BackupSummary, RestoreResult } from '@/models/backup';
+import { backupFileName } from '@/composables/api/backupApi';
+import { useBackupStore } from '@/stores/backupStore';
+import type { RestoreResult } from '@/models/backup';
+import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
 
-const backupApi = useBackupApi();
-
-const summary = ref<BackupSummary>(new BackupSummary());
-const loading = ref(false);
+const backups = useBackupStore();
+const { summary, loading } = storeToRefs(backups);
 const creating = ref(false);
 const restoring = ref(false);
 const restored = ref<RestoreResult | null>(null);
@@ -18,11 +18,11 @@ const pendingName = ref<string | null>(null);
 const confirmDialog = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
-const headers: any[] = [
-  { title: 'Backup', key: 'name', align: 'left', sortable: true },
+const headers = [
+  { title: 'Backup', key: 'name', align: 'start' as const, sortable: true },
   { title: 'Created', key: 'createdAt', sortable: true },
   { title: 'Size', key: 'sizeBytes', sortable: true },
-  { title: '', key: 'actions', align: 'end', sortable: false },
+  { title: '', key: 'actions', align: 'end' as const, sortable: false },
 ];
 
 const pendingLabel = computed(() => pendingFile.value?.name ?? pendingName.value ?? '');
@@ -35,31 +35,21 @@ function formatSize(bytes: number): string {
   return bytes < 1024 ? bytes + ' B' : (bytes / 1024).toFixed(1) + ' kB';
 }
 
-function loadSummary() {
-  loading.value = true;
-  backupApi.getSummary((data: BackupSummary | null) => {
-    if (data != null)
-      summary.value = data;
-  }, () => {
-    loading.value = false;
-  });
-}
+const loadSummary = () => backups.load();
 
-function createBackup() {
+async function createBackup() {
   creating.value = true;
-  backupApi.createBackup((data: Blob | null) => {
-    if (data == null)
-      return;
-    const href = URL.createObjectURL(data);
-    const link = document.createElement('a');
-    link.href = href;
-    link.download = backupFileName(new Date());
-    link.click();
-    // Revoked later: some browsers start the download only after click() returns.
-    setTimeout(() => URL.revokeObjectURL(href), 10000);
-  }, () => {
-    creating.value = false;
-  });
+  const zip = await backups.create();
+  creating.value = false;
+  if (zip == null)
+    return;
+  const href = URL.createObjectURL(zip);
+  const link = document.createElement('a');
+  link.href = href;
+  link.download = backupFileName(new Date());
+  link.click();
+  // Revoked later: some browsers start the download only after click() returns.
+  setTimeout(() => URL.revokeObjectURL(href), 10000);
 }
 
 function chooseFile() {
@@ -90,25 +80,17 @@ function cancelRestore() {
   pendingName.value = null;
 }
 
-function restore() {
+async function restore() {
+  const source = pendingFile.value ?? pendingName.value;
   confirmDialog.value = false;
+  if (source == null)
+    return;
   restoring.value = true;
   restored.value = null;
-  const done = (data: RestoreResult | null) => {
-    restored.value = data;
-  };
-  const completed = () => {
-    restoring.value = false;
-    pendingFile.value = null;
-    pendingName.value = null;
-    loadSummary();
-  };
-  if (pendingFile.value != null)
-    backupApi.restore(pendingFile.value, done, completed);
-  else if (pendingName.value != null)
-    backupApi.restoreSaved(pendingName.value, done, completed);
-  else
-    completed();
+  restored.value = await backups.restore(source);
+  restoring.value = false;
+  pendingFile.value = null;
+  pendingName.value = null;
 }
 
 onMounted(() => {
@@ -205,7 +187,7 @@ onMounted(() => {
             {{ formatSize(item.sizeBytes) }}
           </template>
           <template v-slot:[`item.actions`]="{ item }">
-            <v-btn variant="text" size="small" icon="download" :href="backupApi.getDownloadUrl(item.name)" :download="item.name" />
+            <v-btn variant="text" size="small" icon="download" :href="backups.downloadUrl(item.name)" :download="item.name" />
             <v-btn variant="text" size="small" icon="restore" :disabled="restoring" @click="chooseSaved(item.name)" />
           </template>
           <template v-slot:no-data>

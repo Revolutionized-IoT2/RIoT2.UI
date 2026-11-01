@@ -1,26 +1,23 @@
 <script setup lang="ts">
-import { useComponentService } from '@/composables/componentService';
+// The editor changes the elements of the dashboard component it is given. That component belongs
+// to the dashboard store, which saves it.
+/* eslint-disable vue/no-mutating-props */
 import Datamodel from '@/components/DatamodelComponent.vue';
-import Command from '@/models/command';
 import type Component from '@/models/component';
 import { ButtonElementProperties, ValueElementProperties, type IComponentElement, ChartElementProperties, ImageElementProperties, SwitchElementProperties, StateElementProperties } from '@/models/componentElement';
-import { ValueType, ComponentType } from '@/models/enums';
-import { InjectionKeys } from '@/models/injectionKeys';
-import { computed, inject, reactive, ref, watch } from 'vue';
-import { useOrchestrator } from '@/composables/orchestratorService';
-import { Report } from '@/models/report';
-import type { ITemplate } from '@/models/itemplate';
+import { ComponentType } from '@/models/enums';
+import { computed, reactive, ref, watchEffect } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useTemplatesStore } from '@/stores/templatesStore';
+import { useCommandsStore } from '@/stores/commandsStore';
 import { v4 as uuidv4 } from 'uuid';
 
 const props = defineProps<{
   data: Component
 }>()
 
-const reportTemplates = inject(InjectionKeys.reportTemplates);
-const commandTemplates = inject(InjectionKeys.commandTemplates);
-const variableTemplates = inject(InjectionKeys.variableTemplates);
-
-const orchestrator = useOrchestrator();
+const { readableTemplates: reportTemplateItems, writableTemplates: commandTemplateItems } = storeToRefs(useTemplatesStore());
+const commands = useCommandsStore();
 
 const componentElements = reactive<IComponentElement []>([]);
 
@@ -33,7 +30,7 @@ const loadingReport = ref(false);
 
 function editElement(e: IComponentElement) {
 
-  let copyOfElement = JSON.parse(JSON.stringify(e));
+  const copyOfElement = JSON.parse(JSON.stringify(e));
 
   selectedEditElement.value = copyOfElement;
   editElementDialog.value = true;
@@ -47,7 +44,7 @@ function addNewElement() {
 }
 
 function deleteElement() {
-  let idx = props.data.elements.findIndex(x => x.id == selectedEditElement.value.id);
+  const idx = props.data.elements.findIndex(x => x.id == selectedEditElement.value.id);
   if(idx != -1) {
     props.data.elements.splice(idx, 1);
   }
@@ -56,7 +53,7 @@ function deleteElement() {
 
 function saveElement() {
 
-  let idx = props.data.elements.findIndex(x => x.id == selectedEditElement.value.id);
+  const idx = props.data.elements.findIndex(x => x.id == selectedEditElement.value.id);
 
   if(idx == -1) {
     selectedEditElement.value.id = uuidv4();
@@ -67,17 +64,13 @@ function saveElement() {
   editElementDialog.value = false;
 }
 
-function readReportValue(reportId: string | undefined) {
+async function readReportValue(reportId: string | undefined) {
   if(reportId == undefined)
     return;
-    loadingReport.value = true;
-  
-    orchestrator.getReportState(reportId, (data : Report | null) => {
-      reportData.value = data;
-  }, () => {
-      loadingReport.value = false;
-      reportDataDialog.value = true;
-  });
+  loadingReport.value = true;
+  reportData.value = await commands.getReportState(reportId);
+  loadingReport.value = false;
+  reportDataDialog.value = true;
 }
 
 const hasMaxNumberOfElements = computed(() => {
@@ -130,39 +123,12 @@ function getPropertyObject(): any {
   }
 }
 
-const numberOfPreviousReportsDisabled = computed(()=> {
+// Without a stored history, an element can only show the latest report.
+const numberOfPreviousReportsDisabled = computed(() => selectedEditElement.value.reportTemplate?.maintainHistory != true);
 
-  if(selectedEditElement.value.reportTemplate == undefined) {
+watchEffect(() => {
+  if (numberOfPreviousReportsDisabled.value)
     selectedEditElement.value.numberOfPreviousReports = 1;
-    return true;
-  }
-
-  if(!selectedEditElement.value.reportTemplate.maintainHistory) {
-    selectedEditElement.value.numberOfPreviousReports = 1;
-    return true;
-  }
-
-  return false;
-});
-
-const reportTemplateItems = computed<ITemplate[]>(() => {
-  if(reportTemplates == undefined && variableTemplates == undefined)
-    return [];
-
-  if(reportTemplates == undefined) return (variableTemplates?.value as ITemplate[]);
-  if(variableTemplates == undefined) return (reportTemplates?.value as ITemplate[]);
-    
-  return (reportTemplates.value as ITemplate[]).concat(variableTemplates.value);
-});
-
-const commandTemplateItems = computed<ITemplate[]>(() => {
-  if(commandTemplates == undefined && variableTemplates == undefined)
-    return [];
-
-  if(commandTemplates == undefined) return (variableTemplates?.value as ITemplate[]);
-  if(variableTemplates == undefined) return (commandTemplates?.value as ITemplate[]);
-    
-  return (commandTemplates.value as ITemplate[]).concat(variableTemplates.value);
 });
 
 </script>
@@ -172,9 +138,9 @@ const commandTemplateItems = computed<ITemplate[]>(() => {
       <v-item-group multiple :model-value="componentElements">
         <v-container>
           <v-row class="mb-3" justify="start">
-            <template v-for="elem, i in data.elements" :key="elem.id">
+            <template v-for="elem in data.elements" :key="elem.id">
             <v-col cols="auto" >
-              <v-item v-slot="{ toggle }" :value="elem">
+              <v-item :value="elem">
                 <v-card color="green-lighten-5" class="d-flex align-center" 
                 dark 
                 height="120" 
@@ -293,7 +259,7 @@ const commandTemplateItems = computed<ITemplate[]>(() => {
 
       <template v-if="selectedEditElement.properties != null">
             <!--print properties, depending on comp type-->
-          <v-col cols="6" v-for="(p) in Object.keys(selectedEditElement.properties)">
+          <v-col cols="6" v-for="p in Object.keys(selectedEditElement.properties)" :key="p">
             <Datamodel 
               :datamodel="selectedEditElement.properties[p]" 
               :labeltext="p"

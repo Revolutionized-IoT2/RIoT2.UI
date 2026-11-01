@@ -1,20 +1,16 @@
 <script setup lang="ts">
   import { computed, onMounted, ref, watch } from 'vue'
-  import { inject } from 'vue'
+  import { storeToRefs } from 'pinia';
 
   import DashboardComponent from '@/components/DashboardComponent.vue'
   import { ComponentSize, ComponentType } from '@/models/enums';
-  import { useOrchestrator } from '@/composables/orchestratorService';
-  import type Report from '@/models/report';
-  import { InjectionKeys } from '@/models/injectionKeys';
-  import { onBeforeUnmount } from 'vue';
-  import Dashboard from '@/models/dashboard';
-  import { useRoute, useRouter } from 'vue-router';
+  import type Dashboard from '@/models/dashboard';
+  import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
   import Page from '@/models/page';
   import ContextMenu from '@/components/ContextMenuComponent.vue';
   import Component from '@/models/component';
-  import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
   import { v4 as uuidv4 } from 'uuid';
+  import { useDashboardStore } from '@/stores/dashboardStore';
 
   const contextMenuItems = computed(() => [
         { text: "save dashboard", action: "save", disabled: !isDirty.value, icon: "save" },
@@ -47,28 +43,15 @@ const componentSizes = [{name: "Small", value: ComponentSize.small},
     if(dashboardConfiguration.value == null)
       return;
 
-    if(action == 'save') { 
-      orchestrator.saveDashboard(dashboardConfiguration.value, (id: string | null) => {
-        if(id != null) {
-          saveDashboardSnackbar.value = true;
-          
-          //re-load dashboard
-          orchestrator.getDashboard((dashboard: Dashboard | null) => {
-            dashboardConfiguration.value = dashboard;
-          }, () => {isDirty.value = false;});
-        }
-      },
-      () => {
-        //move to view mode ?
-      });
-    } 
+    if(action == 'save')
+      saveDashboard();
 
     if(action == 'new_page') { 
       addPage();
     } 
 
     if(action == 'edit_page') { 
-      let e = dashboardConfiguration.value.pages[selectedPage.value];
+      const e = dashboardConfiguration.value.pages[selectedPage.value];
       editPage.value = {
         id: e.id,
         name: e.name,
@@ -84,11 +67,10 @@ const componentSizes = [{name: "Small", value: ComponentSize.small},
     } 
   }
   
-  //var isFullscreen: boolean = document.fullscreenElement != null;
-  const emitter = inject(InjectionKeys.emitter);
   const selectedPage = ref<number>(0);
-  const orchestrator = useOrchestrator();
-  const dashboardConfiguration = ref<Dashboard | null>(null);
+  const store = useDashboardStore();
+  // The store applies every report the UI receives to the elements bound to its template.
+  const { dashboard: dashboardConfiguration } = storeToRefs(store);
   const isDirty = ref(false);
 
   const route = useRoute();
@@ -110,24 +92,15 @@ const componentSizes = [{name: "Small", value: ComponentSize.small},
     if(route.path.endsWith('edit'))
       editMode.value = true;
 
-    orchestrator.getDashboard((dashboard: Dashboard | null) => {
-      dashboardConfiguration.value = dashboard;
-    });
-
-    emitter?.on("mqttReportReceived", handleReportReceived);
+    await store.load();
+    isDirty.value = false;
   });
 
-  onBeforeUnmount(() => {
-    emitter?.off("mqttReportReceived", handleReportReceived);
-  })
-
-  function handleReportReceived(data: any) {
-    var report = data as Report;
-
-    if(report == null)
-      return;
-
-    update(report);
+  async function saveDashboard() {
+    if (await store.save()) {
+      saveDashboardSnackbar.value = true;
+      isDirty.value = false;
+    }
   }
 
   const deletePageDisabled = computed(() => {
@@ -147,22 +120,6 @@ const componentSizes = [{name: "Small", value: ComponentSize.small},
 
   },  { immediate: false, deep: true });
 
-  function update(report: Report) {
-    if(dashboardConfiguration.value == null)
-      return;
-
-    //update elements -> set matching elements
-    for(let page of dashboardConfiguration.value.pages) {
-        for(let comp of page.components) {
-          for (let elem of comp.elements) {
-            if(elem.reportTemplate?.id == report.id) {
-              elem.report = report;
-            }
-          }
-        }
-      }
-  }
-
   function getMdSize(size: ComponentSize) {
     if(size == ComponentSize.full)
       return 12;
@@ -173,16 +130,6 @@ const componentSizes = [{name: "Small", value: ComponentSize.small},
   function getLgSize(size: ComponentSize) : number {
     return size;
   }
-
-  function changeFullscreenMode(fullscreen:boolean) {
-    if(fullscreen) {
-      (document.getElementById("riotApp") as any).style.overflow = "hidden";
-      document.documentElement.requestFullscreen();
-    } else {
-      (document.getElementById("riotApp") as any).style.overflow = "auto";
-      document.exitFullscreen();
-    }
-}
 
 function changePage(i: number) {
   selectedPage.value = i;
@@ -204,14 +151,14 @@ function savePage() {
   if(dashboardConfiguration.value == null)
     return;
 
-  let idx = dashboardConfiguration.value.pages.findIndex(x => x.id == editPage.value.id);
+  const idx = dashboardConfiguration.value.pages.findIndex(x => x.id == editPage.value.id);
 
   if(idx == -1) {
     editPage.value.id = uuidv4();
     dashboardConfiguration.value.pages.push(editPage.value);
   } else {
-    dashboardConfiguration.value.pages[idx].name = editPage.value.name,
-    dashboardConfiguration.value.pages[idx].icon = editPage.value.icon,
+    dashboardConfiguration.value.pages[idx].name = editPage.value.name;
+    dashboardConfiguration.value.pages[idx].icon = editPage.value.icon;
     changePage(idx);
   }
     
@@ -261,7 +208,7 @@ function deleteComponent(c: Component) {
   if(dashboardConfiguration.value == null)
       return;
 
-  let idx = dashboardConfiguration.value.pages[selectedPage.value].components.findIndex(x => x.id == c.id);
+  const idx = dashboardConfiguration.value.pages[selectedPage.value].components.findIndex(x => x.id == c.id);
   if(idx != -1) {
     dashboardConfiguration.value.pages[selectedPage.value].components.splice(idx, 1);
   }
@@ -273,9 +220,9 @@ function saveComponent() {
   if(dashboardConfiguration.value == null)
     return;
 
-  let idx = dashboardConfiguration.value.pages[selectedPage.value].components.findIndex(x => x.id == editComponent.value.id);
+  const idx = dashboardConfiguration.value.pages[selectedPage.value].components.findIndex(x => x.id == editComponent.value.id);
   if(idx > -1) {
-    let targetComponent = dashboardConfiguration.value.pages[selectedPage.value].components[idx];
+    const targetComponent = dashboardConfiguration.value.pages[selectedPage.value].components[idx];
     if(targetComponent.type != editComponent.value.type) //if component type is changed all elements are cleared.
       targetComponent.elements = [];
 
@@ -380,7 +327,7 @@ onBeforeRouteLeave(() => {
 
   <v-bottom-navigation class="fixedBottomBar" height="60" fixed v-if="dashboardConfiguration != null && dashboardConfiguration?.pages?.length > 1" v-model="selectedPage">
     <v-slide-group show-arrows>
-      <v-slide-group-item v-for="page, i in dashboardConfiguration?.pages" :key="page.id" v-slot="{ isSelected, toggle }">
+      <v-slide-group-item v-for="page, i in dashboardConfiguration?.pages" :key="page.id" v-slot="{ isSelected }">
         <v-btn class="navBtn" :color="isSelected ? undefined : 'blue'" @click="changePage(i)">
           <v-icon v-if="page.icon != null">{{page.icon}}</v-icon>
           {{page.name}}

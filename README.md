@@ -18,7 +18,8 @@ How this UI fits into the platform: [architecture overview](https://github.com/R
 - Downloads and restores configuration backups, and lists the orchestrator's saved backups
   (*Backup* page, orchestrator 1.7.0 or later).
 - Opens the external Elsa Studio workflow node from the navigation drawer.
-- Subscribes to live report messages over MQTT and sends dashboard-node presence on page load.
+- Subscribes to live report messages over MQTT, and announces itself as a dashboard node on every
+  connection and whenever the orchestrator comes back online.
 
 ## Run locally
 
@@ -35,12 +36,15 @@ and an orchestrator configuration message before it leaves the initial "Connecti
 ## Build, test and preview
 
 ```powershell
+npm run lint
 npm test
 npm run typecheck
 npm run build
 npm run preview
 ```
 
+- `npm run lint` runs ESLint (`eslint.config.mjs`: `eslint-plugin-vue` and `typescript-eslint`)
+  over `src/`. Errors fail CI; the remaining `any` warnings go with plan M3 step 4.
 - `npm test` runs offline Node.js regression tests from `tests/*.test.cjs`.
   `tests/contracts.test.cjs` needs RIoT2.Core and RIoT2.Net.Orchestrator checked out next to this
   repository (CI clones them). It fails when a URL in `src/models/constants.ts` isn't in the
@@ -48,9 +52,8 @@ npm run preview
   or when the UI can't read the [golden files](https://github.com/Revolutionized-IoT2/RIoT2.Core/blob/main/contracts/golden/README.md).
 - `npm run typecheck` runs `vue-tsc --noEmit`.
 - `npm run build` runs `vue-tsc --noEmit` and `vite build`.
-- `npm run preview` serves the production build on port 5050.
-
-There is no configured lint script.
+- `npm run preview` serves the production build on port 5050. Each route's view is its own chunk,
+  and mqtt and Vue have chunks of their own (`vite.config.ts`).
 
 ## Configuration
 
@@ -102,17 +105,17 @@ Important implementation files:
 |---|---|
 | `src/App.vue` | Creates the dashboard MQTT client id, subscribes, announces online and waits for configuration. |
 | `src/composables/mqttService.ts` | MQTT.js connection, reconnect backoff, subscriptions and publishing. |
-| `src/composables/orchestratorService.ts` | Higher-level orchestrator REST calls. |
-| `src/composables/api/` | Dashboard, node, Matter, backup, command/report and variable API helpers. |
+| `src/composables/presence.ts` | The camelCase presence and last will, and when to announce again. |
+| `src/stores/` | Pinia stores: the data each page shows, with `loading` and `error`; failures reach the snackbar. |
+| `src/composables/api/` | Promise-based REST calls per resource (nodes, templates, commands, variables, dashboard, Matter, backup). |
 | `src/models/constants.ts` | REST routes and MQTT topic templates used by the UI. |
 | `src/layout/AppBar.vue` | Navigation drawer and external Elsa Studio link. |
 
 ## Workflows
 
 Automation is handled by [RIoT2.Elsa](https://github.com/Revolutionized-IoT2/RIoT2.Elsa), not by
-an internal UI rule editor. The navigation drawer still labels the Elsa Studio link as **Rules** in
-the current code, but it opens the `nodeBaseUrl` of the online workflow node (`nodeType` 3) returned
-by `GET /api/nodes/online`.
+an internal UI rule editor. The navigation drawer's **Workflows** entry opens the `nodeBaseUrl` of
+the online workflow node (`nodeType` 3) returned by `GET /api/nodes/online`.
 
 Legacy `/rules`, `/rules/editor/:id?`, `/rules/simulate/:id?`, `/api/rules` and
 `/api/nodes/function/templates` paths are retired. Dashboard controls and variables use the

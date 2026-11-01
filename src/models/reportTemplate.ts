@@ -11,7 +11,7 @@ export class ReportTemplate implements ITemplate  {
         this.nodeId = "";
         this.node = "";
         this.device = "";
-        this.deviceId = "",
+        this.deviceId = "";
         this.filters = [];
         this.parameters = {};
         this.maintainHistory = false;

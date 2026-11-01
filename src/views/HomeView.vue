@@ -1,22 +1,17 @@
-<script setup lang="ts">
-import TheWelcome from '@/components/TheWelcome.vue'
-</script>
-
 <template>
   <main>
-   <main>
     <div class="ma-4 mt-8 text-center">
-   <!-- <p class="headline text-center"> Welcome to RIoT Portal</p> -->
-    <img alt="RIoT Logo" src="../assets/riot_logo.png" />
-    <p>RIoT2 Controller - Flexible and scalable IoT system</p>
-    <br/>
+      <img alt="RIoT Logo" src="../assets/riot_logo.png" />
+      <p>RIoT2 Controller - Flexible and scalable IoT system</p>
+      <br/>
       <p>
-        <b>Configure</b> - System Node and Dashboard settings<br/>
-        <b>Rules</b> - Use Elsa workflow engine to create rules <br/>
-        <b>Variables</b> - Settins for system state variables<br/>
-        <b>Dashboard</b> - Vizualizing and controlling the system state<br/>
+        <b>Configure</b> - System node and dashboard settings<br/>
+        <b>Workflows</b> - Automate with the Elsa workflow engine<br/>
+        <b>Variables</b> - Settings for system state variables<br/>
+        <b>Matter</b> - Expose devices to Matter controllers such as Google Home<br/>
+        <b>Backup</b> - Back up and restore the configuration<br/>
+        <b>Dashboard</b> - Visualize and control the system state<br/>
       </p>
-  </div>
-  </main>
+    </div>
   </main>
 </template>

@@ -26,7 +26,7 @@ function removeParameter(name: string) {
 }
 
 function newParameter() {
-  if(newPropertyValue == null || newPropertyValue.value == null)
+  if(newPropertyValue.value == null || newPropertyValue.value == null)
     return;
 
   model.value.parameters[newPropertyValue.value.name] = newPropertyValue.value.value;
@@ -103,7 +103,7 @@ function cancel() {
     <p>Additional parameters</p>
      <v-divider class="border-opacity-100 mb-3" color="black" />
      <v-row>
-          <v-col cols="4" v-for="(p) in Object.keys(model.parameters)">
+          <v-col cols="4" v-for="p in Object.keys(model.parameters)" :key="p">
             <v-text-field v-model="model.parameters[p]" hide-details
               append-inner-icon="delete"
               @click:append-inner="removeParameter(p)"

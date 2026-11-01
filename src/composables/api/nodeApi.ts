@@ -1,69 +1,64 @@
 import { Constants } from '@/models/constants';
-import { useHttpClient, withCallback } from '@/composables/httpClientService';
+import { useHttpClient } from '@/composables/httpClientService';
 import { useOrchestratorStore } from '@/stores/orchestratorStore';
 import type SystemNode from '@/models/systemNode';
-import NodeConfiguration from '@/models/nodeConfiguration';
-import DeviceConfiguration from '@/models/deviceConfiguration';
+import type NodeConfiguration from '@/models/nodeConfiguration';
+import type DeviceConfiguration from '@/models/deviceConfiguration';
 import type DeviceStatus from '@/models/deviceStatus';
 import type { PluginFile } from '@/models/pluginFile';
+import type { CronValidationResult } from '@/models/cronValidationResult';
 
+/** Node configurations, online nodes and the checks the node editor runs. */
 export function useNodeApi() {
 
   const httpClient = useHttpClient();
   const orchestratorStore = useOrchestratorStore();
 
-  function getNodes(callback:(data: SystemNode[] | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlGetNodes;
-    return withCallback(httpClient.get<SystemNode[]>(url), callback, completed);
+  function getNodes(): Promise<SystemNode[] | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlGetNodes;
+    return httpClient.get<SystemNode[]>(url);
   }
 
-  function getOnlineNodes(callback:(data: SystemNode[] | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlGetNodesOnline;
-    return withCallback(httpClient.get<SystemNode[]>(url), callback, completed);
+  function getOnlineNodes(): Promise<SystemNode[] | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlGetNodesOnline;
+    return httpClient.get<SystemNode[]>(url);
   }
 
-  function getNodeConfiguration(id: string, callback:(data: NodeConfiguration | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlGetNodeConfiguration;
-    url = url.replace('{id}', id)
-
-    return withCallback(httpClient.get<NodeConfiguration>(url), callback, completed);
+  function getNodeConfiguration(id: string): Promise<NodeConfiguration | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlGetNodeConfiguration.replace('{id}', encodeURIComponent(id));
+    return httpClient.get<NodeConfiguration>(url);
   }
 
-  function saveNodeConfiguration(configuration: Object, callback:(data:string | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlSaveNodeConfiguration;
-    return withCallback(httpClient.post<Object, string | null>(url, configuration), callback, completed);
+  /** Resolves to the saved node's id. */
+  function saveNodeConfiguration(configuration: NodeConfiguration): Promise<string | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlSaveNodeConfiguration;
+    return httpClient.post<NodeConfiguration, string>(url, configuration);
   }
 
-  function deleteNode(id: string, callback:(data: void | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlDeleteNodeById;
-    url = url.replace('{id}', id);
-    return withCallback(httpClient.delete<void | null>(url), callback, completed);
+  function deleteNode(id: string): Promise<null> {
+    const url = orchestratorStore.baseUrl + Constants.urlDeleteNodeById.replace('{id}', encodeURIComponent(id));
+    return httpClient.delete<null>(url);
   }
 
-  function getNodeDevicesStatus(nodeid: string, callback:(data: DeviceStatus[] | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlGetNodeDevicesStatus;
-    url = url.replace('{id}', nodeid);
-
-    return withCallback(httpClient.get<DeviceStatus[]>(url), callback, completed);
+  function getNodeDevicesStatus(id: string): Promise<DeviceStatus[] | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlGetNodeDevicesStatus.replace('{id}', encodeURIComponent(id));
+    return httpClient.get<DeviceStatus[]>(url);
   }
 
-  function getDeviceTemplate(id: string, callback:(data: DeviceConfiguration[] | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlGetNodeDeviceTemplates;
-    url = url.replace('{id}', id);
-    return withCallback(httpClient.get<DeviceConfiguration[]>(url), callback, completed);
+  /** The device templates an online node offers; null when it is offline or offers none. */
+  function getDeviceTemplates(id: string): Promise<DeviceConfiguration[] | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlGetNodeDeviceTemplates.replace('{id}', encodeURIComponent(id));
+    return httpClient.get<DeviceConfiguration[]>(url);
   }
 
-  function checkPlugin(plugin: PluginFile, callback:(data: PluginFile | null) => void, completed?:()=> void): Promise<void> {
+  function checkPlugin(plugin: PluginFile): Promise<PluginFile | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlCheckPlugin;
+    return httpClient.post<PluginFile, PluginFile>(url, plugin);
+  }
 
-    let url = orchestratorStore.baseUrl + Constants.urlCheckPlugin;
-    return withCallback(httpClient.post<PluginFile, PluginFile>(url, plugin), callback, completed);
+  function validateCron(cron: CronValidationResult): Promise<CronValidationResult | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlValidateCron;
+    return httpClient.post<CronValidationResult, CronValidationResult>(url, cron);
   }
 
   return {
@@ -73,7 +68,8 @@ export function useNodeApi() {
     saveNodeConfiguration,
     deleteNode,
     getNodeDevicesStatus,
-    getDeviceTemplate,
-    checkPlugin
+    getDeviceTemplates,
+    checkPlugin,
+    validateCron
   };
 }

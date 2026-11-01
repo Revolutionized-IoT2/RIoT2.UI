@@ -1,24 +1,16 @@
 <script setup lang="ts">
 
-import { useMatterApi } from '@/composables/api/matterApi';
-import MatterConfiguration from '@/models/matter/matterConfiguration';
-import MatterStatus from '@/models/matter/matterStatus';
+import { useMatterStore } from '@/stores/matterStore';
+import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
 
-const matterApi = useMatterApi();
-
-const status = ref<MatterStatus>(new MatterStatus());
-const configuration = ref<MatterConfiguration>(new MatterConfiguration());
-const loading = ref(false);
+const matter = useMatterStore();
+const { status, configuration, loading } = storeToRefs(matter);
 const saving = ref(false);
 const resetDialog = ref(false);
 
-// Busts the browser cache on the QR image: the payload changes on reset and on reconfiguration,
-// but the URL does not.
-const qrToken = ref(0);
-
-const headers: any[] = [
-  { title: 'Endpoint', key: 'endpointId', align: 'left', sortable: true },
+const headers = [
+  { title: 'Endpoint', key: 'endpointId', align: 'start' as const, sortable: true },
   { title: 'Name', key: 'name', sortable: true },
   { title: 'Matter device type', key: 'deviceType', sortable: true },
   { title: 'Node', key: 'nodeId', sortable: true },
@@ -28,67 +20,29 @@ const headers: any[] = [
 
 const isPairingOpen = computed(() => status.value.commissioningWindow == 'BasicWindowOpen' || status.value.commissioningWindow == 'EnhancedWindowOpen');
 
-const qrCodeUrl = computed(() => matterApi.getQrCodeUrl(qrToken.value));
+const qrCodeUrl = computed(() => matter.qrCodeUrl());
 
 function toHex(value: number, digits: number): string {
   return '0x' + value.toString(16).toUpperCase().padStart(digits, '0');
 }
 
-function applyStatus(data: MatterStatus | null) {
-  if (data != null) {
-    status.value = data;
-    qrToken.value++;
-  }
-}
+const openCommissioning = () => matter.openCommissioning();
+const refreshDevices = () => matter.refreshDevices();
 
-function loadStatus() {
-  loading.value = true;
-  matterApi.getStatus(applyStatus, () => {
-    loading.value = false;
-  });
-}
-
-function loadConfiguration() {
-  matterApi.getConfiguration((data: MatterConfiguration | null) => {
-    if (data != null)
-      configuration.value = data;
-  });
-}
-
-function saveConfiguration() {
+async function saveConfiguration() {
   saving.value = true;
-  matterApi.saveConfiguration(configuration.value, applyStatus, () => {
-    saving.value = false;
-  });
-}
-
-function openCommissioning() {
-  loading.value = true;
-  matterApi.openCommissioning(applyStatus, () => {
-    loading.value = false;
-  });
-}
-
-function refreshDevices() {
-  loading.value = true;
-  matterApi.refreshDevices(applyStatus, () => {
-    loading.value = false;
-  });
+  await matter.saveConfiguration();
+  saving.value = false;
 }
 
 function resetBridge() {
   resetDialog.value = false;
-  loading.value = true;
-  matterApi.reset(applyStatus, () => {
-    loading.value = false;
-    // The passcode is regenerated, so the saved configuration is re-read alongside the new codes.
-    loadConfiguration();
-  });
+  matter.reset();
 }
 
 onMounted(() => {
-  loadConfiguration();
-  loadStatus();
+  matter.loadConfiguration();
+  matter.loadStatus();
 });
 </script>
 

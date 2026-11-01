@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { useComponentService } from '@/composables/componentService';
-import { useOrchestrator } from '@/composables/orchestratorService';
-import Command from '@/models/command';
+import { useCommandsStore } from '@/stores/commandsStore';
 import type Component from '@/models/component';
-import type { ComponentElement, IComponentElement } from '@/models/componentElement';
+import type { IComponentElement } from '@/models/componentElement';
 import { ValueType, ComponentType } from '@/models/enums';
-import { InjectionKeys } from '@/models/injectionKeys';
-import { inject, reactive, ref, watch } from 'vue';
+import { reactive, ref, watch } from 'vue';
 
 const props = defineProps<{
   data: Component
 }>()
 
-const orchestrator = useOrchestrator();
+const commands = useCommandsStore();
 const componentService = useComponentService();
 const selectedButtonIds = reactive<string []>([]);
 
@@ -33,16 +31,8 @@ function toggleButton(element: IComponentElement) {
 }
 
 function executeToggle(element: IComponentElement) {
-  if(element.commandTemplate != undefined) {
-    let cmd = new Command();
-    cmd.id = element.commandTemplate.id;
-    cmd.value = getValue(!isElementSelected(element), element);
-    if(element.commandTemplate.address?.toLowerCase() == "variable") {
-      orchestrator.setVariableValue(cmd, () => {});
-    } else {
-      orchestrator.executeCommand(cmd, () => {});
-    }
-  }
+  if(element.commandTemplate != undefined)
+    commands.send(element.commandTemplate, getValue(!isElementSelected(element), element));
   setElementState(!isElementSelected(element), element);
 }
 
@@ -70,10 +60,10 @@ watch(() => props.data.elements, () => {
 },  { immediate: true, deep: true })
 
 function updateButtonStates() { 
-  for(let e of props.data.elements) {
+  for(const e of props.data.elements) {
   
   if(e.report != undefined) {
-    let elemState = getStateFromReport(e);
+    const elemState = getStateFromReport(e);
     if(elemState != isElementSelected(e))
       setElementState(getStateFromReport(e), e);
   }
@@ -95,7 +85,7 @@ function setElementState(toState: boolean, element: IComponentElement) {
   if(toState) {
     selectedButtonIds.push(element.id);
   } else {
-    let idx = selectedButtonIds.findIndex(v => v === element.id);
+    const idx = selectedButtonIds.findIndex(v => v === element.id);
     if(idx != -1)
       selectedButtonIds.splice(idx, 1);
   }
@@ -104,7 +94,7 @@ function setElementState(toState: boolean, element: IComponentElement) {
 function useExtendedView(e: IComponentElement) {
   //return true;
 
-  let colorMapping = componentService.getElementPropertyValue(e, "colorMapping");
+  const colorMapping = componentService.getElementPropertyValue(e, "colorMapping");
   if(colorMapping == undefined)
     return false;
 
@@ -122,9 +112,9 @@ function executeExtendedClick() {
       <v-item-group multiple :model-value="selectedButtonIds" v-if="props.data.type == ComponentType.button">
         <v-container>
           <v-row class="mb-3" justify="start">
-            <template v-for="elem, i in data.elements" :key="elem.id">
+            <template v-for="elem in data.elements" :key="elem.id">
             <v-col cols="auto" >
-              <v-item v-slot="{ isSelected, toggle }" :value="elem.id">
+              <v-item v-slot="{ isSelected }" :value="elem.id">
                 <v-card :color="isSelected ? 'primary' : 'secondary'" class="d-flex align-center" 
                 dark 
                 height="120" 
@@ -154,9 +144,9 @@ function executeExtendedClick() {
       show-arrows
     >
       <v-slide-group-item
-        v-for="elem, i of props.data.elements"
+        v-for="elem of props.data.elements"
         :key="elem.id"
-        v-slot="{ isSelected, toggle, selectedClass }"
+        v-slot="{ isSelected }"
         :value="elem.id"
       >
       <v-card :color="isSelected ? 'primary' : 'secondary'" class="d-flex align-center ma-4" 
@@ -177,7 +167,7 @@ function executeExtendedClick() {
 
   <!-- extended view dialog -->
   <v-dialog transition="fab-transition" width="90%" height="90%" max-width="600" max-height="600" v-model="extendedButtonViewDialog">
-  <template v-slot:default="{ isActive }">
+  <template v-slot:default>
     <v-card rounded="lg">
       <v-card-title class="d-flex justify-space-between align-center">
         <div class="text-h5 text-medium-emphasis ps-2">
@@ -192,7 +182,7 @@ function executeExtendedClick() {
       <v-divider class="mb-4" />
       <v-card-text>
         <div class="color-center">
-          <v-color-picker :disabled="!selectedState"hide-inputs v-model="selectedColor" />
+          <v-color-picker :disabled="!selectedState" hide-inputs v-model="selectedColor" />
         </div>
         <div class="color-center">
           <v-switch

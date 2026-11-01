@@ -48,7 +48,7 @@ export function useComponentService() {
 
       function getElementPropertyValue(element: IComponentElement, entityPropertyName: string = "value"): any {
         try{
-          let propertyName = getElementValuePropertyName(element, entityPropertyName);
+          const propertyName = getElementValuePropertyName(element, entityPropertyName);
 
           if(propertyName != "") {
               return element.report?.value[propertyName];
@@ -65,7 +65,7 @@ export function useComponentService() {
         if(element.reportTemplate?.type != ValueType.Entity || element.properties == undefined)
           return "";
 
-        let propertyName = element.properties[entityPropertyName];
+        const propertyName = element.properties[entityPropertyName];
         if(propertyName == undefined || propertyName == "")
           return "";
         
@@ -84,7 +84,7 @@ export function useComponentService() {
             values = getArrayMap<number>(element.previousReportsAsc, "value");
           }
         } if(element.reportTemplate?.type == ValueType.Entity) {
-          let propertyName = getElementValuePropertyName(element);
+          const propertyName = getElementValuePropertyName(element);
           if(propertyName != "")
             values = getArrayMap<number>(element.previousReportsAsc, "value." + propertyName);
         }
@@ -99,7 +99,7 @@ export function useComponentService() {
         if(desc.indexOf('.') == -1)
           return obj[desc];
 
-        var arr: any[] = desc.split(".");
+        const arr: any[] = desc.split(".");
         while(arr.length && (obj = obj[arr.shift()]));
         return obj;
       }
@@ -120,17 +120,17 @@ export function useComponentService() {
       }
 
       function formatDate(date: Date) {
-        var d = new Date(date),
-            month = '' + (d.getMonth() + 1),
-            day = '' + d.getDate(),
-            year = d.getFullYear();
+        const d = new Date(date);
+        const year = d.getFullYear();
+        let month = '' + (d.getMonth() + 1);
+        let day = '' + d.getDate();
     
         if (month.length < 2) 
             month = '0' + month;
         if (day.length < 2) 
             day = '0' + day;
         
-        let now = new Date();
+        const now = new Date();
        
         if(d.getDate() != now.getDate() || d.getMonth() != now.getMonth() || d.getFullYear() != now.getFullYear())
           return [day, month, year ].join('.') + " " + String(d.getHours()).padStart(2, '0')+":" + String(d.getMinutes()).padStart(2, '0');
@@ -139,7 +139,7 @@ export function useComponentService() {
     }
 
     function timeStampToDate(timestamp: number): Date {
-      var d = new Date(0); // The 0 there is the key, which sets the date to the epoch
+      const d = new Date(0); // The 0 there is the key, which sets the date to the epoch
       d.setUTCSeconds(timestamp);
       return d;
     }

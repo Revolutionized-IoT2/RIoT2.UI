@@ -27,11 +27,11 @@ function updateComponent() {
   if(elem.report == undefined)
     return;
   
-  let lastUpdated = componentService.timeStampToDate(elem.report.timeStamp);
-  let numericValue = componentService.getElementNumericValue(elem);
-  let unit = componentService.getElementPropertyValue(elem, "unit");
-  let configuredDigits = Number(componentService.getElementPropertyValue(elem, "digits") ?? 0);
-  let digits = Number.isFinite(configuredDigits) ? Math.min(100, Math.max(0, Math.trunc(configuredDigits))) : 0;
+  const lastUpdated = componentService.timeStampToDate(elem.report.timeStamp);
+  const numericValue = componentService.getElementNumericValue(elem);
+  const unit = componentService.getElementPropertyValue(elem, "unit");
+  const configuredDigits = Number(componentService.getElementPropertyValue(elem, "digits") ?? 0);
+  const digits = Number.isFinite(configuredDigits) ? Math.min(100, Math.max(0, Math.trunc(configuredDigits))) : 0;
 
   let pValue = "-";
   if(elem.previousReports != undefined &&  elem.previousReports.length > 1) {
@@ -42,7 +42,7 @@ function updateComponent() {
 
   let trendIcon = "";
   if(componentService.getElementBooleanValue(elem, "useTrendIcon")) {
-    let previousValues = (elem.previousReportsAsc ?? [])
+    const previousValues = (elem.previousReportsAsc ?? [])
       .map(report => componentService.getElementNumericValue({ ...elem, report }))
       .filter(Number.isFinite);
     if(previousValues != null)
@@ -59,9 +59,9 @@ function getTrendIcon(previousValues: any[]) :string {
   if(previousValues.length < 4) //do not calculate trend unless there are at least 3 values
     return trend;
  
-  let x = Math.ceil(previousValues.length * 0.3);
-  let futureValue = lineFitter(previousValues, x);
-  let currentValue = previousValues[previousValues.length-1];
+  const x = Math.ceil(previousValues.length * 0.3);
+  const futureValue = lineFitter(previousValues, x);
+  const currentValue = previousValues[previousValues.length-1];
 
   if(futureValue > currentValue)
     trend = "trending_up";
@@ -82,7 +82,7 @@ function lineFitter(data: any[], x: number)
     let sumXY = 0;
     let sumY = 0;
 
-    for (var i = 0; i < data.length; i++)
+    for (let i = 0; i < data.length; i++)
         add(i, data[i]);
     
     return project(x);
@@ -98,9 +98,9 @@ function lineFitter(data: any[], x: number)
 
     function project(x: number)
     {
-        var det = count * sumX2 - sumX * sumX;
-        var offset = (sumX2 * sumY - sumX * sumXY) / det;
-        var scale = (count * sumXY - sumX * sumY) / det;
+        const det = count * sumX2 - sumX * sumX;
+        const offset = (sumX2 * sumY - sumX * sumXY) / det;
+        const scale = (count * sumXY - sumX * sumY) / det;
         return offset + x * scale;
     }
 }

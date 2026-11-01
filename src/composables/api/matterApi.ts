@@ -1,30 +1,28 @@
 import { Constants } from '@/models/constants';
-import { useHttpClient, withCallback } from '@/composables/httpClientService';
+import { useHttpClient } from '@/composables/httpClientService';
 import { useOrchestratorStore } from '@/stores/orchestratorStore';
 import type MatterStatus from '@/models/matter/matterStatus';
 import type MatterConfiguration from '@/models/matter/matterConfiguration';
 
+/** The Matter bridge: status, configuration and commissioning. */
 export function useMatterApi() {
 
   const httpClient = useHttpClient();
   const orchestratorStore = useOrchestratorStore();
 
-  function getStatus(callback:(data: MatterStatus | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlGetMatterStatus;
-    return withCallback(httpClient.get<MatterStatus>(url), callback, completed);
+  function getStatus(): Promise<MatterStatus | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlGetMatterStatus;
+    return httpClient.get<MatterStatus>(url);
   }
 
-  function getConfiguration(callback:(data: MatterConfiguration | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlGetMatterConfiguration;
-    return withCallback(httpClient.get<MatterConfiguration>(url), callback, completed);
+  function getConfiguration(): Promise<MatterConfiguration | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlGetMatterConfiguration;
+    return httpClient.get<MatterConfiguration>(url);
   }
 
-  function saveConfiguration(configuration: MatterConfiguration, callback:(data: MatterStatus | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlSaveMatterConfiguration;
-    return withCallback(httpClient.post<MatterConfiguration, MatterStatus>(url, configuration), callback, completed);
+  function saveConfiguration(configuration: MatterConfiguration): Promise<MatterStatus | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlSaveMatterConfiguration;
+    return httpClient.post<MatterConfiguration, MatterStatus>(url, configuration);
   }
 
   /**
@@ -32,26 +30,22 @@ export function useMatterApi() {
    * The token busts the browser cache: the payload changes when the bridge is reset or reconfigured.
    */
   function getQrCodeUrl(token: number): string {
-
     return orchestratorStore.baseUrl + Constants.urlGetMatterQr + '?t=' + token;
   }
 
-  function openCommissioning(callback:(data: MatterStatus | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlOpenMatterCommissioning;
-    return withCallback(httpClient.post<null, MatterStatus>(url, null), callback, completed);
+  function openCommissioning(): Promise<MatterStatus | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlOpenMatterCommissioning;
+    return httpClient.post<null, MatterStatus>(url, null);
   }
 
-  function refreshDevices(callback:(data: MatterStatus | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlRefreshMatterDevices;
-    return withCallback(httpClient.post<null, MatterStatus>(url, null), callback, completed);
+  function refreshDevices(): Promise<MatterStatus | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlRefreshMatterDevices;
+    return httpClient.post<null, MatterStatus>(url, null);
   }
 
-  function reset(callback:(data: MatterStatus | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlResetMatter;
-    return withCallback(httpClient.post<null, MatterStatus>(url, null), callback, completed);
+  function reset(): Promise<MatterStatus | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlResetMatter;
+    return httpClient.post<null, MatterStatus>(url, null);
   }
 
   return {

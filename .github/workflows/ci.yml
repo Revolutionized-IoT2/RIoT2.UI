@@ -19,8 +19,8 @@ jobs:
     uses: Revolutionized-IoT2/.github/.github/workflows/node-validate.yml@main
     with:
       node-version: "24"
-      # build runs vue-tsc first, so it also type-checks.
-      scripts: test build
+      # lint is ESLint (eslint.config.mjs); build runs vue-tsc first, so it also type-checks.
+      scripts: lint test build
       # tests/contracts.test.cjs reads the golden files and the orchestrator's OpenAPI document.
       siblings: RIoT2.Core RIoT2.Net.Orchestrator
 

@@ -5,17 +5,17 @@ const emit = defineEmits<{
   click: [action: string] 
 }>();
 
-const props = defineProps<{
+defineProps<{
   items: ContextMenuItem []
 }>()
 
-function exceuteAction(action: string) {
+function executeAction(action: string) {
   emit('click', action);
 }
 
 </script>
 
-<template v-if="ContextMenuItem.length > 0">
+<template>
   <div class="contextMenu">
     <div
       v-for="(menuItem, index) in items"
@@ -26,7 +26,7 @@ function exceuteAction(action: string) {
         type="button"
         class="btn float-right"
         :disabled="menuItem.disabled"
-        @click="exceuteAction(menuItem.action)"
+        @click="executeAction(menuItem.action)"
       >
         <i
           v-if="menuItem.icon != ''"

@@ -1,5 +1,5 @@
 import { Constants } from '@/models/constants';
-import { useHttpClient, withCallback } from '@/composables/httpClientService';
+import { useHttpClient } from '@/composables/httpClientService';
 import { useOrchestratorStore } from '@/stores/orchestratorStore';
 import type { BackupSummary, RestoreResult } from '@/models/backup';
 
@@ -14,36 +14,31 @@ export function useBackupApi() {
   const httpClient = useHttpClient();
   const orchestratorStore = useOrchestratorStore();
 
-  function getSummary(callback:(data: BackupSummary | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlGetBackups;
-    return withCallback(httpClient.get<BackupSummary>(url), callback, completed);
+  function getSummary(): Promise<BackupSummary | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlGetBackups;
+    return httpClient.get<BackupSummary>(url);
   }
 
-  /** Makes a backup of the current configuration; the callback gets the zip. */
-  function createBackup(callback:(data: Blob | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlCreateBackup;
-    return withCallback(httpClient.post<null, Blob>(url, null, { responseType: 'blob' }), callback, completed);
+  /** Makes a backup of the current configuration and resolves to the zip. */
+  function createBackup(): Promise<Blob | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlCreateBackup;
+    return httpClient.post<null, Blob>(url, null, { responseType: 'blob' });
   }
 
   /** Restores a backup file; the replaced configuration is saved on the orchestrator first. */
-  function restore(file: Blob, callback:(data: RestoreResult | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlRestoreBackup;
-    return withCallback(httpClient.post<Blob, RestoreResult>(url, file, { headers: { 'Content-Type': 'application/zip' } }), callback, completed);
+  function restore(file: Blob): Promise<RestoreResult | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlRestoreBackup;
+    return httpClient.post<Blob, RestoreResult>(url, file, { headers: { 'Content-Type': 'application/zip' } });
   }
 
   /** Restores a backup from the orchestrator's Backups/ folder. */
-  function restoreSaved(name: string, callback:(data: RestoreResult | null) => void, completed?:()=> void): Promise<void> {
-
-    let url = orchestratorStore.baseUrl + Constants.urlRestoreSavedBackup.replace('{name}', encodeURIComponent(name));
-    return withCallback(httpClient.post<null, RestoreResult>(url, null), callback, completed);
+  function restoreSaved(name: string): Promise<RestoreResult | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlRestoreSavedBackup.replace('{name}', encodeURIComponent(name));
+    return httpClient.post<null, RestoreResult>(url, null);
   }
 
   /** A saved backup is bound straight to a download link rather than fetched. */
   function getDownloadUrl(name: string): string {
-
     return orchestratorStore.baseUrl + Constants.urlDownloadBackup.replace('{name}', encodeURIComponent(name));
   }
 

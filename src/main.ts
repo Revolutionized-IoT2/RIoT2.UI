@@ -6,7 +6,8 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 
-// @ts-ignore
+// vue-timeago3 ships no type declarations.
+// @ts-expect-error TS7016
 import timeago from 'vue-timeago3'
 
 import { registerPlugins } from '@/plugins'

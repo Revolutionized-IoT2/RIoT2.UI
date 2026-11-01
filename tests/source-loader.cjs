@@ -11,7 +11,6 @@ function loadSource(relativePath, { props = {}, model, expose = [], mocks = {} }
   const defaults = {
     vue: { ...vue, inject: () => vue.ref([]), onMounted() {}, onBeforeUnmount() {}, onUnmounted() {} },
     'vue-router': { useRoute: () => ({ path: '/dashboard/edit' }), useRouter: () => ({}), onBeforeRouteLeave() {} },
-    '@/composables/orchestratorService': { useOrchestrator: () => ({}) },
     'chart.js': { Chart: { register() {} } },
     'vue-chartjs': {},
   };
