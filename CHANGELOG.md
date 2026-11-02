@@ -5,6 +5,9 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+- Changed: the generated contract models follow RIoT2.Core 1.19.0: `PackageManifest` gains the
+  optional `coreVersion` and `sha256` ([I35](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i35-verified-plugin-updates-m)). No behaviour change.
+
 ## [1.7.0] - 2026-11-02
 
 The optional security mode's seams ([I34](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i34-security-seams-with-the-mode-fixed-at-off-m), [design 7.5](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/design/security-mode.md) phase S0). No port, user, volume or MQTT

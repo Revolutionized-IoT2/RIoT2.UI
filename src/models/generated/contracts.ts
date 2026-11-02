@@ -326,6 +326,8 @@ export interface PackageManifest {
   version?: string | null;
   date?: string | null;
   installedPackageFilename?: string | null;
+  coreVersion?: string | null;
+  sha256?: string | null;
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
