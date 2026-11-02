@@ -62,7 +62,7 @@ docker build -t riot2-ui:local .
 | `src/views/` | Route-level pages |
 | `src/layout/` | Vuetify app shell and navigation drawer |
 | `tests/` | Node.js regression tests |
-| `Dockerfile`, `nginx.conf`, `entrypoint.sh` | Production container build, nginx config and runtime env substitution |
+| `Dockerfile`, `nginx.conf`, `entrypoint.sh` | Production container build (base images pinned by digest; Renovate updates them), nginx config and runtime env substitution |
 
 ## Contracts consumed here
 
