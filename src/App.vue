@@ -2,7 +2,9 @@
 import { onMounted, onUnmounted } from 'vue';
 import { RouterView } from 'vue-router'
 import AppError from '@/models/appError';
-import { useMqtt } from '@/composables/mqttService';
+import { createRealtimeTransport, type RealtimeTransport } from '@/composables/realtime';
+import { loadSecurityState } from '@/composables/securityInfo';
+import { useSecurityApi } from '@/composables/api/securityApi';
 import { orchestratorCameOnline, presenceMessage } from '@/composables/presence';
 import { v4 as uuidv4 } from 'uuid';
 import { Constants } from './models/constants';
@@ -21,7 +23,8 @@ const dashboard = useDashboardStore();
 const variables = useVariablesStore();
 
 const id = uuidv4(); // A new id for every page load: each open UI is its own dashboard node.
-const mqttService = useMqtt(id);
+// Chosen from /api/security/info when the page loads (design 7.5); MQTT unless it says otherwise.
+let realtime: RealtimeTransport | undefined;
 
 const configureDashboardTopic = Constants.topicConfigure.replace("{id}", id);
 const dashboardOnlineTopic = Constants.topicOnline.replace("{id}", id);
@@ -29,18 +32,27 @@ const productName = globalThis.navigator?.product ?? "Dashboard";
 
 // The orchestrator answers with the configuration command, which carries its API URL.
 function announce() {
-  mqttService.sendMessage(dashboardOnlineTopic, presenceMessage(productName));
+  realtime?.sendMessage(dashboardOnlineTopic, presenceMessage(productName));
 }
 
-onMounted(() => {
-  mqttService.connect(mqttMessageReceived, announce);
-  mqttService.subscribe(Constants.topicReport);
-  mqttService.subscribe(configureDashboardTopic);
-  mqttService.subscribe(Constants.topicOrchestratorOnline);
+let unmounted = false;
+
+onMounted(async () => {
+  // Through the UI image's /api proxy when there is one; otherwise the mode is off, as before.
+  const security = await loadSecurityState(() => useSecurityApi().getInfo());
+  if (unmounted)
+    return;
+  orchestratorStore.sameOrigin = security.sameOrigin;
+  realtime = createRealtimeTransport(security.info.realtime, id);
+  realtime.connect(mqttMessageReceived, announce);
+  realtime.subscribe(Constants.topicReport);
+  realtime.subscribe(configureDashboardTopic);
+  realtime.subscribe(Constants.topicOrchestratorOnline);
 });
 
 onUnmounted(() => {
-  mqttService.disConnect();
+  unmounted = true;
+  realtime?.disConnect();
 });
 
 // Older nodes and orchestrators send PascalCase; the UI's models are camelCase.
@@ -61,7 +73,9 @@ function mqttMessageReceived(topic: string, message: string, retained = false) {
   try {
     if (topic == configureDashboardTopic) {
       const configurationCmd: ConfigurationCommand = JSON.parse(message, toCamelCase);
-      orchestratorStore.baseUrl = configurationCmd.apiBaseUrl;
+      // With the proxy the API is on this origin; the command still says the orchestrator is ready.
+      orchestratorStore.baseUrl = orchestratorStore.sameOrigin ? "" : configurationCmd.apiBaseUrl;
+      orchestratorStore.configured = true;
       templates.load();
     } else if (topic == Constants.topicOrchestratorOnline) {
       if (orchestratorCameOnline(message, retained))

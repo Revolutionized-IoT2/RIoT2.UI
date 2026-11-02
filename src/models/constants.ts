@@ -1,4 +1,6 @@
 export const Constants = {
+    // Anonymous; read same-origin, through the UI image's /api proxy (design 7.5).
+    urlSecurityInfo: "/api/security/info",
     urlGetDashboardConfigurationWithHistory: "/api/dashboard/configuration?history=true",
     urlGetReportHistory: "/api/dashboard/report/{id}/history",
     urlGetDashboardStates: "/api/dashboard/reports",

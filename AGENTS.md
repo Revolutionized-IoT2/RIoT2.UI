@@ -62,7 +62,7 @@ docker build -t riot2-ui:local .
 | `src/views/` | Route-level pages |
 | `src/layout/` | Vuetify app shell and navigation drawer |
 | `tests/` | Node.js regression tests |
-| `Dockerfile`, `nginx.conf`, `entrypoint.sh` | Production container build (base images pinned by digest; Renovate updates them), nginx config and runtime env substitution |
+| `Dockerfile`, `nginx.conf`, `entrypoint.sh` | Production container build (base images pinned by digest; Renovate updates them), nginx config, runtime env substitution and the `/api` proxy (`ORCHESTRATOR_UPSTREAM`, written to `/etc/nginx/riot2/api.conf`) |
 
 ## Contracts consumed here
 
@@ -112,10 +112,12 @@ docker build -t riot2-ui:local .
   node (`nodeType` 2) on `riot2/node/{id}/online` after every MQTT connection, and again when a
   live (not retained) `riot2/orchestrator/online` says `isOnline: true`. The payload is camelCase
   since 1.4.0 (D3 resolved).
-- The UI learns the orchestrator base URL only from its own
-  `riot2/node/{id}/configuration` message and stores `apiBaseUrl` in
-  `src/stores/orchestratorStore.ts`. Until that arrives, the router is hidden behind
-  "Connecting...".
+- On load `App.vue` reads `/api/security/info` on its own origin (`loadSecurityState`). If it
+  answers, the image proxies `/api` (`ORCHESTRATOR_UPSTREAM`) and `orchestratorStore.baseUrl` is
+  `""`; otherwise it is the `apiBaseUrl` of the UI's `riot2/node/{id}/configuration` message. Until
+  that message arrives (`configured`), the router is hidden behind "Connecting...".
+- Live state goes through `createRealtimeTransport` (`src/composables/realtime.ts`): `mqtt` today,
+  `gateway` only when `/api/security/info` says so (a placeholder until I50).
 - `src/composables/mqttService.ts` hard-codes the broker WebSocket port to 9001.
 - MQTT.js automatic resubscription is left enabled. The UI's own reconnect backoff starts at
   4 seconds, then grows to 8, 16 and a maximum of 30 seconds.

@@ -363,6 +363,16 @@ export interface NodeStatusMessage {
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "SecurityInfo".
+ */
+export interface SecurityInfo {
+  mode: string | null;
+  features: string[] | null;
+  loginRequired: boolean;
+  realtime: string | null;
+}
+/**
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
  * via the `definition` "Variable".
  */
 export interface Variable {

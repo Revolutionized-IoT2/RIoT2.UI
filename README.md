@@ -69,6 +69,7 @@ The browser-side MQTT settings are Vite variables read by `src/app.config.ts`:
 | `VITE_MQTT_SERVER` | Broker host name or IP for the browser. The port is fixed in code at 9001. |
 | `VITE_MQTT_USER` | Optional MQTT user name. |
 | `VITE_MQTT_PASSWORD` | Optional MQTT password. |
+| `ORCHESTRATOR_UPSTREAM` | Optional (image only): the orchestrator as the container reaches it, such as `http://orchestrator:8080`. nginx then proxies `/api/` and `/realtime` there, and the UI calls the API on its own origin ([design 7.5](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/design/security-mode.md)). |
 
 Do not commit real broker credentials. These values are visible to anyone who can load the UI.
 The platform source of truth for environment variables and ports is
@@ -80,7 +81,10 @@ The platform source of truth for environment variables and ports is
 `nginx-unprivileged` on port 8080, as the non-root user `nginx` (UID 101). Since 1.1.0; earlier
 images listened on port 80. At container startup, `entrypoint.sh` renders `VITE_MQTT_SERVER`, `VITE_MQTT_USER` and
 `VITE_MQTT_PASSWORD` into the built JavaScript from pristine template copies, so a container restart
-is enough to change MQTT settings.
+is enough to change MQTT settings. It also writes the `/api` and `/realtime` proxy from
+`ORCHESTRATOR_UPSTREAM` (both answer 404 without it). On load the UI reads `/api/security/info`
+on its own origin; when that answers it uses the proxy, otherwise the configuration command's
+`apiBaseUrl`.
 
 The whole stack, UI included, starts with one compose file:
 [deploy/](https://github.com/Revolutionized-IoT2/.github/tree/main/deploy).
@@ -110,6 +114,7 @@ Important implementation files:
 |---|---|
 | `src/App.vue` | Creates the dashboard MQTT client id, subscribes, announces online and waits for configuration. |
 | `src/composables/mqttService.ts` | MQTT.js connection, reconnect backoff, subscriptions and publishing. |
+| `src/composables/realtime.ts`, `securityInfo.ts` | The realtime transport (`mqtt`, `gateway` placeholder) and the `/api/security/info` probe. |
 | `src/composables/presence.ts` | The camelCase presence and last will, and when to announce again. |
 | `src/composables/deviceParameters.ts` | Typed device parameters: fields from the node's `parameterDefinitions`, checks, the editor's definition map. |
 | `src/stores/` | Pinia stores: the data each page shows, with `loading` and `error`; failures reach the snackbar. |

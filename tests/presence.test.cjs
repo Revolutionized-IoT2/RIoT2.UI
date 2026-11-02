@@ -22,12 +22,13 @@ test('only a live orchestrator online message asks for a new announcement', () =
   assert.equal(orchestratorCameOnline('not json', false), false);
 });
 
-function loadApp(t) {
+async function loadApp(t, securityInfo = null) {
   const published = [];
   const subscribed = [];
+  const store = {};
   let connected;
   const app = loadSource('src/App.vue', {
-    expose: ['mqttMessageReceived'],
+    expose: ['mqttMessageReceived', 'configureDashboardTopic'],
     mocks: {
       vue: { ...require('vue'), onMounted: callback => callback(), onUnmounted() {} },
       uuid: { v4: () => 'ui-test' },
@@ -39,7 +40,8 @@ function loadApp(t) {
           disConnect() {},
         }),
       },
-      './stores/orchestratorStore': { useOrchestratorStore: () => ({}) },
+      '@/composables/api/securityApi': { useSecurityApi: () => ({ getInfo: async () => securityInfo }) },
+      './stores/orchestratorStore': { useOrchestratorStore: () => store },
       './stores/errorStore': { useErrorStore: () => ({ setError: error => { throw new Error(error.text); } }) },
       './stores/templatesStore': { useTemplatesStore: () => ({ load() {} }) },
       './stores/dashboardStore': { useDashboardStore: () => ({ applyReport() {} }) },
@@ -47,11 +49,13 @@ function loadApp(t) {
     },
   });
   t.after(app.dispose);
-  return { app, published, subscribed, connect: () => connected() };
+  // onMounted reads /api/security/info first.
+  await new Promise(resolve => setImmediate(resolve));
+  return { app, store, published, subscribed, connect: () => connected() };
 }
 
-test('the UI announces itself on every connection and when the orchestrator restarts', t => {
-  const { app, published, subscribed, connect } = loadApp(t);
+test('the UI announces itself on every connection and when the orchestrator restarts', async t => {
+  const { app, published, subscribed, connect } = await loadApp(t);
   const presence = ['riot2/node/ui-test/online', { isOnline: true, name: 'Dashboard', nodeType: 2 }];
   assert.ok(subscribed.includes('riot2/orchestrator/online'));
   assert.deepEqual(published, [], 'nothing before the broker accepts the connection');
@@ -116,4 +120,51 @@ test('loading templates adds only those whose address the device lacks', () => {
   assert.equal(device.reportTemplates[0].name, 'Mine');
   assert.deepEqual(plain(device.commandTemplates.map(t => t.id)), ['z']);
   assert.equal(blankDevice().classFullName, 'RIoT2.Net.Devices.NEWDEVICE');
+});
+
+test('without the /api proxy the UI calls the API at the URL in the configuration command', async t => {
+  const { app, store } = await loadApp(t);
+
+  app.state.mqttMessageReceived(app.state.configureDashboardTopic, '{"apiBaseUrl":"http://orchestrator.lan:8080"}');
+
+  assert.equal(store.sameOrigin, false);
+  assert.equal(store.baseUrl, 'http://orchestrator.lan:8080');
+  assert.equal(store.configured, true);
+});
+
+test('behind the /api proxy the UI calls the API on its own origin', async t => {
+  const { app, store, subscribed } = await loadApp(t, { mode: 'off', features: [], loginRequired: false, realtime: 'mqtt' });
+  assert.ok(subscribed.includes('riot2/orchestrator/online'), 'mqtt is the realtime transport');
+
+  app.state.mqttMessageReceived(app.state.configureDashboardTopic, '{"apiBaseUrl":"http://orchestrator.lan:8080"}');
+
+  assert.equal(store.sameOrigin, true);
+  assert.equal(store.baseUrl, '');
+  assert.equal(store.configured, true);
+});
+
+test('the security description is read defensively', async () => {
+  const { parseSecurityInfo, loadSecurityState, offSecurityInfo } = loadSource('src/composables/securityInfo.ts');
+
+  assert.equal(parseSecurityInfo('<!doctype html><html></html>'), null, 'nginx without the proxy answers with the UI page');
+  assert.equal(parseSecurityInfo({ status: 'ok' }), null);
+  assert.deepEqual(plain(parseSecurityInfo({ mode: 'off', realtime: 'mqtt', features: ['api', 3] })),
+    { mode: 'off', features: ['api'], loginRequired: false, realtime: 'mqtt' });
+  assert.deepEqual(plain(await loadSecurityState(async () => { throw new Error('404'); })), { info: plain(offSecurityInfo), sameOrigin: false });
+  assert.equal((await loadSecurityState(async () => ({ mode: 'off', realtime: 'mqtt' }))).sameOrigin, true);
+});
+
+test('the realtime transport is MQTT unless the orchestrator asks for the gateway', () => {
+  const errors = [];
+  const { createRealtimeTransport } = loadSource('src/composables/realtime.ts', { mocks: {
+    '@/composables/mqttService': { useMqtt: id => ({ kind: 'mqtt', id }) },
+    '@/stores/errorStore': { useErrorStore: () => ({ setError: error => errors.push(error.text) }) },
+  } });
+
+  assert.equal(createRealtimeTransport('mqtt', 'ui').kind, 'mqtt');
+  assert.equal(createRealtimeTransport(null, 'ui').kind, 'mqtt');
+  const gateway = createRealtimeTransport('gateway', 'ui');
+  gateway.connect(() => {});
+  assert.equal(gateway.status.value, false);
+  assert.equal(errors.length, 1);
 });

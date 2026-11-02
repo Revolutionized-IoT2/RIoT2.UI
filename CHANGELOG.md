@@ -5,6 +5,26 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-11-02
+
+The optional security mode's seams ([I34](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i34-security-seams-with-the-mode-fixed-at-off-m), [design 7.5](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/design/security-mode.md) phase S0). No port, user, volume or MQTT
+changes; without `ORCHESTRATOR_UPSTREAM` the UI works exactly as before.
+
+- Added: `ORCHESTRATOR_UPSTREAM` (for example `http://orchestrator:8080`). `entrypoint.sh` writes
+  an nginx proxy for `/api/` and `/realtime` to it (backup uploads up to 64 MB); without it both
+  answer 404. A value with a path stops the container. The compose install sets it.
+- Added: on load the UI reads `GET /api/security/info` on its own origin. When it answers (the
+  proxy is there), the UI calls the API on its own origin; otherwise at the configuration
+  command's `apiBaseUrl`, as before. `npm run dev` proxies the same way when
+  `ORCHESTRATOR_UPSTREAM` is set.
+- Added: `RealtimeTransport` (`src/composables/realtime.ts`) chooses how live state arrives:
+  `mqtt` (the MQTT service, unchanged), or `gateway` when the orchestrator reports it (a
+  placeholder until the realtime gateway exists, I50).
+- Changed: `SecurityInfo` in the generated contract models; `orchestratorStore` has `sameOrigin`
+  and `configured` (the views wait for `configured`, as they waited for a non-empty `baseUrl`).
+- Tests: `tests/entrypoint.test.cjs` runs `entrypoint.sh` with and without the upstream, and
+  `nginx -t` on the result where nginx is installed (CI).
+
 ## [1.6.1] - 2026-11-02
 
 Supply chain ([I33](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i33-supply-chain-s)). No port, user, volume, variable or JSON changes.

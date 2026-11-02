@@ -5,8 +5,18 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
+// `npm run dev` proxies /api and /realtime like the image does when ORCHESTRATOR_UPSTREAM is set,
+// for example ORCHESTRATOR_UPSTREAM=http://localhost:8080 (design 7.5).
+const orchestratorUpstream = process.env.ORCHESTRATOR_UPSTREAM
+
 // https://vite.dev/config/
 export default defineConfig({
+  server: orchestratorUpstream ? {
+    proxy: {
+      '/api': { target: orchestratorUpstream },
+      '/realtime': { target: orchestratorUpstream, ws: true },
+    },
+  } : undefined,
   plugins: [
     vue(),
     vuetify({
