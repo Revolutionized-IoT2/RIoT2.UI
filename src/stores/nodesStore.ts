@@ -10,6 +10,7 @@ import type DeviceConfiguration from '@/models/deviceConfiguration';
 import type DeviceStatus from '@/models/deviceStatus';
 import type { PluginFile } from '@/models/pluginFile';
 import type { CronValidationResult } from '@/models/cronValidationResult';
+import type { NodeSync } from '@/models/nodeSync';
 
 /** Configured and online nodes, and the node editor's requests. */
 export const useNodesStore = defineStore('nodes', () => {
@@ -71,9 +72,49 @@ export const useNodesStore = defineStore('nodes', () => {
     return await run(() => api.validateCron({ expression })) ?? null;
   }
 
+  /**
+   * Updates the nodes' sync fields from GET /api/v2/nodes/sync (design 7.2 phase 6). Meant to be
+   * polled: it doesn't set `loading`, and a failure keeps the last state without a snackbar.
+   */
+  async function refreshSync(): Promise<void> {
+    let sync: NodeSync[] | null;
+    try {
+      sync = await api.getSync();
+    } catch {
+      return;
+    }
+    for (const entry of sync ?? []) {
+      const node = nodes.value.find(n => n.id == entry.id);
+      if (node == null)
+        continue;
+      const cameOnline = !node.isOnline && entry.isOnline;
+      node.isOnline = entry.isOnline;
+      // An offline node's device states are unknown, not the ones it last reported.
+      if (!entry.isOnline)
+        node.deviceStatuses = [];
+      else if (cameOnline)
+        api.getNodeDevicesStatus(node.id).then(statuses => { node.deviceStatuses = statuses ?? []; }, () => {});
+      node.pluginManifest = entry.pluginManifest ?? node.pluginManifest;
+      node.desiredRevision = entry.desiredRevision;
+      node.appliedRevision = entry.appliedRevision;
+      node.syncState = entry.syncState;
+      node.configurationState = entry.configurationState;
+      node.lastError = entry.lastError;
+      node.failedDevices = entry.failedDevices;
+    }
+  }
+
+  /** Sends a node its configuration again ("re-apply"). Resolves to success. */
+  async function reapply(id: string): Promise<boolean> {
+    if (await run(() => api.applyConfiguration(id)) === undefined)
+      return false;
+    await refreshSync();
+    return true;
+  }
+
   return {
     nodes, onlineNodes, workflowNode, loading, error,
     load, loadOnline, getConfiguration, saveConfiguration, deleteNode,
-    getDeviceTemplates, getDeviceStatuses, checkPlugin, validateCron
+    getDeviceTemplates, getDeviceStatuses, checkPlugin, validateCron, refreshSync, reapply
   };
 });

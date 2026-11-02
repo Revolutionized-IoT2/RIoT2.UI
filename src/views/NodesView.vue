@@ -1,18 +1,23 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import ContextMenu from '@/components/ContextMenuComponent.vue';
 import NodeList from '@/components/nodes/NodeList.vue';
 import NodeEditorDialog from '@/components/nodes/NodeEditorDialog.vue';
+import OutboxDialog from '@/components/nodes/OutboxDialog.vue';
 import NodeConfiguration from '@/models/nodeConfiguration';
 import type { ContextMenuItem } from '@/models/contextMenuItem';
 import { useNodesStore } from '@/stores/nodesStore';
 
 const contextMenuItems: ContextMenuItem[] = [
   { "text": "edit dashboard", "action": "edit_dashboard", "disabled": false, "icon": "dashboard" },
-  { "text": "new node", "action": "new_node", "disabled": false, "icon": "add" }
+  { "text": "new node", "action": "new_node", "disabled": false, "icon": "add" },
+  { "text": "delivery queue", "action": "outbox", "disabled": false, "icon": "outbox" }
 ];
+
+// How often the nodes' configuration sync is refreshed while this page is open (design 7.2 phase 6).
+const syncPollMilliseconds = 3000;
 
 const store = useNodesStore();
 const { nodes, onlineNodes, loading } = storeToRefs(store);
@@ -22,6 +27,10 @@ const editorOpen = ref(false);
 const editorData = ref<NodeConfiguration>(new NodeConfiguration());
 const saving = ref(false);
 const saved = ref(false);
+
+const reapplied = ref(false);
+const outboxOpen = ref(false);
+let syncTimer: ReturnType<typeof setInterval> | undefined;
 
 const deleteDialog = ref(false);
 const nodeIdToDelete = ref("");
@@ -37,6 +46,14 @@ function contextMenuAction(action: string) {
 
   if (action == 'edit_dashboard')
     router.push("dashboard/edit");
+
+  if (action == 'outbox')
+    outboxOpen.value = true;
+}
+
+async function reapply(id: string) {
+  if (await store.reapply(id))
+    reapplied.value = true;
 }
 
 async function configureNode(id: string) {
@@ -78,14 +95,19 @@ async function completeDelete() {
 
 onMounted(() => {
   store.load();
+  syncTimer = setInterval(() => store.refreshSync(), syncPollMilliseconds);
 });
+
+onBeforeUnmount(() => clearInterval(syncTimer));
 </script>
 
 <template>
   <div>
     <ContextMenu :items="contextMenuItems" @click="contextMenuAction" />
     <div class="site-content-contextmenu">
-      <NodeList :nodes="nodes" :loading="loading" @edit="configureNode" @delete="askDelete" />
+      <NodeList :nodes="nodes" :loading="loading" @edit="configureNode" @delete="askDelete" @reapply="reapply" />
+
+      <OutboxDialog v-model:open="outboxOpen" />
 
       <NodeEditorDialog v-model:open="editorOpen" v-model:configuration="editorData" :onlineNodes="onlineNodes" :saving="saving" @save="saveConfiguration" />
 
@@ -111,6 +133,13 @@ onMounted(() => {
         Node deleted successfully
         <template v-slot:actions>
           <v-btn color="white" variant="text" @click="deleted = false">Close</v-btn>
+        </template>
+      </v-snackbar>
+
+      <v-snackbar v-model="reapplied" color="success">
+        Configuration sent to the node
+        <template v-slot:actions>
+          <v-btn color="white" variant="text" @click="reapplied = false">Close</v-btn>
         </template>
       </v-snackbar>
 

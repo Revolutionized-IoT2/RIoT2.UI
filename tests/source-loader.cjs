@@ -27,6 +27,10 @@ function loadSource(relativePath, { props = {}, model, models = {}, expose = [],
     const context = {
       exports,
       console,
+      setTimeout,
+      clearTimeout,
+      setInterval,
+      clearInterval,
       defineProps: () => props,
       withDefaults: (definedProps, defaults) => ({ ...defaults, ...definedProps }),
       // defineModel(options) is the default model; defineModel('name', options) a named one, from `models`.

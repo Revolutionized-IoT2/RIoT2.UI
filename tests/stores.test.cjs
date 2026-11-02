@@ -150,7 +150,7 @@ test('a dashboard control sets a variable for a variable template and commands a
   const sent = [];
   const module = loadSource('src/stores/commandsStore.ts', {
     mocks: {
-      '@/composables/api/commandApi': { useCommandApi: () => ({ executeCommand: async command => { sent.push(['device', command]); return null; } }) },
+      '@/composables/api/commandApi': { useCommandApi: () => ({ sendCommand: async command => { sent.push(['device', command]); return { correlationId: 'c', status: 'executed', isFinal: true }; } }) },
       './variablesStore': { useVariablesStore: () => ({ setValue: async command => { sent.push(['variable', command]); return true; } }) },
     },
   });

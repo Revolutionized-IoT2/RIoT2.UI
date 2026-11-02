@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useComponentService } from '@/composables/componentService';
 import { useCommandsStore } from '@/stores/commandsStore';
+import CommandStatusIndicator from './CommandStatusIndicator.vue';
 import type Component from '@/models/component';
 import type { IComponentElement } from '@/models/componentElement';
 import { ValueType, ComponentType } from '@/models/enums';
@@ -123,7 +124,7 @@ function executeExtendedClick() {
           
                   <div class="d-flex flex-column flex-grow-1 text-center">
                     <div v-if="elem.icon != null"><v-icon :icon="elem.icon" size="20" :color="isSelected ? 'secondary' : 'primary'" class="ma-2 pa-1 text-center" /></div>
-                    <div class="text-center"> {{  elem.name  }}</div>
+                    <div class="text-center"> {{  elem.name  }} <CommandStatusIndicator :command-id="elem.commandTemplate?.id" /></div>
                   </div>
             
                 </v-card>
@@ -157,7 +158,7 @@ function executeExtendedClick() {
           
                   <div class="d-flex flex-column flex-grow-1 text-center">
                     <div v-if="elem.icon != null"><v-icon :icon="elem.icon" size="20" :color="isSelected ? 'secondary' : 'primary'" class="ma-2 pa-1 align-self-center" /></div>
-                    <div class="align-center"> {{  elem.name  }}</div>
+                    <div class="align-center"> {{  elem.name  }} <CommandStatusIndicator :command-id="elem.commandTemplate?.id" /></div>
                   </div>
             
                 </v-card>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useComponentService } from '@/composables/componentService';
 import { useCommandsStore } from '@/stores/commandsStore';
+import CommandStatusIndicator from './CommandStatusIndicator.vue';
 import type Component from '@/models/component';
 import type { IComponentElement, SwitchPosition } from '@/models/componentElement';
 import { onMounted, ref, watch } from 'vue';
@@ -97,6 +98,7 @@ onMounted(() => {
       <v-col cols="12">
         <div class="text-center text-overline">
           {{ state1 ? state1_on?.name :  state1_off?.name }}
+          <CommandStatusIndicator :command-id="props.data.elements[0]?.commandTemplate?.id" />
         </div>
       </v-col>
     </v-row> 
@@ -128,6 +130,7 @@ onMounted(() => {
       <v-col cols="12">
         <div class="text-center text-overline">
           {{ state2 ? state2_on?.name :  state2_off?.name }}
+          <CommandStatusIndicator :command-id="props.data.elements[1]?.commandTemplate?.id" />
         </div>
       </v-col>
     </v-row> 

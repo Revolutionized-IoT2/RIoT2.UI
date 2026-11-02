@@ -3,8 +3,9 @@ import { useHttpClient } from '@/composables/httpClientService';
 import { useOrchestratorStore } from '@/stores/orchestratorStore';
 import type Command from '@/models/command';
 import type { Report } from '@/models/report';
+import type { CommandDelivery, OutboxSummary } from '@/models/commandDelivery';
 
-/** Device commands and the latest report and command states. */
+/** Device commands with their delivery status, the outbox, and the latest report and command states. */
 export function useCommandApi() {
 
   const httpClient = useHttpClient();
@@ -24,15 +25,26 @@ export function useCommandApi() {
     return httpClient.get<Command>(url);
   }
 
-  /** Resolves once the orchestrator has queued the command. */
-  function executeCommand(command: Command): Promise<null> {
-    const url = orchestratorStore.baseUrl + Constants.urlExecuteCommand;
-    return httpClient.post<Command, null>(url, command);
+  /** Queues the command (POST /api/v2/commands, without waiting) and resolves to its delivery. */
+  function sendCommand(command: Command): Promise<CommandDelivery | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlCommands;
+    return httpClient.post<Command, CommandDelivery>(url, command);
+  }
+
+  function getDelivery(correlationId: string): Promise<CommandDelivery | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlCommandDelivery.replace('{id}', encodeURIComponent(correlationId));
+    return httpClient.get<CommandDelivery>(url);
+  }
+
+  function getOutboxSummary(): Promise<OutboxSummary | null> {
+    return httpClient.get<OutboxSummary>(orchestratorStore.baseUrl + Constants.urlOutboxSummary);
   }
 
   return {
     getReportState,
     getCommandState,
-    executeCommand
+    sendCommand,
+    getDelivery,
+    getOutboxSummary
   };
 }

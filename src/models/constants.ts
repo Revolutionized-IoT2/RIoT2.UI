@@ -18,7 +18,13 @@ export const Constants = {
     urlGetNodeDeviceTemplates: "/api/nodes/{id}/device/templates",
     urlCheckPlugin: "/api/nodes/checkplugin",
     urlValidateCron: "/api/nodes/validatecron",
-    urlExecuteCommand: "/api/command/execute",
+    // Commands with a delivery status and the outbox (design 7.1).
+    urlCommands: "/api/v2/commands",
+    urlCommandDelivery: "/api/v2/commands/{id}",
+    urlOutboxSummary: "/api/v2/outbox/summary",
+    // Configuration sync per node (design 7.2).
+    urlNodesSync: "/api/v2/nodes/sync",
+    urlApplyNodeConfiguration: "/api/v2/nodes/{id}/configuration/apply",
 
     urlDeleteNodeById: "/api/v2/nodes/{id}",
     urlGetNodesOnline: "/api/nodes/online",

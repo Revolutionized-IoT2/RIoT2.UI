@@ -7,6 +7,7 @@ import type DeviceConfiguration from '@/models/deviceConfiguration';
 import type DeviceStatus from '@/models/deviceStatus';
 import type { PluginFile } from '@/models/pluginFile';
 import type { CronValidationResult } from '@/models/cronValidationResult';
+import type { NodeSync } from '@/models/nodeSync';
 
 /** Node configurations, online nodes and the checks the node editor runs. */
 export function useNodeApi() {
@@ -56,6 +57,17 @@ export function useNodeApi() {
     return httpClient.post<PluginFile, PluginFile>(url, plugin);
   }
 
+  /** Every node's configuration sync, without the device states (cheap enough to poll). */
+  function getSync(): Promise<NodeSync[] | null> {
+    return httpClient.get<NodeSync[]>(orchestratorStore.baseUrl + Constants.urlNodesSync);
+  }
+
+  /** Sends the node its configuration command again; rejects with 409 when the node is offline. */
+  function applyConfiguration(id: string): Promise<null> {
+    const url = orchestratorStore.baseUrl + Constants.urlApplyNodeConfiguration.replace('{id}', encodeURIComponent(id));
+    return httpClient.post<null, null>(url, null);
+  }
+
   function validateCron(cron: CronValidationResult): Promise<CronValidationResult | null> {
     const url = orchestratorStore.baseUrl + Constants.urlValidateCron;
     return httpClient.post<CronValidationResult, CronValidationResult>(url, cron);
@@ -70,6 +82,8 @@ export function useNodeApi() {
     getNodeDevicesStatus,
     getDeviceTemplates,
     checkPlugin,
-    validateCron
+    validateCron,
+    getSync,
+    applyConfiguration
   };
 }

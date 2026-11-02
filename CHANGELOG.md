@@ -5,6 +5,22 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-11-02
+
+Sync and command status ([I36](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i36-sync-and-command-status-in-the-ui-m); designs 7.1 phase 4 and 7.2 phase 6). Needs Orchestrator
+1.16.0 for the sync column and re-apply. No port, user, volume or variable changes.
+
+- Added: the Configure page's "Configuration" column: in sync, applying, restarting (a new plugin
+  package), failed with the error, offline, or legacy, with the revisions, the devices that aren't
+  running and the plugin package with its Core in the tooltip. It polls `GET /api/v2/nodes/sync`
+  every three seconds while the page is open. An offline node's device states show as unknown and
+  are read again when it comes back.
+- Added: "re-apply" per node (`POST /api/v2/nodes/{id}/configuration/apply`), and a "delivery
+  queue" dialog with the outbox summary (counts, oldest waiting message, last errors).
+- Changed: dashboard controls send commands with `POST /api/v2/commands` and follow the delivery:
+  buttons and switches show a spinner while it is pending, a check when the device ran it, and an
+  error icon with the reason when it failed, expired or no device owns it; a failure also reaches
+  the snackbar.
 - Changed: the generated contract models follow RIoT2.Core 1.19.0: `PackageManifest` gains the
   optional `coreVersion` and `sha256` ([I35](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i35-verified-plugin-updates-m)). No behaviour change.
 

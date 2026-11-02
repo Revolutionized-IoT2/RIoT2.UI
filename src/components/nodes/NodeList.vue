@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { nodeStateLook } from '@/composables/deviceState';
+import { syncLook } from '@/composables/statusLook';
 import DeviceStatusDialog from './DeviceStatusDialog.vue';
 import type SystemNode from '@/models/systemNode';
 import type DeviceStatus from '@/models/deviceStatus';
@@ -12,13 +13,15 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   edit: [id: string, name: string],
-  delete: [id: string]
+  delete: [id: string],
+  reapply: [id: string]
 }>();
 
 const headers = [
   { title: 'Name', value: 'name' },
   { title: 'Version', value: 'version' },
   { title: 'Status', value: 'isOnline' },
+  { title: 'Configuration', value: 'syncState' },
   { title: 'Plugins', value: 'plugins' },
   { title: 'Devices', value: 'devices' },
   { title: 'Actions', value: 'id' }
@@ -66,11 +69,27 @@ function showDeviceStatuses(node: SystemNode) {
       </div>
     </template>
 
+    <template v-slot:header.syncState>
+      <div class="text-center">Configuration</div>
+    </template>
+
+    <template v-slot:item.syncState="{ item }">
+      <div class="text-center">
+        <v-chip :color="syncLook(item).color" :prepend-icon="syncLook(item).icon" :text="syncLook(item).label" class="text-uppercase" label size="small"></v-chip>
+        <v-tooltip v-if="syncLook(item).detail.length > 0" activator="parent" location="top">
+          <div v-for="line in syncLook(item).detail" :key="line">{{ line }}</div>
+        </v-tooltip>
+      </div>
+    </template>
+
     <template v-slot:item.plugins="{ item }">
       <div v-if="item.pluginManifest == null" class="text-left">n/a</div>
       <div v-else class="text-left">
         {{ item.pluginManifest.name }} ({{ item.pluginManifest.version }})
-        <v-tooltip activator="parent" location="top">{{ item.pluginManifest.installedPackageFilename }}</v-tooltip>
+        <v-tooltip activator="parent" location="top">
+          <div>{{ item.pluginManifest.installedPackageFilename }}</div>
+          <div v-if="item.pluginManifest.coreVersion">Built on RIoT2.Core {{ item.pluginManifest.coreVersion }}</div>
+        </v-tooltip>
       </div>
     </template>
 
@@ -86,6 +105,8 @@ function showDeviceStatuses(node: SystemNode) {
 
     <template v-slot:item.id="{ item }">
       <div class="text-end">
+        <v-icon v-if="item.syncState != null && item.syncState != 'legacy'" size="small" class="me-2" :disabled="!item.isOnline"
+          title="Re-apply the configuration" @click="emit('reapply', item.id)">sync</v-icon>
         <v-icon size="small" class="me-2" @click="emit('edit', item.id, item.name)">edit</v-icon>
         <v-icon size="small" @click="emit('delete', item.id)">delete</v-icon>
       </div>
