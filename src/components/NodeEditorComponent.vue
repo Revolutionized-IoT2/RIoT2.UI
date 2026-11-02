@@ -6,6 +6,7 @@ import type { PluginFile } from '@/models/pluginFile';
 import type DeviceStatus from '@/models/deviceStatus';
 import DeviceList from '@/components/nodes/DeviceList.vue';
 import { useNodesStore } from '@/stores/nodesStore';
+import { NodeType } from '@/models/enums';
 
 const model = defineModel<NodeConfiguration>({ default: new NodeConfiguration() });
 const nodes = useNodesStore();
@@ -21,8 +22,10 @@ const emit = defineEmits<{
 const valid = ref(false);
 const deviceStatuses = ref<DeviceStatus[] | null>(null);
 
-// Online nodes without a name have no configuration yet, so their ids can be chosen.
-const nodeIdOptions = computed(() => props.onlineNodes.filter(x => x.name == null || x.name == ''));
+// Online device nodes without a name have no configuration yet, so their ids can be chosen; connectors,
+// workflow engines and dashboards are never configured here.
+const nodeIdOptions = computed(() => props.onlineNodes.filter(x =>
+  (x.nodeType == null || x.nodeType == NodeType.device || x.nodeType == NodeType.unknown) && (x.name == null || x.name == '')));
 
 const validatingUrl = ref(false);
 const checkedPluginFile = ref<PluginFile | null>(null);

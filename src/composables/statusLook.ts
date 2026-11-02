@@ -1,4 +1,5 @@
 import type { CommandDelivery, CommandDeliveryStatus } from '@/models/commandDelivery';
+import type { ConnectorInfo } from '@/models/connectorInfo';
 import type { NodeSync } from '@/models/nodeSync';
 
 /** How a sync or command status is shown: a label, a Vuetify color, a Material icon and detail lines. */
@@ -63,6 +64,48 @@ export function syncLook(node: NodeSync): StatusLook {
 /** Whether a delivery status means the command didn't run. */
 export function isCommandFailure(status: CommandDeliveryStatus): boolean {
   return status == 'failed' || status == 'unknownCommand' || status == 'expired';
+}
+
+function megabytes(bytes: number): string {
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** The spool line of a connector's health: how much waits on disk, or null when nothing does. */
+export function spoolLine(connector: ConnectorInfo): string | null {
+  const spool = connector.health?.spool;
+  if (spool == null || !spool.enabled || spool.messages <= 0)
+    return null;
+  return `${spool.messages} message(s) wait in the spool (${megabytes(spool.bytes)} of ${megabytes(spool.maxBytes)})`;
+}
+
+/**
+ * A connector's health (design 7.3 phases 2–3): "ok", "degraded" (the target doesn't answer, or messages wait
+ * in the spool), "unhealthy" (no MQTT), "unreachable" when its /health doesn't answer, and "online" when it
+ * announced no URL.
+ */
+export function connectorLook(connector: ConnectorInfo): StatusLook {
+  if (connector.nodeBaseUrl == null || connector.nodeBaseUrl === '')
+    return { label: 'online', color: 'green', icon: 'cloud_done', detail: ['Set RIOT2_CONNECTOR_URL on the connector to see its health.'] };
+  const health = connector.health;
+  if (health == null)
+    return { label: 'unreachable', color: 'orange', icon: 'cloud_off', detail: lines(connector.healthError ?? 'The connector did not answer.', connector.nodeBaseUrl) };
+  const spool = spoolLine(connector);
+  switch (health.status) {
+    case 'ok':
+      return { label: 'ok', color: 'green', icon: 'check_circle', detail: [] };
+    case 'degraded':
+      return {
+        label: 'degraded', color: 'orange', icon: 'warning',
+        detail: lines(health.sink ? null : "The connector's target doesn't answer.", spool)
+      };
+    case 'unhealthy':
+      return {
+        label: 'unhealthy', color: 'red', icon: 'error',
+        detail: lines(health.mqtt ? null : 'Not connected to MQTT.', health.sink ? null : "The connector's target doesn't answer.", spool)
+      };
+    default:
+      return { label: 'unknown', color: 'grey', icon: 'help_outline', detail: lines(`Health status "${health.status}"`, spool) };
+  }
 }
 
 /** A command delivery (design 7.1 phase 4): "sending", "done", "sent" (no result expected) or the failure. */

@@ -5,6 +5,18 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-11-02
+
+Connectors on the Configure page ([I39](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i39-connectors-in-the-ui-and-a-prometheus-exporter-m), [design 7.3](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/design/connector-sdk.md) phase 3). Needs Orchestrator 1.17.0; with an older one
+the list stays empty. No port, user, volume or variable changes.
+
+- Added: a "Connectors" list under the nodes: name, version (the connector SDK's in the tooltip),
+  health (`ok`, `degraded`, `unhealthy`, `unreachable`, or `online` when the connector announces no
+  URL) with the reasons, and the messages waiting in its spool. It polls `GET /api/v2/connectors`
+  every ten seconds while the page is open.
+- Changed: the node editor offers only device nodes' ids, never a connector's.
+- Changed: `NodeType.connector` (4), from the regenerated contract models (Core 1.22.0).
+
 ## [1.8.0] - 2026-11-02
 
 Sync and command status ([I36](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i36-sync-and-command-status-in-the-ui-m); designs 7.1 phase 4 and 7.2 phase 6). Needs Orchestrator

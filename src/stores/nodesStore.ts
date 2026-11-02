@@ -11,6 +11,7 @@ import type DeviceStatus from '@/models/deviceStatus';
 import type { PluginFile } from '@/models/pluginFile';
 import type { CronValidationResult } from '@/models/cronValidationResult';
 import type { NodeSync } from '@/models/nodeSync';
+import type { ConnectorInfo } from '@/models/connectorInfo';
 
 /** Configured and online nodes, and the node editor's requests. */
 export const useNodesStore = defineStore('nodes', () => {
@@ -20,6 +21,8 @@ export const useNodesStore = defineStore('nodes', () => {
 
   const nodes = ref<SystemNode[]>([]);
   const onlineNodes = ref<SystemNode[]>([]);
+  /** The online connectors (design 7.3 phase 3), listed apart from the nodes. */
+  const connectors = ref<ConnectorInfo[]>([]);
 
   /** The online workflow engine (Elsa), which the menu links to. */
   const workflowNode = computed(() => onlineNodes.value.find(x => x.nodeType == NodeType.workflow));
@@ -112,9 +115,21 @@ export const useNodesStore = defineStore('nodes', () => {
     return true;
   }
 
+  /**
+   * Reloads the connectors and their health. Meant to be polled: it doesn't set `loading`, and a failure (an
+   * orchestrator before 1.17.0 answers 404) keeps the last list without a snackbar.
+   */
+  async function loadConnectors(): Promise<void> {
+    try {
+      connectors.value = await api.getConnectors() ?? [];
+    } catch {
+      // Keep the last list.
+    }
+  }
+
   return {
-    nodes, onlineNodes, workflowNode, loading, error,
-    load, loadOnline, getConfiguration, saveConfiguration, deleteNode,
+    nodes, onlineNodes, connectors, workflowNode, loading, error,
+    load, loadOnline, loadConnectors, getConfiguration, saveConfiguration, deleteNode,
     getDeviceTemplates, getDeviceStatuses, checkPlugin, validateCron, refreshSync, reapply
   };
 });

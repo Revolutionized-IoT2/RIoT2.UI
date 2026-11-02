@@ -48,7 +48,8 @@ export enum NodeType {
     unknown = 0,
     device = 1,
     dashboard = 2,
-    workflow = 3
+    workflow = 3,
+    connector = 4
 }
 
 /** How a device parameter is edited (`parameterDefinitions[].type`, Core 1.16.0). */

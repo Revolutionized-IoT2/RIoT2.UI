@@ -24,6 +24,7 @@ export const Constants = {
     urlOutboxSummary: "/api/v2/outbox/summary",
     // Configuration sync per node (design 7.2).
     urlNodesSync: "/api/v2/nodes/sync",
+    urlConnectors: "/api/v2/connectors",
     urlApplyNodeConfiguration: "/api/v2/nodes/{id}/configuration/apply",
 
     urlDeleteNodeById: "/api/v2/nodes/{id}",

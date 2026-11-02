@@ -69,12 +69,12 @@ export type DeviceParameterType = 0 | 1 | 2 | 3;
  */
 export type DeviceState = 0 | 1 | 2 | 3 | 4;
 /**
- * 0 = Unknown, 1 = Device, 2 = Dashboard, 3 = Workflow
+ * 0 = Unknown, 1 = Device, 2 = Dashboard, 3 = Workflow, 4 = Connector
  *
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
  * via the `definition` "NodeType".
  */
-export type NodeType = 0 | 1 | 2 | 3;
+export type NodeType = 0 | 1 | 2 | 3 | 4;
 
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema

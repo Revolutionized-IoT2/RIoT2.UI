@@ -54,7 +54,7 @@ docker build -t riot2-ui:local .
 | `src/composables/presence.ts` | Presence and last-will payloads; `orchestratorCameOnline` |
 | `src/composables/deviceParameters.ts`, `components/devices/DeviceParameterField.vue` | Typed parameter fields from `parameterDefinitions` (provided by `NodeEditorDialog`); free text without them |
 | `src/composables/api/` | Promise-based REST calls per resource; they reject with `ApiError` (`httpClientService.ts`) |
-| `src/composables/statusLook.ts` | Sync and command-delivery looks; `commandsStore` follows deliveries, `nodesStore.refreshSync` is the quiet poll the Configure page runs |
+| `src/composables/statusLook.ts` | Sync, command-delivery and connector-health looks; `commandsStore` follows deliveries, `nodesStore.refreshSync` and `loadConnectors` are the quiet polls the Configure page runs |
 | `src/stores/` | Pinia stores (nodes, templates, variables, dashboard, commands, Matter, backup) with `loading`/`error` from `requests.ts` |
 | `src/components/nodes/`, `src/components/devices/` | Parts of the Configure page: node list, editor dialog, device list and template picker; device parameters and template tables |
 | `src/models/` | TypeScript models and constants for REST routes, topics, dashboards, nodes and variables |

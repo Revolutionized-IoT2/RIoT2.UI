@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import ContextMenu from '@/components/ContextMenuComponent.vue';
 import NodeList from '@/components/nodes/NodeList.vue';
+import ConnectorList from '@/components/nodes/ConnectorList.vue';
 import NodeEditorDialog from '@/components/nodes/NodeEditorDialog.vue';
 import OutboxDialog from '@/components/nodes/OutboxDialog.vue';
 import NodeConfiguration from '@/models/nodeConfiguration';
@@ -18,9 +19,11 @@ const contextMenuItems: ContextMenuItem[] = [
 
 // How often the nodes' configuration sync is refreshed while this page is open (design 7.2 phase 6).
 const syncPollMilliseconds = 3000;
+// How often the connectors and their health are refreshed; each refresh asks every connector (design 7.3 phase 3).
+const connectorPollMilliseconds = 10000;
 
 const store = useNodesStore();
-const { nodes, onlineNodes, loading } = storeToRefs(store);
+const { nodes, onlineNodes, connectors, loading } = storeToRefs(store);
 const router = useRouter();
 
 const editorOpen = ref(false);
@@ -31,6 +34,7 @@ const saved = ref(false);
 const reapplied = ref(false);
 const outboxOpen = ref(false);
 let syncTimer: ReturnType<typeof setInterval> | undefined;
+let connectorTimer: ReturnType<typeof setInterval> | undefined;
 
 const deleteDialog = ref(false);
 const nodeIdToDelete = ref("");
@@ -95,10 +99,15 @@ async function completeDelete() {
 
 onMounted(() => {
   store.load();
+  store.loadConnectors();
   syncTimer = setInterval(() => store.refreshSync(), syncPollMilliseconds);
+  connectorTimer = setInterval(() => store.loadConnectors(), connectorPollMilliseconds);
 });
 
-onBeforeUnmount(() => clearInterval(syncTimer));
+onBeforeUnmount(() => {
+  clearInterval(syncTimer);
+  clearInterval(connectorTimer);
+});
 </script>
 
 <template>
@@ -106,6 +115,8 @@ onBeforeUnmount(() => clearInterval(syncTimer));
     <ContextMenu :items="contextMenuItems" @click="contextMenuAction" />
     <div class="site-content-contextmenu">
       <NodeList :nodes="nodes" :loading="loading" @edit="configureNode" @delete="askDelete" @reapply="reapply" />
+
+      <ConnectorList :connectors="connectors" />
 
       <OutboxDialog v-model:open="outboxOpen" />
 

@@ -8,6 +8,7 @@ import type DeviceStatus from '@/models/deviceStatus';
 import type { PluginFile } from '@/models/pluginFile';
 import type { CronValidationResult } from '@/models/cronValidationResult';
 import type { NodeSync } from '@/models/nodeSync';
+import type { ConnectorInfo } from '@/models/connectorInfo';
 
 /** Node configurations, online nodes and the checks the node editor runs. */
 export function useNodeApi() {
@@ -62,6 +63,11 @@ export function useNodeApi() {
     return httpClient.get<NodeSync[]>(orchestratorStore.baseUrl + Constants.urlNodesSync);
   }
 
+  /** The online connectors with their health (design 7.3 phase 3; Orchestrator 1.17.0). */
+  function getConnectors(): Promise<ConnectorInfo[] | null> {
+    return httpClient.get<ConnectorInfo[]>(orchestratorStore.baseUrl + Constants.urlConnectors);
+  }
+
   /** Sends the node its configuration command again; rejects with 409 when the node is offline. */
   function applyConfiguration(id: string): Promise<null> {
     const url = orchestratorStore.baseUrl + Constants.urlApplyNodeConfiguration.replace('{id}', encodeURIComponent(id));
@@ -84,6 +90,7 @@ export function useNodeApi() {
     checkPlugin,
     validateCron,
     getSync,
+    getConnectors,
     applyConfiguration
   };
 }

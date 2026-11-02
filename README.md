@@ -106,7 +106,7 @@ This repository consumes the hub contracts instead of copying them:
 
 - [MQTT topics and payloads](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/mqtt-topics.md)
 - [HTTP and gRPC APIs](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/http-api.md)
-- [Environment variables, ports, volumes and images](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/env-vars.md)
+- [Environment variables](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/env-vars.md), [ports, volumes and images](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/images.md)
 
 Important implementation files:
 
@@ -119,7 +119,7 @@ Important implementation files:
 | `src/composables/deviceParameters.ts` | Typed device parameters: fields from the node's `parameterDefinitions`, checks, the editor's definition map. |
 | `src/stores/` | Pinia stores: the data each page shows, with `loading` and `error`; failures reach the snackbar. |
 | `src/composables/api/` | Promise-based REST calls per resource (nodes, templates, commands, variables, dashboard, Matter, backup). |
-| `src/composables/statusLook.ts` | How a node's configuration sync and a command's delivery are shown (label, color, icon, tooltip lines). |
+| `src/composables/statusLook.ts` | How a node's configuration sync, a command's delivery and a connector's health are shown (label, color, icon, tooltip lines). |
 | `src/models/constants.ts` | REST routes and MQTT topic templates used by the UI. |
 | `src/models/generated/contracts.ts` | The contract types generated from RIoT2.Core's schema; the model classes that mirror one implement it, so a contract change fails the type check. |
 | `scripts/generate-models.mjs` | Generates the file above (`npm run generate`). |
