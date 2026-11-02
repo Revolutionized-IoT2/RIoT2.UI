@@ -111,6 +111,7 @@ Important implementation files:
 | `src/App.vue` | Creates the dashboard MQTT client id, subscribes, announces online and waits for configuration. |
 | `src/composables/mqttService.ts` | MQTT.js connection, reconnect backoff, subscriptions and publishing. |
 | `src/composables/presence.ts` | The camelCase presence and last will, and when to announce again. |
+| `src/composables/deviceParameters.ts` | Typed device parameters: fields from the node's `parameterDefinitions`, checks, the editor's definition map. |
 | `src/stores/` | Pinia stores: the data each page shows, with `loading` and `error`; failures reach the snackbar. |
 | `src/composables/api/` | Promise-based REST calls per resource (nodes, templates, commands, variables, dashboard, Matter, backup). |
 | `src/models/constants.ts` | REST routes and MQTT topic templates used by the UI. |

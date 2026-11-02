@@ -5,6 +5,19 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-11-02
+
+Typed device parameters ([I30](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i30-typed-device-options-m)). Works with RIoT2.Net.Orchestrator 1.7.0 or later; the typed
+fields need a node on 1.11.0 and a plugin with typed options (Devices 1.4.0).
+
+- Added: the node editor reads the online node's `parameterDefinitions` and shows each defined
+  parameter, also one not set yet, with a typed field: a switch for Boolean, a number field for
+  Integer and Number, a masked field with a reveal button for secrets, the default as placeholder,
+  the description as hint, and a check like the node's (required, whole number, number). Other
+  parameters, and every parameter of an offline node or older plugin, stay free text.
+- Changed: devices added from a template are saved without the template's definitions.
+- Added: `DeviceParameterType` in `enums.ts`, checked against the generated contract.
+
 ## [1.5.0] - 2026-11-01
 
 Generated contract models ([I28](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-2.md#i28-narrow-references-and-generated-models-m), plans M1 step 5 and M3 UI step 4). Works with

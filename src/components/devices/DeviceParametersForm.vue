@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, inject, onMounted, ref } from 'vue';
 import { DeviceState } from '@/models/enums';
 import { nameValueStr } from '@/models/nameValueStr';
 import DeviceConfiguration from '@/models/deviceConfiguration';
 import type DeviceStatus from '@/models/deviceStatus';
 import type { CronValidationResult } from '@/models/cronValidationResult';
 import { useNodesStore } from '@/stores/nodesStore';
+import { parameterDefinitionsKey, parameterFields, type ParameterDefinitionMap } from '@/composables/deviceParameters';
+import DeviceParameterField from './DeviceParameterField.vue';
 
 const model = defineModel<DeviceConfiguration>({ default: new DeviceConfiguration() });
 
@@ -18,6 +20,11 @@ const emit = defineEmits<{
 }>();
 
 const nodes = useNodesStore();
+
+// The node's parameter definitions, from its device templates; without them every parameter is free text.
+const definitions = inject(parameterDefinitionsKey, ref<ParameterDefinitionMap>({}));
+const fields = computed(() => parameterFields(model.value.deviceParameters,
+  definitions.value?.[model.value.classFullName]));
 
 const newParameterDialog = ref(false);
 const newParameter = ref<nameValueStr>(new nameValueStr("", ""));
@@ -48,6 +55,10 @@ async function validateCron(focused: boolean) {
 
 function cronTooltipText() {
   return cronValidationResult.value?.summary?.replace(/\r?\n/g, '\n') ?? "";
+}
+
+function setParameter(name: string, value: string | undefined) {
+  (model.value.deviceParameters ??= {})[name] = value ?? "";
 }
 
 function removeParameter(name: string) {
@@ -100,13 +111,14 @@ onMounted(() => {
       </v-text-field>
     </v-col>
   </v-row>
-  <div v-if="model.deviceParameters != null">
+  <div v-if="model.deviceParameters != null || fields.length > 0">
     <p>Additional parameters</p>
     <v-divider class="border-opacity-100 mb-3" color="black" />
     <v-row>
-      <v-col cols="4" v-for="p in Object.keys(model.deviceParameters)" :key="p">
-        <v-text-field v-model="model.deviceParameters[p]" hide-details append-inner-icon="delete"
-          @click:append-inner="removeParameter(p)" :label="p" />
+      <v-col cols="4" v-for="field in fields" :key="field.key">
+        <DeviceParameterField :name="field.key" :definition="field.definition"
+          :model-value="model.deviceParameters?.[field.key]" @update:model-value="value => setParameter(field.key, value)"
+          @remove="removeParameter(field.key)" />
       </v-col>
     </v-row>
     <v-row>

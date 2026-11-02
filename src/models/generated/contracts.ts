@@ -55,6 +55,13 @@ export type MatterAttribute = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 
  */
 export type MatterValueScale = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 /**
+ * 0 = Text, 1 = Number, 2 = Integer, 3 = Boolean
+ *
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "DeviceParameterType".
+ */
+export type DeviceParameterType = 0 | 1 | 2 | 3;
+/**
  * 0 = Unknown, 1 = Stopped, 2 = Initialized, 3 = Running, 4 = Error
  *
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
@@ -201,6 +208,7 @@ export interface DeviceConfiguration {
   refreshSchedule: string | null;
   matterEndpoints: MatterEndpointTemplate[] | null;
   hash?: string | null;
+  parameterDefinitions?: DeviceParameterDefinition[] | null;
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
@@ -236,6 +244,18 @@ export interface MatterCommandBinding {
   valuePath: string | null;
   valueTemplateJson: string | null;
   scale: MatterValueScale;
+}
+/**
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "DeviceParameterDefinition".
+ */
+export interface DeviceParameterDefinition {
+  key: string | null;
+  type: DeviceParameterType;
+  required: boolean;
+  secret: boolean;
+  default?: string | null;
+  description?: string | null;
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema

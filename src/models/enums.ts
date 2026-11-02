@@ -51,6 +51,14 @@ export enum NodeType {
     workflow = 3
 }
 
+/** How a device parameter is edited (`parameterDefinitions[].type`, Core 1.16.0). */
+export enum DeviceParameterType {
+    text = 0,
+    number = 1,
+    integer = 2,
+    boolean = 3
+}
+
 // The enums above keep the UI's member names; their values must be the contract's
 // (src/models/generated/contracts.ts). A mismatch fails the type check here.
 type SameValues<A extends number, B extends number> = [`${A}`] extends [`${B}`] ? ([`${B}`] extends [`${A}`] ? true : false) : false;
@@ -61,4 +69,5 @@ export type EnumsMatchTheContract = [
     Assert<SameValues<ComponentSize, Contract.DashboardComponentSize>>,
     Assert<SameValues<DeviceState, Contract.DeviceState>>,
     Assert<SameValues<NodeType, Contract.NodeType>>,
+    Assert<SameValues<DeviceParameterType, Contract.DeviceParameterType>>,
 ];

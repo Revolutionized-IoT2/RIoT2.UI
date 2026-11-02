@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import NodeEditorComponent from '@/components/NodeEditorComponent.vue';
 import DeviceTemplatePicker from './DeviceTemplatePicker.vue';
 import { useNodesStore } from '@/stores/nodesStore';
 import { blankDevice, mergeDeviceTemplates } from '@/composables/deviceTemplates';
+import { parameterDefinitionsKey, takeParameterDefinitions, type ParameterDefinitionMap } from '@/composables/deviceParameters';
 import NodeConfiguration from '@/models/nodeConfiguration';
 import type DeviceConfiguration from '@/models/deviceConfiguration';
 import type SystemNode from '@/models/systemNode';
@@ -28,10 +29,37 @@ const loadingTemplates = ref(false);
 // Devices are offered by the node with this id, so it must be chosen first.
 const hasNodeId = computed(() => configuration.value.id != null && configuration.value.id != '');
 
+// Typed parameter editors for the devices of an online node (Core 1.16.0); an offline node or an older plugin
+// leaves them as free text.
+const parameterDefinitions = ref<ParameterDefinitionMap>({});
+provide(parameterDefinitionsKey, parameterDefinitions);
+
+/**
+ * The node's device templates, with their parameter definitions moved into the editor's map. The map is
+ * replaced, not merged, so another node's definitions never apply; a response for a node no longer
+ * being edited is ignored.
+ */
+async function deviceTemplates(): Promise<DeviceConfiguration[]> {
+  const id = configuration.value.id!;
+  const templates = await nodes.getDeviceTemplates(id);
+  const definitions: ParameterDefinitionMap = {};
+  takeParameterDefinitions(templates, definitions);
+  if (configuration.value.id == id)
+    parameterDefinitions.value = definitions;
+  return templates;
+}
+
+// The dialog is reused for every node: start each one with free text until its templates arrive.
+watch(() => [open.value, configuration.value.id], async () => {
+  parameterDefinitions.value = {};
+  if (open.value && hasNodeId.value)
+    await deviceTemplates();
+}, { immediate: true });
+
 /** Offers the node's device templates, plus a blank device for one it doesn't list. */
 async function newDevice() {
   loadingTemplates.value = true;
-  offeredDevices.value = [...await nodes.getDeviceTemplates(configuration.value.id!), blankDevice()];
+  offeredDevices.value = [...await deviceTemplates(), blankDevice()];
   loadingTemplates.value = false;
   pickerOpen.value = true;
 }
@@ -45,7 +73,7 @@ async function reloadDevice(deviceId: string) {
   const device = configuration.value.deviceConfigurations.find(x => x.id == deviceId);
   if (device == null || !hasNodeId.value)
     return;
-  const offered = await nodes.getDeviceTemplates(configuration.value.id!);
+  const offered = await deviceTemplates();
   mergeDeviceTemplates(device, offered.find(x => x.classFullName == device.classFullName));
 }
 </script>

@@ -5,7 +5,7 @@ const ts = require('typescript');
 const vue = require('vue');
 
 // Execute the real setup/service code with Vue reactivity, but no DOM, broker, or API.
-function loadSource(relativePath, { props = {}, model, expose = [], mocks = {} } = {}) {
+function loadSource(relativePath, { props = {}, model, models = {}, expose = [], mocks = {} } = {}) {
   const scope = vue.effectScope();
   const cache = new Map();
   const defaults = {
@@ -29,7 +29,10 @@ function loadSource(relativePath, { props = {}, model, expose = [], mocks = {} }
       console,
       defineProps: () => props,
       withDefaults: (definedProps, defaults) => ({ ...defaults, ...definedProps }),
-      defineModel: options => model ?? vue.ref(options.default),
+      // defineModel(options) is the default model; defineModel('name', options) a named one, from `models`.
+      defineModel: (name, options) => typeof name === 'string'
+        ? models[name] ?? vue.ref(options?.default)
+        : model ?? vue.ref(name?.default),
       defineEmits: () => () => {},
       defineExpose() {},
       require(specifier) {
