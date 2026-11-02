@@ -58,7 +58,7 @@ function nginxTest(folder) {
   fs.writeFileSync(path.join(folder, 'nginx.conf'), [
     `pid ${path.join(folder, 'nginx.pid')};`,
     'events {}',
-    `http { ${['client_body', 'proxy', 'fastcgi', 'uwsgi', 'scgi'].map(temp).join(' ')} include ${path.join(folder, 'default.conf')}; }`,
+    `http { access_log ${path.join(folder, 'access.log')}; ${['client_body', 'proxy', 'fastcgi', 'uwsgi', 'scgi'].map(temp).join(' ')} include ${path.join(folder, 'default.conf')}; }`,
   ].join('\n'));
   return spawnSync(nginx, ['-t', '-e', 'stderr', '-p', folder, '-c', path.join(folder, 'nginx.conf')], { encoding: 'utf8' });
 }
