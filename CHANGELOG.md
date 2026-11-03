@@ -5,7 +5,9 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
-Planned as 1.11.0: the workflow designer, the AI models page, the Material 3 look ([I55](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i55-integrated-workflows-and-run-llm-m),
+## [1.11.0] - 2026-11-03
+
+The workflow designer, the AI models page, the Material 3 look ([I55](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i55-integrated-workflows-and-run-llm-m),
 [ADR 0016](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0016-integrated-workflows-and-llm.md)), and the new dashboard with its card kit
 ([I56](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i56-dashboard-card-kit-m),
 [ADR 0017](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0017-dashboard-card-kit.md)). The new pages need
