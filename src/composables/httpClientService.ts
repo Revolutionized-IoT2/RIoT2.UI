@@ -1,4 +1,5 @@
 import axios, { type AxiosRequestConfig } from 'axios';
+import { apiResult, isUnreachable } from '@/composables/connectionState';
 
 /**
  * A failed orchestrator request: the URL, the HTTP status (0 when there was no response) and the
@@ -42,6 +43,19 @@ function body<T>(data: T): T | null {
     return data == null || (data as unknown) === '' ? null : data;
 }
 
+// Every answer, also an error status, shows the API is reachable; no answer (or a gateway error)
+// shows it isn't (the connection banner, I46).
+function failed(error: unknown, url: string): ApiError {
+    const apiError = toApiError(error, url);
+    apiResult(!isUnreachable(apiError.status), apiError.message);
+    return apiError;
+}
+
+function succeeded<T>(data: T): T | null {
+    apiResult(true);
+    return body(data);
+}
+
 /**
  * The orchestrator's HTTP client. Every method resolves to the response body (null when empty)
  * and rejects with an {@link ApiError}; the stores report failures.
@@ -50,25 +64,25 @@ export function useHttpClient() {
 
     async function get<T>(url: string, config?: AxiosRequestConfig): Promise<T | null> {
         try {
-            return body((await axios.get<T>(url, config)).data);
+            return succeeded((await axios.get<T>(url, config)).data);
         } catch (error) {
-            throw toApiError(error, url);
+            throw failed(error, url);
         }
     }
 
     async function post<T, R>(url: string, data: T, config?: AxiosRequestConfig): Promise<R | null> {
         try {
-            return body((await axios.post<R>(url, data, config)).data);
+            return succeeded((await axios.post<R>(url, data, config)).data);
         } catch (error) {
-            throw toApiError(error, url);
+            throw failed(error, url);
         }
     }
 
     async function remove<R>(url: string): Promise<R | null> {
         try {
-            return body((await axios.delete<R>(url)).data);
+            return succeeded((await axios.delete<R>(url)).data);
         } catch (error) {
-            throw toApiError(error, url);
+            throw failed(error, url);
         }
     }
 

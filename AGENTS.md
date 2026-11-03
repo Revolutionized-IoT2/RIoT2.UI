@@ -52,10 +52,12 @@ docker build -t riot2-ui:local .
 | `src/app.config.ts` | `VITE_MQTT_SERVER`, `VITE_MQTT_USER`, `VITE_MQTT_PASSWORD` exports |
 | `src/composables/mqttService.ts` | MQTT.js WebSocket client, reconnect backoff, subscribe/publish/disconnect |
 | `src/composables/presence.ts` | Presence and last-will payloads; `orchestratorCameOnline` |
+| `src/composables/connectionState.ts`, `components/ConnectionBanner.vue` | The UI's own MQTT and API state (`App.vue` sets MQTT, `httpClientService` records every request) and the banner, shown after a 5 s grace; the banner pings `/api/security/info` every 15 s |
+| `src/views/SystemView.vue`, `components/system/`, `composables/systemHealthLook.ts` | The System page (`GET /api/v2/system/health`, polled every 10 s through `systemStore`) |
 | `src/composables/deviceParameters.ts`, `components/devices/DeviceParameterField.vue` | Typed parameter fields from `parameterDefinitions` (provided by `NodeEditorDialog`); free text without them |
 | `src/composables/api/` | Promise-based REST calls per resource; they reject with `ApiError` (`httpClientService.ts`) |
 | `src/composables/statusLook.ts` | Sync, command-delivery and connector-health looks; `commandsStore` follows deliveries, `nodesStore.refreshSync` and `loadConnectors` are the quiet polls the Configure page runs |
-| `src/stores/` | Pinia stores (nodes, templates, variables, dashboard, commands, Matter, backup) with `loading`/`error` from `requests.ts` |
+| `src/stores/` | Pinia stores (nodes, templates, variables, dashboard, commands, Matter, backup, system) with `loading`/`error` from `requests.ts` |
 | `src/components/nodes/`, `src/components/devices/` | Parts of the Configure page: node list, editor dialog, device list and template picker; device parameters and template tables |
 | `src/models/` | TypeScript models and constants for REST routes, topics, dashboards, nodes and variables |
 | `src/models/generated/` | `contracts.ts`, generated from the RIoT2.Core contract schema: don't edit |

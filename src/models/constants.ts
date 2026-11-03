@@ -22,6 +22,8 @@ export const Constants = {
     urlCommands: "/api/v2/commands",
     urlCommandDelivery: "/api/v2/commands/{id}",
     urlOutboxSummary: "/api/v2/outbox/summary",
+    // The system health page (I46).
+    urlSystemHealth: "/api/v2/system/health",
     // Configuration sync per node (design 7.2).
     urlNodesSync: "/api/v2/nodes/sync",
     urlConnectors: "/api/v2/connectors",

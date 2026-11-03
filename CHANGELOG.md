@@ -5,6 +5,20 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-11-03
+
+The system health page ([I46](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i46-system-health-page-m)). Needs Orchestrator 1.20.0 for the System page; the rest works with
+older orchestrators.
+
+- Added: the *System* page (`/system`): the browser's own live-update and API connections, the
+  orchestrator's version and checks, every node, connector and workflow engine with its online state,
+  how long it has had it and its changes since the orchestrator started, its sync, and each device's
+  state and last error, and the delivery queue. It reloads every 10 seconds.
+- Added: a connection banner on every page, also the wall dashboard, when the realtime connection or
+  the orchestrator's API has been lost for more than 5 seconds. Every API request records whether the
+  API answered, and the banner asks every 15 seconds.
+- Changed: the delivery queue dialog and the System page share `OutboxSummaryPanel`.
+
 ## [1.9.0] - 2026-11-02
 
 Connectors on the Configure page ([I39](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i39-connectors-in-the-ui-and-a-prometheus-exporter-m), [design 7.3](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/design/connector-sdk.md) phase 3). Needs Orchestrator 1.17.0; with an older one

@@ -17,6 +17,9 @@ How this UI fits into the platform: [architecture overview](https://github.com/R
   orchestrator API.
 - Downloads and restores configuration backups, and lists the orchestrator's saved backups
   (*Backup* page, orchestrator 1.7.0 or later).
+- Shows the health of the system on the *System* page (orchestrator 1.20.0 or later): every node,
+  connector and workflow engine with its online history, sync and devices, the orchestrator's checks
+  and the delivery queue. A banner on every page says when the UI loses its live updates or the API.
 - Opens the external Elsa Studio workflow node from the navigation drawer.
 - Subscribes to live report messages over MQTT, and announces itself as a dashboard node on every
   connection and whenever the orchestrator comes back online.
@@ -118,7 +121,7 @@ Important implementation files:
 | `src/composables/presence.ts` | The camelCase presence and last will, and when to announce again. |
 | `src/composables/deviceParameters.ts` | Typed device parameters: fields from the node's `parameterDefinitions`, checks, the editor's definition map. |
 | `src/stores/` | Pinia stores: the data each page shows, with `loading` and `error`; failures reach the snackbar. |
-| `src/composables/api/` | Promise-based REST calls per resource (nodes, templates, commands, variables, dashboard, Matter, backup). |
+| `src/composables/api/` | Promise-based REST calls per resource (nodes, templates, commands, variables, dashboard, Matter, backup, system). |
 | `src/composables/statusLook.ts` | How a node's configuration sync, a command's delivery and a connector's health are shown (label, color, icon, tooltip lines). |
 | `src/models/constants.ts` | REST routes and MQTT topic templates used by the UI. |
 | `src/models/generated/contracts.ts` | The contract types generated from RIoT2.Core's schema; the model classes that mirror one implement it, so a contract change fails the type check. |

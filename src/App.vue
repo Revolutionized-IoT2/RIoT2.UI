@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, watch } from 'vue';
 import { RouterView } from 'vue-router'
 import AppError from '@/models/appError';
 import { createRealtimeTransport, type RealtimeTransport } from '@/composables/realtime';
 import { loadSecurityState } from '@/composables/securityInfo';
 import { useSecurityApi } from '@/composables/api/securityApi';
 import { orchestratorCameOnline, presenceMessage } from '@/composables/presence';
+import { setMqttConnected } from '@/composables/connectionState';
+import ConnectionBanner from '@/components/ConnectionBanner.vue';
 import { v4 as uuidv4 } from 'uuid';
 import { Constants } from './models/constants';
 import type ConfigurationCommand from './models/configurationCommand';
@@ -44,6 +46,9 @@ onMounted(async () => {
     return;
   orchestratorStore.sameOrigin = security.sameOrigin;
   realtime = createRealtimeTransport(security.info.realtime, id);
+  // The connection banner and the System page show the realtime connection (I46).
+  if (realtime.status)
+    watch(realtime.status, connected => setMqttConnected(connected), { immediate: true });
   realtime.connect(mqttMessageReceived, announce);
   realtime.subscribe(Constants.topicReport);
   realtime.subscribe(configureDashboardTopic);
@@ -94,6 +99,7 @@ function mqttMessageReceived(topic: string, message: string, retained = false) {
 
 <template>
   <v-app>
+    <ConnectionBanner v-if="orchestratorStore.isInitialized"/>
     <RouterView v-if="orchestratorStore.isInitialized"/>
     <v-container v-else>
       <v-row class="fill-height" align-content="center" justify="center">

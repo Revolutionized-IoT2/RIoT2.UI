@@ -19,6 +19,7 @@ const router = createRouter({
     withLayout('/matter', 'matter', 'Matter bridge', () => import('@/views/MatterView.vue')),
     withLayout('/variables', 'variables', 'List variables', () => import('@/views/VariablesView.vue')),
     withLayout('/backup', 'backup', 'Backup and restore', () => import('@/views/BackupView.vue')),
+    withLayout('/system', 'system', 'System health', () => import('@/views/SystemView.vue')),
     withLayout('/dash', 'dash', 'Dashboard with header', () => import('@/views/DashboardView.vue')),
     withLayout('/dashboard/edit', 'dashboard edit', 'Dashboard editor', () => import('@/views/DashboardView.vue')),
   ]
