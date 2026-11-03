@@ -28,6 +28,8 @@ How this UI fits into the platform: [architecture overview](https://github.com/R
   activity's inputs, versions, publishing and the runs. It replaces Elsa Studio.
 - Manages the language model connections of the *Run LLM* step, and shows their usage, on the
   *AI models* page.
+- Sets what AI assistants may do through the orchestrator's MCP server (tool groups, allowed commands,
+  the local and internet listeners), and shows their tool calls, on the *AI access* page (orchestrator 1.22.0).
 - Subscribes to live report messages over MQTT, and announces itself as a dashboard node on every
   connection and whenever the orchestrator comes back online.
 
@@ -154,6 +156,7 @@ Important implementation files:
 | `src/views/WorkflowsView.vue`, `WorkflowDesignerView.vue`, `components/workflows/` | The workflow list and the designer. |
 | `src/composables/workflowGraph.ts`, `workflowAppearance.ts` | Elsa's definition model as Vue Flow nodes and edges and back, the RIoT selector's literal, the designer's warnings; each activity's colour and icon. |
 | `src/views/AiModelsView.vue`, `components/ai/` | The language model connections and their usage. |
+| `src/views/AiAccessView.vue`, `stores/mcpStore.ts` | The AI access page: the MCP server's tool policy and activity ([remote AI access guide](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/guides/remote-ai-access.md)). |
 
 ## Workflows
 

@@ -5,6 +5,14 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+The AI access page ([I57](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i57-mcp-server-and-remote-ai-access-m),
+[ADR 0018](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0018-mcp-server-and-remote-ai-access.md)). Planned as 1.12.0; needs
+Orchestrator 1.22.0.
+
+- Added: the *AI access* page (`/ai/access`, under Automation): the MCP server's local and public URLs, the switches
+  for each listener, the tool groups with their roles and tools, the commands `send_command` may send, the writes
+  per minute, and the latest tool calls (`/api/v2/mcp`).
+
 ## [1.11.0] - 2026-11-03
 
 The workflow designer, the AI models page, the Material 3 look ([I55](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i55-integrated-workflows-and-run-llm-m),

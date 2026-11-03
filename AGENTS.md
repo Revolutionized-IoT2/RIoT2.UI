@@ -63,10 +63,11 @@ docker build -t riot2-ui:local .
 | `src/composables/deviceParameters.ts`, `components/devices/DeviceParameterField.vue` | Typed parameter fields from `parameterDefinitions` (provided by `NodeEditorDialog`); free text without them |
 | `src/composables/api/` | Promise-based REST calls per resource; they reject with `ApiError` (`httpClientService.ts`) |
 | `src/composables/statusLook.ts` | Sync, command-delivery and connector-health looks; `commandsStore` follows deliveries, `nodesStore.refreshSync` and `loadConnectors` are the quiet polls the Configure page runs |
-| `src/stores/` | Pinia stores (nodes, templates, variables, dashboard, commands, Matter, backup, system, workflows, llm) with `loading`/`error` from `requests.ts` |
+| `src/stores/` | Pinia stores (nodes, templates, variables, dashboard, commands, Matter, backup, system, workflows, llm, mcp) with `loading`/`error` from `requests.ts` |
 | `src/views/WorkflowsView.vue`, `WorkflowDesignerView.vue`, `components/workflows/` | The workflow list and designer: `WorkflowPalette`, `WorkflowNode`, `WorkflowInspector`, `ActivityInputEditor`, `RiotSelectorInput`, `WorkflowRunsPanel` |
 | `src/composables/workflowGraph.ts`, `workflowAppearance.ts`, `assets/workflow-designer.css` | Model ⇄ Vue Flow conversion, inputs, the RIoT selector literal, `validateFlow`; activity colours and icons; the canvas styles |
 | `src/views/AiModelsView.vue`, `components/ai/` | Language model connections (`LlmConnectionDialog`) and usage (`LlmUsagePanel`) |
+| `src/views/AiAccessView.vue`, `stores/mcpStore.ts`, `models/mcp.ts` | The AI access page (`/ai/access`, [ADR 0018](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0018-mcp-server-and-remote-ai-access.md), [mcp.md](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/mcp.md)): the MCP tool policy and activity through `/api/v2/mcp` |
 | `src/plugins/vuetify.ts` | The MD3 blueprint, the Dls light and dark themes (stored as `riot2.theme`), defaults and the hybrid icon set |
 | `src/components/nodes/`, `src/components/devices/` | Parts of the Configure page: node list, editor dialog, device list and template picker; device parameters and template tables |
 | `src/models/` | TypeScript models and constants for REST routes, topics, dashboards, nodes and variables |

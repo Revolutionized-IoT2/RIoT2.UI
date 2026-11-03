@@ -24,7 +24,8 @@
       <v-divider class="my-2" />
       <v-list-subheader v-if="!rail || mobile">Automation</v-list-subheader>
       <v-list-item to="/workflows" title="Workflows" prepend-icon="mdi-sitemap-outline" rounded="xl" />
-      <v-list-item to="/ai" title="AI models" prepend-icon="mdi-robot-outline" rounded="xl" />
+      <v-list-item to="/ai" exact title="AI models" prepend-icon="mdi-robot-outline" rounded="xl" />
+      <v-list-item to="/ai/access" title="AI access" prepend-icon="mdi-connection" rounded="xl" />
       <v-divider class="my-2" />
       <v-list-subheader v-if="!rail || mobile">Administration</v-list-subheader>
       <v-list-item v-for="item in administration" :key="item.to" :to="item.to" :title="item.title" :prepend-icon="item.icon" rounded="xl" />

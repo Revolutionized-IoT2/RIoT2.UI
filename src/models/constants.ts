@@ -66,6 +66,10 @@ export const Constants = {
     urlLlmConnection: "/api/llm/connections/{id}",
     urlTestLlmConnection: "/api/llm/connections/{id}/test",
     urlLlmUsage: "/api/llm/usage",
+    // The MCP server's AI access page (ADR 0018).
+    urlMcpStatus: "/api/v2/mcp/status",
+    urlMcpConfiguration: "/api/v2/mcp/configuration",
+    urlMcpActivity: "/api/v2/mcp/activity",
 
     topicReport: "riot2/node/+/report",
     topicCommand: "riot2/node/{id}/command",

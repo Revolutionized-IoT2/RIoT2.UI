@@ -36,6 +36,8 @@ const router = createRouter({
     withLayout('/workflows', 'workflows', 'Workflows', () => import('@/views/WorkflowsView.vue')),
     withLayout('/workflows/:id', 'workflow', 'Workflow designer', () => import('@/views/WorkflowDesignerView.vue')),
     withLayout('/ai', 'ai', 'AI models', () => import('@/views/AiModelsView.vue')),
+    // The MCP server's tool policy and activity (ADR 0018).
+    withLayout('/ai/access', 'ai access', 'AI access', () => import('@/views/AiAccessView.vue')),
     withLayout('/dash', 'dash', 'Dashboard with header', Dashboard, { fullBleed: true }),
     withLayout('/dashboard/edit', 'dashboard edit', 'Dashboard editor', Dashboard, { fullBleed: true, dashboardEdit: true }),
   ]
