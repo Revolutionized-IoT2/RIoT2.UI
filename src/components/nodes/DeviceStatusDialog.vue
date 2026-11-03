@@ -17,7 +17,7 @@ const headers = [
 
 <template>
   <v-dialog v-model="open" width="80%" scrollable>
-    <v-card prepend-icon="checklist" title="Device Statuses">
+    <v-card prepend-icon="mdi-format-list-checks" title="Device Statuses">
       <v-divider class="mt-3"></v-divider>
       <v-card-text class="px-4" style="height: 300px;">
         <v-data-table hide-default-footer density="compact" :items="statuses" :headers="headers">

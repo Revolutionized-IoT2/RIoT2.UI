@@ -32,7 +32,7 @@ onUnmounted(() => {
 
 <template>
   <div v-if="text" class="connection-banner">
-    <v-alert type="warning" density="compact" variant="flat" rounded="0" icon="cloud_off">
+    <v-alert type="warning" density="compact" variant="flat" rounded="0" icon="mdi-cloud-off-outline">
       {{ text }}
       <template v-slot:append>
         <v-btn size="small" variant="text" @click="ping()">Retry</v-btn>

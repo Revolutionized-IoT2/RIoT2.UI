@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { ValueType } from '@/models/enums';
 import CommandTemplate from '@/models/commandTemplate';
 import DeviceConfiguration from '@/models/deviceConfiguration';
 import CommandTemplateEditor from '@/components/CommandTemplateEditor.vue';
 import Datamodel from '@/components/DatamodelComponent.vue';
+import SchemaValueInput from '@/components/SchemaValueInput.vue';
+import { templateSchema } from '@/dashboard/sdk/capabilities';
 import { useCommandsStore } from '@/stores/commandsStore';
 import type { JsonValue } from '@/models/generated/contracts';
 
-const model = defineModel<DeviceConfiguration>({ default: new DeviceConfiguration() });
+const model = defineModel<DeviceConfiguration>({ default: () => new DeviceConfiguration() });
 
 const commands = useCommandsStore();
 
@@ -24,6 +26,9 @@ const editing = ref<CommandTemplate>(new CommandTemplate());
 
 const executeOpen = ref(false);
 const executing = ref(false);
+const asJson = ref(false);
+// The form follows the value's schema: declared by the plugin, else inferred from the sample model.
+const executeSchema = computed(() => templateSchema(editing.value));
 
 // Dialogs work on a copy, so cancel leaves the template as it was.
 const copy = (template: CommandTemplate): CommandTemplate => JSON.parse(JSON.stringify(template));
@@ -81,10 +86,10 @@ async function execute() {
     :items="model.commandTemplates" :headers="headers" density="compact" class="mt-4">
     <template v-slot:top>
       <v-toolbar flat>
-        <v-toolbar-title class="text-subtitle-1">Command templates - {{ model.name }}</v-toolbar-title>
+        <v-toolbar-title class="text-body-large">Command templates - {{ model.name }}</v-toolbar-title>
         <v-spacer />
-        <v-btn size="small" rounded="0" color="blue-darken-1" variant="outlined" @click="newTemplate">
-          <v-icon>add</v-icon>
+        <v-btn size="small" color="primary" variant="outlined" @click="newTemplate">
+          <v-icon icon="mdi-plus" />
           new command template
         </v-btn>
       </v-toolbar>
@@ -99,17 +104,17 @@ async function execute() {
       <div class="text-end">
         <v-tooltip text="Execute command" location="top">
           <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="small" class="me-3" @click="prepareExecute(item)">play_circle</v-icon>
+            <v-icon v-bind="props" size="small" class="me-3" @click="prepareExecute(item)" icon="mdi-play-circle-outline" />
           </template>
         </v-tooltip>
         <v-tooltip text="Edit command" location="top">
           <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="small" class="me-2" @click="editTemplate(item)">edit</v-icon>
+            <v-icon v-bind="props" size="small" class="me-2" @click="editTemplate(item)" icon="mdi-pencil" />
           </template>
         </v-tooltip>
         <v-tooltip text="Delete command" location="top">
           <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="small" @click="deleteTemplate(item.id)">delete</v-icon>
+            <v-icon v-bind="props" size="small" @click="deleteTemplate(item.id)" icon="mdi-delete-outline" />
           </template>
         </v-tooltip>
       </div>
@@ -124,23 +129,20 @@ async function execute() {
   </v-dialog>
 
   <v-dialog v-model="executeOpen" max-width="600px">
-    <v-card width="600px">
-      <v-toolbar :title="editing.name"></v-toolbar>
-      <v-card-subtitle class="pb-1 text-subtitle-1">{{ editing.device }}</v-card-subtitle>
-      <v-card-text>
-        <Datamodel :datamodel="editing.model" :expanded="true" :editable="true" :expandable="false"
+    <v-card :title="editing.name" :subtitle="editing.device" prepend-icon="mdi-play-circle-outline" rounded="xl">
+      <v-card-text class="d-flex flex-column ga-3">
+        <div v-if="executeSchema?.description || executeSchema?.unit" class="text-body-medium text-medium-emphasis">
+          {{ [executeSchema?.description, executeSchema?.unit && `Unit: ${executeSchema.unit}`].filter(Boolean).join(' ? ') }}
+        </div>
+        <Datamodel v-if="asJson" :datamodel="editing.model" :expanded="true" :editable="true" :expandable="false"
           @modelUpdated="(value: JsonValue) => { editing.model = value }" />
+        <SchemaValueInput v-else v-model="editing.model" :schema="executeSchema" label="Value" />
+        <v-switch v-model="asJson" label="Edit as JSON" color="primary" density="compact" hide-details inset />
       </v-card-text>
-      <v-card-actions>
-        <v-btn @click="execute" :loading="executing" color="primary" variant="tonal">
-          <v-icon>play_circle</v-icon>
-          Execute
-        </v-btn>
+      <v-card-actions class="pa-4 pt-0">
         <v-spacer />
-        <v-btn @click="executeOpen = false" color="blue">
-          <v-icon>close</v-icon>
-          close
-        </v-btn>
+        <v-btn class="text-none" variant="text" @click="executeOpen = false">Close</v-btn>
+        <v-btn class="text-none" :loading="executing" color="primary" variant="flat" prepend-icon="mdi-send" @click="execute">Send</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

@@ -10,7 +10,7 @@ import type DeviceConfiguration from '@/models/deviceConfiguration';
 import type SystemNode from '@/models/systemNode';
 
 const open = defineModel<boolean>('open', { default: false });
-const configuration = defineModel<NodeConfiguration>('configuration', { default: new NodeConfiguration() });
+const configuration = defineModel<NodeConfiguration>('configuration', { default: () => new NodeConfiguration() });
 
 defineProps<{
   onlineNodes: SystemNode[],
@@ -82,7 +82,7 @@ async function reloadDevice(deviceId: string) {
   <v-dialog v-model="open" scrollable width="90%">
     <v-card>
       <v-toolbar color="primary" density="compact" flat>
-        <v-toolbar-title class="text-body-2 font-weight-bold">
+        <v-toolbar-title class="text-body-medium font-weight-bold">
           Configurator for {{ configuration.name }}
         </v-toolbar-title>
       </v-toolbar>
@@ -93,16 +93,16 @@ async function reloadDevice(deviceId: string) {
       <v-divider />
       <v-card-actions>
         <v-spacer />
-        <v-btn rounded="0" color="error" variant="outlined" @click="open = false">
-          <v-icon size="small">cancel</v-icon>
+        <v-btn color="error" variant="outlined" @click="open = false">
+          <v-icon size="small" icon="mdi-close-circle-outline" />
           cancel
         </v-btn>
-        <v-btn :loading="loadingTemplates" :disabled="!hasNodeId" rounded="0" color="success" variant="outlined" @click="newDevice">
-          <v-icon size="small">add</v-icon>
+        <v-btn :loading="loadingTemplates" :disabled="!hasNodeId" color="success" variant="outlined" @click="newDevice">
+          <v-icon size="small" icon="mdi-plus" />
           new device
         </v-btn>
-        <v-btn :loading="saving" :disabled="!hasNodeId" rounded="0" color="primary" variant="outlined" @click="emit('save')">
-          <v-icon size="small">save</v-icon>
+        <v-btn :loading="saving" :disabled="!hasNodeId" color="primary" variant="outlined" @click="emit('save')">
+          <v-icon size="small" icon="mdi-content-save-outline" />
           Save
         </v-btn>
       </v-card-actions>

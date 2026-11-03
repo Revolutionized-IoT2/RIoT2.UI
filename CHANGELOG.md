@@ -5,6 +5,66 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+Planned as 1.11.0: the workflow designer, the AI models page, the Material 3 look ([I55](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i55-integrated-workflows-and-run-llm-m),
+[ADR 0016](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0016-integrated-workflows-and-llm.md)), and the new dashboard with its card kit
+([I56](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i56-dashboard-card-kit-m),
+[ADR 0017](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0017-dashboard-card-kit.md)). The new pages need
+Orchestrator 1.21.0, which keeps the dashboard's ids, card kinds and settings; the rest works with older orchestrators.
+
+- Added: the dashboard is rebuilt on a card kit ([src/dashboard/README.md](src/dashboard/README.md)).
+  Each card type is one folder with a `defineCard` definition and a Vue component; the registry,
+  the card gallery, the editor and the tests find it there. `npm run new-card -- <kind>` creates
+  one. Cards are stored with a `kind` and `settings` (Core 2.2.0), and the type older UIs read.
+- Added: new cards: Gauge, Entities (a list of values with switches), Light (on and off,
+  brightness, colour), Motion and Note (Markdown, sanitized). The numeric value is now the Sensor
+  card, with a sparkline, its trend, its range and warning thresholds. Every card got a new look:
+  rounded tiles, state colours, "not connected" and "waiting for data" states, and short "5 min.
+  ago" times.
+- Added: the card editor. Pick a card in a gallery with live samples, then choose its devices and
+  settings next to a live preview of the card with the device's recent reports. Settings forms are
+  built from what each card declares: icon picker, colour swatches, unit and member lists, and
+  values edited as their schema describes, in place of raw JSON.
+- Added: device capability discovery. A template's declared `schema` (Core 2.2.0), or one inferred
+  from its sample model, picks the member, unit and icon, sorts the templates that suit a card
+  first, and builds the value form for a command, also in a node's *execute command* dialog.
+- Added: dashboard import and export (a JSON file; templates bound again by id, else by node,
+  device and name), a preview mode at phone, tablet or full width, drag to reorder, duplicate,
+  resize and move cards between pages, Ctrl+S, and a *Save, Discard or Keep editing* dialog in
+  place of `window.confirm` (also when the tab closes with unsaved changes).
+- Added: phones and RIoT2.Mobile. Columns follow the dashboard's own width (container queries);
+  small sensor cards sit two side by side on phones. Pages are a bottom bar on phones and tabs on
+  wider screens, the dashboard pads itself with the safe areas, `/dashboard/fullscreen` (RIoT2.Mobile's
+  default URL) works, `?page=` opens a page by id, name or number and stays in the URL, and
+  `?theme=light|dark|system` sets the theme.
+- Changed: the whole UI uses Material Design Icons. Material icon names in saved dashboards are
+  mapped to MDI when the dashboard loads; others still render with the Material icon font. The
+  theme follows the system until the user picks light or dark (app bar menu).
+- Changed: the Nodes and Variables pages have a page header in place of the blue action bar, and
+  the remaining Material 2 styles (square buttons, shadows, fixed colours) are Material 3.
+- Fixed: editing or deleting a card after a reload could change another card, because pages and
+  cards lost their ids when saved (fixed with Orchestrator 1.21.0). A report no longer marks the
+  dashboard as changed while it is edited. The image card's debug list and the button colour
+  dialog that did nothing are gone (the Light card sets colours).
+- Changed: dependencies are on their latest majors: Vuetify 4, Vue Router 5, Pinia 4, Vite 8,
+  `@vitejs/plugin-vue` 6, vue-tsc 3, TypeScript 6, MQTT.js 5, uuid 14. `vue-timeago3` is replaced by
+  `RelativeTime`. Development needs Node.js 22.22 or 24.15 or later (the image builds with Node 24).
+- Changed: the tests run on Vitest. The earlier tests keep their loader (`tests/*.test.mjs`); new
+  tests under `tests/dashboard/` import the sources and mount the cards in jsdom.
+- Added: the *Workflows* pages (`/workflows`, `/workflows/:id`) replace the link to Elsa Studio. The
+  list shows the engine's mode and state, and imports (an Elsa export or a template), exports and
+  deletes workflows. The designer, ported from Dls, has a palette of the engine's activities, a Vue
+  Flow canvas with an outcome handle per port, and an inspector for names, inputs (literal or
+  expression, with the RIoT selectors for reports, commands and variables) and *Starts the
+  workflow*. It also has versions, save and publish, warnings before publishing, and the runs with
+  each activity's outcome and error. Workflows saved by Studio open and save unchanged.
+- Added: the *AI models* page (`/ai`): language model connections for the Run LLM step (OpenAI,
+  Azure OpenAI, Anthropic, OpenAI-compatible), with a connection test, and their usage per
+  connection and day with the latest runs. API keys can be replaced or removed but are never shown.
+- Changed: the whole UI takes the Material 3 look of Dls (Vuetify `md3` blueprint, light and dark
+  themes with a switch in the app bar, a navigation rail on wide screens, card-based home page).
+  Dashboards keep their Material Icons; `mdi-…` icons come from `@mdi/font`.
+- Changed: the Backup page says that workflows aren't in a configuration backup.
+
 ## [1.10.0] - 2026-11-03
 
 The system health page ([I46](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i46-system-health-page-m)). Needs Orchestrator 1.20.0 for the System page; the rest works with

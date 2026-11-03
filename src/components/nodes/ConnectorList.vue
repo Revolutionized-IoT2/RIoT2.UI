@@ -18,7 +18,7 @@ const headers = [
 <template>
   <v-data-table :hide-default-footer="props.connectors.length < 10" :items="props.connectors" :headers="headers" class="elevation-1 mt-4">
     <template v-slot:top>
-      <v-toolbar flat color="white">
+      <v-toolbar flat color="transparent">
         <v-toolbar-title>Connectors</v-toolbar-title>
         <v-divider class="mx-4" inset vertical />
       </v-toolbar>

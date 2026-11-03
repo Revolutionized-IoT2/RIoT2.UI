@@ -4,7 +4,7 @@ Vue 3 web dashboard for the [RIoT2](https://github.com/Revolutionized-IoT2) IoT 
 served as a static single-page app by nginx and talks to the orchestrator REST API plus MQTT over
 WebSockets.
 
-- Type: Vue 3 + TypeScript + Vite + Vuetify application
+- Type: Vue 3 + TypeScript + Vite + Vuetify (Material 3, light and dark) + Vue Flow application
 - Runtime: nginx container, non-root, port 8080
 - MQTT transport: MQTT.js over `ws://<VITE_MQTT_SERVER>:9001/`
 
@@ -12,7 +12,10 @@ How this UI fits into the platform: [architecture overview](https://github.com/R
 
 ## What it does
 
-- Shows dashboards with charts, numeric values, switches, states, images, timelines and buttons.
+- Shows the dashboard: pages of cards (sensors, gauges, charts, lists, switches, buttons, lights,
+  motion, states, images, activity and notes) that follow live reports and send commands. It works
+  on phones and wall displays, and in RIoT2.Mobile (`/dashboard/fullscreen`). The editor has a card
+  gallery, a live preview, import and export; see [Dashboard](#dashboard).
 - Manages nodes, device configuration, variables and Matter bridge settings through the
   orchestrator API.
 - Downloads and restores configuration backups, and lists the orchestrator's saved backups
@@ -20,13 +23,18 @@ How this UI fits into the platform: [architecture overview](https://github.com/R
 - Shows the health of the system on the *System* page (orchestrator 1.20.0 or later): every node,
   connector and workflow engine with its online history, sync and devices, the orchestrator's checks
   and the delivery queue. A banner on every page says when the UI loses its live updates or the API.
-- Opens the external Elsa Studio workflow node from the navigation drawer.
+- Designs workflows on the *Workflows* page (orchestrator 1.21.0 or later): a list with import and
+  export, and a designer with the activity palette, a Vue Flow canvas, an inspector for each
+  activity's inputs, versions, publishing and the runs. It replaces Elsa Studio.
+- Manages the language model connections of the *Run LLM* step, and shows their usage, on the
+  *AI models* page.
 - Subscribes to live report messages over MQTT, and announces itself as a dashboard node on every
   connection and whenever the orchestrator comes back online.
 
 ## Run locally
 
-From the repository root (`C:\Src\RIoT2\RIoT2.UI`):
+Needs Node.js 22.22 or 24.15 or later (the image builds with Node 24). From the repository root
+(`C:\Src\RIoT2\RIoT2.UI`):
 
 ```powershell
 npm install
@@ -48,8 +56,9 @@ npm run preview
 
 - `npm run lint` runs ESLint (`eslint.config.mjs`: `eslint-plugin-vue` and `typescript-eslint`)
   over `src/`. Errors fail CI, `any` included: a JSON value is `JsonValue`.
-- `npm test` runs offline Node.js regression tests from `tests/*.test.cjs`.
-  `tests/contracts.test.cjs` needs RIoT2.Core and RIoT2.Net.Orchestrator checked out next to this
+- `npm test` runs the tests on Vitest (`vitest.config.ts`): `tests/*.test.mjs` load the sources in
+  Node, `tests/dashboard/*.test.ts` also mount the cards in jsdom. `npm run test:watch` reruns them.
+  `tests/contracts.test.mjs` needs RIoT2.Core and RIoT2.Net.Orchestrator checked out next to this
   repository (CI clones them). It fails when a URL in `src/models/constants.ts` isn't in the
   orchestrator's OpenAPI document (`openapi/riot2-orchestrator.json`) with the method the UI uses,
   or when the UI can't read the [golden files](https://github.com/Revolutionized-IoT2/RIoT2.Core/blob/main/contracts/golden/README.md).
@@ -62,6 +71,20 @@ npm run preview
   committed generated file.
 - `npm run preview` serves the production build on port 5050. Each route's view is its own chunk,
   and mqtt and Vue have chunks of their own (`vite.config.ts`).
+
+## Dashboard
+
+- `/dashboard` is the dashboard alone, for phones and wall displays; RIoT2.Mobile opens
+  `/dashboard/fullscreen`, the same page. `/dash` shows it in the app, and `/dashboard/edit` edits it.
+- `?page=` opens a page by its id, name or number (and the dashboard keeps the current page there);
+  `?theme=light`, `dark` or `system` sets the theme for that visit.
+- The editor: add cards from the card gallery, then choose devices and settings next to a live
+  preview. Drag cards by their handle; each card's menu resizes, duplicates, moves or deletes it.
+  *Preview* shows the page at phone, tablet or full width. *Import and export* saves the dashboard
+  as a JSON file, or reads one in place of the dashboard or as more pages. Ctrl+S saves; leaving
+  with unsaved changes asks to save or discard them.
+- A new card type is one folder in `src/dashboard/cards/`: `npm run new-card -- <kind>` creates it.
+  See the card kit guide, [src/dashboard/README.md](src/dashboard/README.md).
 
 ## Configuration
 
@@ -126,13 +149,20 @@ Important implementation files:
 | `src/models/constants.ts` | REST routes and MQTT topic templates used by the UI. |
 | `src/models/generated/contracts.ts` | The contract types generated from RIoT2.Core's schema; the model classes that mirror one implement it, so a contract change fails the type check. |
 | `scripts/generate-models.mjs` | Generates the file above (`npm run generate`). |
-| `src/layout/AppBar.vue` | Navigation drawer and external Elsa Studio link. |
+| `src/layout/AppBar.vue` | App bar, navigation drawer (a rail on wide screens) and the light/dark switch. |
+| `src/plugins/vuetify.ts` | The Material 3 theme (ported from Dls), component defaults, and the icon set: `mdi-…` names are Material Design Icons, others (stored dashboards) Material Icons. |
+| `src/views/WorkflowsView.vue`, `WorkflowDesignerView.vue`, `components/workflows/` | The workflow list and the designer. |
+| `src/composables/workflowGraph.ts`, `workflowAppearance.ts` | Elsa's definition model as Vue Flow nodes and edges and back, the RIoT selector's literal, the designer's warnings; each activity's colour and icon. |
+| `src/views/AiModelsView.vue`, `components/ai/` | The language model connections and their usage. |
 
 ## Workflows
 
-Automation is handled by [RIoT2.Elsa](https://github.com/Revolutionized-IoT2/RIoT2.Elsa), not by
-an internal UI rule editor. The navigation drawer's **Workflows** entry opens the `nodeBaseUrl` of
-the online workflow node (`nodeType` 3) returned by `GET /api/nodes/online`.
+Automation is handled by Elsa 3 with the activities of [RIoT2.Elsa](https://github.com/Revolutionized-IoT2/RIoT2.Elsa),
+not by an internal UI rule editor. The *Workflows* pages call only the orchestrator's
+`/api/workflows`, which answers the same whether Elsa runs in the orchestrator or in its own
+container ([ADR 0016](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0016-integrated-workflows-and-llm.md)). The designer edits Elsa's definition model and keeps
+what it doesn't know, so workflows saved by Elsa Studio open and save unchanged. How to build them:
+the [automation guide](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/guides/automation.md).
 
 Legacy `/rules`, `/rules/editor/:id?`, `/rules/simulate/:id?`, `/api/rules` and
 `/api/nodes/function/templates` paths are retired. Dashboard controls and variables use the

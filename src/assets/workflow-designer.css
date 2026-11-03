@@ -1,0 +1,118 @@
+/* The workflow designer (ported from Dls, ADR 0016): panes, palette, canvas, nodes and inspector, in the theme's
+   MD3 colours. Shared by the designer's components, so the class names carry a wf- prefix. */
+
+.wf-designer { display: flex; flex-direction: column; gap: 12px; }
+.wf-header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.wf-title { min-width: 240px; flex: 0 1 420px; }
+.wf-title__name input { padding: 0 6px; border-radius: 8px; font-size: 1.25rem; font-weight: 500; line-height: 1.75rem; }
+.wf-title__name input:hover, .wf-title__name input:focus { background: rgb(var(--v-theme-surface-container-high)); }
+.wf-title__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding-left: 6px; color: rgb(var(--v-theme-on-surface-variant)); font-size: 0.75rem; }
+.wf-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.wf-version { width: 148px; flex: 0 0 auto; }
+
+.wf-body {
+  --pane-border: 1px solid rgb(var(--v-theme-outline-variant));
+  display: flex; height: max(560px, calc(100vh - 200px)); overflow: hidden;
+  border: var(--pane-border); border-radius: 16px; background: rgb(var(--v-theme-surface));
+}
+.wf-pane { display: flex; flex-direction: column; min-height: 0; background: rgb(var(--v-theme-surface-container-low)); }
+.wf-pane__header { min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 6px 4px 14px; }
+.wf-pane__title { font-size: 0.875rem; font-weight: 600; }
+.wf-pane__scroll { flex: 1; min-height: 0; overflow-y: auto; }
+.wf-pane__footer { padding: 8px 14px 10px; border-top: var(--pane-border); color: rgb(var(--v-theme-on-surface-variant)); font-size: 0.6875rem; line-height: 1rem; }
+.wf-pane__empty { padding: 8px 2px; color: rgb(var(--v-theme-on-surface-variant)); font-size: 0.75rem; }
+
+.wf-palette { width: 272px; flex: 0 0 272px; border-right: var(--pane-border); }
+.wf-palette--collapsed { width: 52px; flex-basis: 52px; }
+.wf-palette--collapsed .wf-pane__header { justify-content: center; padding: 4px; }
+.wf-palette__search { padding: 0 10px 8px; }
+.wf-palette .wf-pane__scroll { padding: 0 6px 8px; }
+.wf-group__header {
+  width: 100%; display: flex; align-items: center; gap: 4px; margin-top: 6px; padding: 4px 6px; border: 0; border-radius: 6px;
+  background: transparent; color: rgb(var(--v-theme-on-surface-variant)); cursor: pointer; font: inherit; font-size: 0.6875rem;
+  font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.wf-group__header:hover { background: rgb(var(--v-theme-surface-container)); }
+.wf-group__name { flex: 1; text-align: left; }
+.wf-group__count { min-width: 20px; padding: 0 6px; border-radius: 999px; background: rgb(var(--v-theme-surface-container-high)); font-size: 0.625rem; line-height: 1rem; text-align: center; }
+.wf-item {
+  display: flex; align-items: flex-start; gap: 10px; padding: 7px 8px; border: 1px solid transparent; border-radius: 10px;
+  cursor: grab; outline: none; user-select: none; transition: background-color 120ms ease, border-color 120ms ease;
+}
+.wf-item:hover, .wf-item:focus-visible { background: rgb(var(--v-theme-surface-container-high)); border-color: color-mix(in srgb, var(--wf-accent) 40%, transparent); }
+.wf-item--disabled { cursor: default; opacity: 0.6; }
+.wf-item__icon, .wf-rail__item {
+  flex: 0 0 32px; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px;
+  background: color-mix(in srgb, var(--wf-accent) 16%, transparent); color: var(--wf-accent);
+}
+.wf-item__text { min-width: 0; flex: 1; }
+.wf-item__name { font-size: 0.8125rem; font-weight: 500; line-height: 1.125rem; overflow-wrap: anywhere; }
+.wf-item__description {
+  display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; margin-top: 1px;
+  color: rgb(var(--v-theme-on-surface-variant)); font-size: 0.6875rem; line-height: 0.95rem;
+}
+.wf-rail { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 0 10px !important; }
+.wf-rail__item { cursor: grab; outline: none; }
+.wf-rail__item:hover { box-shadow: 0 0 0 2px color-mix(in srgb, var(--wf-accent) 50%, transparent); }
+
+.wf-canvas { position: relative; min-width: 0; flex: 1; }
+.wf-canvas__actions { display: flex; align-items: center; padding: 2px 4px; border: var(--pane-border); border-radius: 12px; background: rgb(var(--v-theme-surface-container-low)); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12); }
+.wf-canvas__hint { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: rgb(var(--v-theme-surface-container-high)); color: rgb(var(--v-theme-on-surface-variant)); font-size: 0.75rem; }
+.wf-canvas .vue-flow__edge-path { stroke: rgb(var(--v-theme-outline)); stroke-width: 1.75; }
+.wf-canvas .vue-flow__edge.selected .vue-flow__edge-path, .wf-canvas .vue-flow__edge:hover .vue-flow__edge-path { stroke: rgb(var(--v-theme-primary)); stroke-width: 2.25; }
+.wf-canvas .vue-flow__arrowhead polyline { stroke: rgb(var(--v-theme-outline)); fill: rgb(var(--v-theme-outline)); }
+.wf-canvas .vue-flow__edge-textbg { fill: rgb(var(--v-theme-surface-container-high)); }
+.wf-canvas .vue-flow__edge-text { fill: rgb(var(--v-theme-on-surface-variant)); font-size: 11px; font-weight: 500; }
+.wf-canvas .vue-flow__background pattern circle { fill: rgb(var(--v-theme-outline-variant)); }
+.wf-canvas .vue-flow__controls { overflow: hidden; border: var(--pane-border); border-radius: 10px; }
+.wf-canvas .vue-flow__controls-button { border-bottom: var(--pane-border); background: rgb(var(--v-theme-surface-container-low)); fill: rgb(var(--v-theme-on-surface)); }
+.wf-canvas .vue-flow__minimap { overflow: hidden; border: var(--pane-border); border-radius: 10px; background: rgb(var(--v-theme-surface-container-low)); }
+
+.wf-node {
+  --wf-radius: 12px; position: relative; width: 232px; padding: 10px 12px; border: 1px solid rgb(var(--v-theme-outline-variant));
+  border-radius: var(--wf-radius); background: rgb(var(--v-theme-surface-container-low)); color: rgb(var(--v-theme-on-surface));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06); transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.wf-node:hover { border-color: color-mix(in srgb, var(--wf-accent) 60%, transparent); }
+.wf-node--trigger { border-radius: 28px var(--wf-radius) var(--wf-radius) 28px; padding-left: 14px; }
+.wf-node--selected { border-color: var(--wf-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--wf-accent) 28%, transparent), 0 4px 14px rgba(0, 0, 0, 0.14); }
+.wf-node--unknown { border-style: dashed; }
+.wf-node--ran { outline: 2px solid rgb(var(--v-theme-success)); outline-offset: 2px; }
+.wf-node__body { display: flex; align-items: center; gap: 10px; }
+.wf-node__icon { flex: 0 0 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: color-mix(in srgb, var(--wf-accent) 16%, transparent); color: var(--wf-accent); }
+.wf-node--trigger .wf-node__icon { border-radius: 50%; }
+.wf-node__text { min-width: 0; flex: 1; }
+.wf-node__title { font-size: 0.8125rem; font-weight: 600; line-height: 1.15rem; overflow-wrap: anywhere; }
+.wf-node__meta { display: flex; align-items: center; gap: 2px; color: rgb(var(--v-theme-on-surface-variant)); font-size: 0.6875rem; line-height: 1rem; }
+.wf-node--trigger .wf-node__meta { color: var(--wf-accent); font-weight: 500; }
+.wf-node__id { color: rgb(var(--v-theme-on-surface-variant)); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.6875rem; overflow-wrap: anywhere; }
+.wf-node__outcomes { display: grid; gap: 2px; margin: 8px -12px 0 0; padding-top: 6px; border-top: 1px solid rgb(var(--v-theme-outline-variant)); }
+.wf-node__outcome { position: relative; padding-right: 14px; color: rgb(var(--v-theme-on-surface-variant)); font-size: 0.6875rem; line-height: 1.25rem; text-align: right; }
+.wf-node .vue-flow__handle { width: 11px; height: 11px; border: 2px solid var(--wf-accent); background: rgb(var(--v-theme-surface)); }
+.wf-node .vue-flow__handle-left { left: -6px; }
+.wf-node .vue-flow__handle-right { right: -6px; }
+.wf-node .vue-flow__handle:hover { background: var(--wf-accent); }
+
+.wf-inspector { width: 380px; flex: 0 0 380px; border-left: var(--pane-border); }
+.wf-inspector .wf-pane__scroll { padding: 4px 16px 16px; }
+.wf-hero { display: flex; align-items: center; gap: 12px; }
+.wf-hero__icon { flex: 0 0 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; background: color-mix(in srgb, var(--wf-accent) 16%, transparent); color: var(--wf-accent); }
+.wf-hero__title { font-size: 1rem; font-weight: 600; line-height: 1.375rem; }
+.wf-hero__meta { color: rgb(var(--v-theme-on-surface-variant)); font-size: 0.75rem; overflow-wrap: anywhere; }
+.wf-description { margin: 10px 0 0; color: rgb(var(--v-theme-on-surface-variant)); font-size: 0.8125rem; line-height: 1.25rem; }
+.wf-section { margin-top: 18px; }
+.wf-section__title { margin-bottom: 8px; color: rgb(var(--v-theme-on-surface-variant)); font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.wf-input { margin-bottom: 14px; }
+.wf-input__label { min-height: 28px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.8125rem; font-weight: 500; }
+.wf-input__hint { margin-top: 4px; color: rgb(var(--v-theme-on-surface-variant)); font-size: 0.6875rem; line-height: 1rem; }
+.wf-language { max-width: 128px; flex: 0 0 auto; }
+.wf-language .v-field__input { min-height: 28px; padding-top: 0; padding-bottom: 0; color: rgb(var(--v-theme-primary)); font-size: 0.75rem; }
+.wf-code textarea { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.8125rem; }
+.wf-value-row { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; border-bottom: var(--pane-border); font-size: 0.8125rem; }
+.wf-value-row code { color: rgb(var(--v-theme-primary)); font-size: 0.75rem; }
+
+@media (max-width: 960px) {
+  .wf-body { height: auto; flex-direction: column; }
+  .wf-palette, .wf-palette--collapsed, .wf-inspector { width: auto; flex-basis: auto; max-height: 360px; border: 0; }
+  .wf-canvas { height: 520px; flex: 0 0 auto; }
+}

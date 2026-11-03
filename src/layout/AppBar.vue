@@ -1,48 +1,98 @@
 <template>
-  <v-navigation-drawer v-model="drawer" class="fixedAppBar">
-    <v-list density="compact" nav>
-      <v-list-item prepend-icon="home" title="Home" to="/"></v-list-item>
-      <v-list-item prepend-icon="settings" title="Configure" to="/nodes"></v-list-item>
-      <v-list-item prepend-icon="fact_check" title="Workflows" :href="workflowNode?.nodeBaseUrl" :disabled="workflowNode == undefined" target="_blank"
-                  :subtitle="workflowNode?.name ?? 'offline'"></v-list-item>
-      <v-list-item prepend-icon="functions" title="Variables" to="/variables"></v-list-item>
-      <v-list-item prepend-icon="hub" title="Matter" to="/matter"></v-list-item>
-      <v-list-item prepend-icon="backup" title="Backup" to="/backup"></v-list-item>
-      <v-list-item prepend-icon="monitor_heart" title="System" to="/system"></v-list-item>
-      <v-list-item prepend-icon="dashboard" title="Dashboard" to="/dash"></v-list-item>
+  <v-app-bar flat color="surface" border="b">
+    <v-app-bar-nav-icon aria-label="Toggle navigation" @click="mobile ? (drawer = !drawer) : (rail = !rail)" />
+    <v-app-bar-title>
+      <router-link to="/" class="brand" aria-label="RIoT2 home">
+        <img src="../assets/riot_logo.png" alt="" class="brand__logo" />
+        <span class="brand__name">RIoT2</span>
+      </router-link>
+    </v-app-bar-title>
+    <v-menu location="bottom end">
+      <template #activator="{ props: menu }">
+        <v-btn v-bind="menu" :icon="themeIcon" aria-label="Theme" variant="text" />
+      </template>
+      <v-list density="compact" nav :selected="[choice]" color="primary" @update:selected="(v: unknown[]) => setTheme(v[0] as ThemeChoice)">
+        <v-list-item v-for="option in themeOptions" :key="option.value" :value="option.value" :title="option.title" :prepend-icon="option.icon" rounded="lg" />
+      </v-list>
+    </v-menu>
+    <v-chip class="mr-4" variant="tonal" prepend-icon="mdi-account-circle-outline">admin</v-chip>
+  </v-app-bar>
+
+  <v-navigation-drawer v-model="drawer" :rail="rail && !mobile" :temporary="mobile" color="surface-container-low" border="0">
+    <v-list density="comfortable" nav color="primary">
+      <v-list-item v-for="item in main" :key="item.to" :to="item.to" :exact="item.to === '/'" :title="item.title" :prepend-icon="item.icon" rounded="xl" />
+      <v-divider class="my-2" />
+      <v-list-subheader v-if="!rail || mobile">Automation</v-list-subheader>
+      <v-list-item to="/workflows" title="Workflows" prepend-icon="mdi-sitemap-outline" rounded="xl" />
+      <v-list-item to="/ai" title="AI models" prepend-icon="mdi-robot-outline" rounded="xl" />
+      <v-divider class="my-2" />
+      <v-list-subheader v-if="!rail || mobile">Administration</v-list-subheader>
+      <v-list-item v-for="item in administration" :key="item.to" :to="item.to" :title="item.title" :prepend-icon="item.icon" rounded="xl" />
     </v-list>
   </v-navigation-drawer>
-
-  <v-app-bar class="fixedAppBar">
-    <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-
-    <v-app-bar-title>RIoT2</v-app-bar-title>
-    <v-spacer />
-    <p class="mr-8 ">@admin</p>
-  </v-app-bar>
 </template>
 
 <script lang="ts" setup>
-import { useNodesStore } from '@/stores/nodesStore';
-import { storeToRefs } from 'pinia';
-import { onMounted, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { useDisplay, useTheme } from 'vuetify';
+import { themeStorageKey, type ThemeChoice } from '@/plugins/vuetify';
 
-const drawer = ref(false);
-const nodes = useNodesStore();
-// The Workflows entry links to Elsa Studio while the workflow engine is online.
-const { workflowNode } = storeToRefs(nodes);
+// The shell of Dls (ADR 0016): a flat app bar, and a navigation drawer that shrinks to a rail on wide screens and
+// overlays the page on narrow ones.
+const { mobile } = useDisplay();
+const theme = useTheme();
+const drawer = ref(true);
+const rail = ref(false);
+watch(mobile, isMobile => { drawer.value = !isMobile; }, { immediate: true });
 
-onMounted(() => {
-  nodes.loadOnline();
-});
+const main = [
+  { to: '/', title: 'Home', icon: 'mdi-home-outline' },
+  { to: '/dash', title: 'Dashboard', icon: 'mdi-view-dashboard-outline' },
+  { to: '/nodes', title: 'Configure', icon: 'mdi-cog-outline' },
+  { to: '/variables', title: 'Variables', icon: 'mdi-variable' },
+];
+const administration = [
+  { to: '/matter', title: 'Matter', icon: 'mdi-hub-outline' },
+  { to: '/backup', title: 'Backup', icon: 'mdi-backup-restore' },
+  { to: '/system', title: 'System', icon: 'mdi-heart-pulse' },
+];
+
+const themeOptions: { value: ThemeChoice, title: string, icon: string }[] = [
+  { value: 'light', title: 'Light', icon: 'mdi-weather-sunny' },
+  { value: 'dark', title: 'Dark', icon: 'mdi-weather-night' },
+  { value: 'system', title: 'System', icon: 'mdi-theme-light-dark' },
+];
+const choice = ref<ThemeChoice>(theme.isSystem.value ? 'system' : theme.global.name.value as ThemeChoice);
+const themeIcon = computed(() => themeOptions.find(option => option.value === choice.value)?.icon ?? 'mdi-theme-light-dark');
+
+function setTheme(next: ThemeChoice | undefined) {
+  if (next == null)
+    return;
+  choice.value = next;
+  theme.change(next);
+  try {
+    globalThis.localStorage?.setItem(themeStorageKey, next);
+  } catch {
+    // Private browsing: the choice lasts until the page reloads.
+  }
+}
 </script>
+
 <style scoped>
-.fixedAppBar {
-    position: fixed !important;
-    left: 0;
-    width: 100%;
-    margin-top: 0px;
-    z-index: 100;
+.brand {
+  color: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand__logo {
+  height: 32px;
+}
+
+.brand__name {
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 </style>
-

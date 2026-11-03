@@ -44,14 +44,14 @@ function time(value: string | null | undefined): string {
     <v-row>
       <v-col cols="12" md="6">
         <v-card>
-          <v-card-title class="text-subtitle-1">This browser</v-card-title>
+          <v-card-title class="text-body-large">This browser</v-card-title>
           <v-card-text>
             <div>
-              <v-icon :color="connection.mqttConnected ? 'green' : 'red'" class="me-1">{{ connection.mqttConnected ? 'sync' : 'sync_disabled' }}</v-icon>
+              <v-icon :color="connection.mqttConnected ? 'green' : 'red'" class="me-1" :icon="connection.mqttConnected ? 'mdi-sync' : 'mdi-sync-off'"></v-icon>
               Live updates: {{ connection.mqttConnected ? 'connected' : 'disconnected' }}
             </div>
             <div>
-              <v-icon :color="connection.apiReachable ? 'green' : 'red'" class="me-1">{{ connection.apiReachable ? 'cloud_done' : 'cloud_off' }}</v-icon>
+              <v-icon :color="connection.apiReachable ? 'green' : 'red'" class="me-1" :icon="connection.apiReachable ? 'mdi-cloud-check-outline' : 'mdi-cloud-off-outline'"></v-icon>
               Orchestrator API: {{ connection.apiReachable ? 'answers' : 'no answer' }}{{ connection.apiError && !connection.apiReachable ? ': ' + connection.apiError : '' }}
             </div>
           </v-card-text>
@@ -59,10 +59,10 @@ function time(value: string | null | undefined): string {
       </v-col>
       <v-col cols="12" md="6">
         <v-card>
-          <v-card-title class="text-subtitle-1">
+          <v-card-title class="text-body-large">
             Orchestrator
             <v-chip v-if="health" size="small" label :color="checkColor(health.orchestrator.status)" class="ms-2">{{ health.orchestrator.status }}</v-chip>
-            <v-btn icon="refresh" variant="text" size="small" class="float-right" :loading="loading" @click="load()" />
+            <v-btn icon="mdi-refresh" variant="text" size="small" class="float-right" :loading="loading" @click="load()" />
           </v-card-title>
           <v-card-text v-if="health">
             <div>Version {{ health.orchestrator.version ?? 'unknown' }}, running for {{ formatDuration(now - Date.parse(health.orchestrator.started)) }} (since {{ time(health.orchestrator.started) }})</div>
@@ -83,12 +83,12 @@ function time(value: string | null | undefined): string {
     </v-row>
     <v-row v-if="health">
       <v-col cols="12">
-        <div class="text-subtitle-1 mb-2">Nodes, connectors and workflow engines</div>
+        <div class="text-body-large mb-2">Nodes, connectors and workflow engines</div>
         <NodeHealthList :nodes="health.nodes" :started="health.orchestrator.started" :now="now" />
       </v-col>
       <v-col cols="12">
         <v-card>
-          <v-card-title class="text-subtitle-1">Delivery queue</v-card-title>
+          <v-card-title class="text-body-large">Delivery queue</v-card-title>
           <v-card-text>
             <OutboxSummaryPanel :outbox="health.outbox" />
           </v-card-text>

@@ -9,7 +9,7 @@ import { useNodesStore } from '@/stores/nodesStore';
 import { parameterDefinitionsKey, parameterFields, type ParameterDefinitionMap } from '@/composables/deviceParameters';
 import DeviceParameterField from './DeviceParameterField.vue';
 
-const model = defineModel<DeviceConfiguration>({ default: new DeviceConfiguration() });
+const model = defineModel<DeviceConfiguration>({ default: () => new DeviceConfiguration() });
 
 defineProps<{
   state: DeviceStatus | null
@@ -95,12 +95,12 @@ onMounted(() => {
       <v-text-field v-model="model.classFullName" required hide-details label="Device Class Fullname" />
     </v-col>
     <v-col cols="6">
-      <v-text-field v-model="model.refreshSchedule" variant="solo" density="compact" hint="cron: '0 0 * ? * * *' or leave empty if refresh is done automatically."
+      <v-text-field v-model="model.refreshSchedule" density="compact" hint="cron: '0 0 * ? * * *' or leave empty if refresh is done automatically."
           label="Device Refresh Schedule" @update:focused="validateCron">
           <template v-slot:append-inner>
             <v-tooltip v-if="cronValidationResult != null" location="bottom" activator="parent">
               <template v-slot:activator>
-                <v-icon :color="(cronValidationResult.isValid ? 'primary' : 'error')" :icon="(cronValidationResult.isValid ? 'check' : 'error')" />
+                <v-icon :color="(cronValidationResult.isValid ? 'primary' : 'error')" :icon="cronValidationResult.isValid ? 'mdi-check' : 'mdi-alert-circle'" />
               </template>
               <span class="cron-tooltip">{{ cronTooltipText() }}</span>
             </v-tooltip>
@@ -123,22 +123,22 @@ onMounted(() => {
     </v-row>
     <v-row>
       <v-col>
-        <v-btn size="small" class="mt-6 mb-6" rounded="0" color="blue-darken-1" variant="outlined" @click="addParameter">
-          <v-icon>add</v-icon>
+        <v-btn size="small" class="mt-6 mb-6" color="primary" variant="outlined" @click="addParameter">
+          <v-icon icon="mdi-plus" />
           new parameter
         </v-btn>
       </v-col>
       <v-col class="text-right">
         <v-tooltip text="Device not running. Set the device parameters and save." v-if="state?.state != DeviceState.running" location="left" open-on-click :open-on-hover="false">
           <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" size="small" class="mt-6 mb-6 disabled" rounded="0" color="error" variant="outlined">
-              <v-icon>cached</v-icon>
+            <v-btn v-bind="props" size="small" class="mt-6 mb-6 disabled" color="error" variant="outlined">
+              <v-icon icon="mdi-cached" />
               load templates
             </v-btn>
           </template>
         </v-tooltip>
-        <v-btn v-else size="small" class="mt-6 mb-6" rounded="0" color="error" variant="outlined" @click="emit('reload', model.id)">
-          <v-icon>cached</v-icon>
+        <v-btn v-else size="small" class="mt-6 mb-6" color="error" variant="outlined" @click="emit('reload', model.id)">
+          <v-icon icon="mdi-cached" />
           load templates
         </v-btn>
       </v-col>
@@ -162,8 +162,8 @@ onMounted(() => {
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn color="blue-darken-1" variant="text" @click="newParameterDialog = false">cancel</v-btn>
-        <v-btn color="blue-darken-1" variant="text" @click="saveParameter">save</v-btn>
+        <v-btn color="primary" variant="text" @click="newParameterDialog = false">cancel</v-btn>
+        <v-btn color="primary" variant="text" @click="saveParameter">save</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

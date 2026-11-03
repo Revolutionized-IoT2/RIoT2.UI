@@ -33,7 +33,7 @@ function add() {
   <v-dialog v-model="open" scrollable width="80%">
     <v-card>
       <v-toolbar color="primary" density="compact" flat>
-        <v-toolbar-title class="text-body-2 font-weight-bold">
+        <v-toolbar-title class="text-body-medium font-weight-bold">
           Select device template
         </v-toolbar-title>
       </v-toolbar>
@@ -44,12 +44,12 @@ function add() {
       <v-divider />
       <v-card-actions>
         <v-spacer />
-        <v-btn rounded="0" color="error" variant="outlined" @click="open = false">
-          <v-icon size="small">cancel</v-icon>
+        <v-btn color="error" variant="outlined" @click="open = false">
+          <v-icon size="small" icon="mdi-close-circle-outline" />
           cancel
         </v-btn>
         <v-btn :disabled="selected.length < 1" rounded="0" color="success" variant="outlined" @click="add">
-          <v-icon size="small">add</v-icon>
+          <v-icon size="small" icon="mdi-plus" />
           add
         </v-btn>
       </v-card-actions>

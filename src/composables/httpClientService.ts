@@ -24,6 +24,10 @@ export function responseDetail(error: unknown): string | null {
         return data;
     if (data != null && typeof data === 'object' && typeof (data as { detail?: unknown }).detail === 'string')
         return (data as { detail: string }).detail;
+    // A refused workflow save or LLM connection lists its problems.
+    const errors = (data as { errors?: unknown } | null)?.errors;
+    if (Array.isArray(errors) && errors.length > 0 && errors.every(x => typeof x === 'string'))
+        return errors.join('; ');
     return null;
 }
 
@@ -78,6 +82,14 @@ export function useHttpClient() {
         }
     }
 
+    async function put<T, R>(url: string, data: T, config?: AxiosRequestConfig): Promise<R | null> {
+        try {
+            return succeeded((await axios.put<R>(url, data, config)).data);
+        } catch (error) {
+            throw failed(error, url);
+        }
+    }
+
     async function remove<R>(url: string): Promise<R | null> {
         try {
             return succeeded((await axios.delete<R>(url)).data);
@@ -89,6 +101,7 @@ export function useHttpClient() {
     return {
         get,
         post,
+        put,
         delete: remove
     };
 }

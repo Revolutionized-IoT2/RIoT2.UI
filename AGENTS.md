@@ -8,8 +8,9 @@ workspace map, platform-wide rules and the documentation rules. In the local wor
 
 ## What this is
 
-A Vue 3 + TypeScript + Vite dashboard for the RIoT2 platform, styled with Vuetify and served by
-nginx. It consumes orchestrator HTTP APIs, MQTT report topics over MQTT.js WebSockets, and announces
+A Vue 3 + TypeScript + Vite dashboard for the RIoT2 platform, styled with Vuetify (Material 3,
+ported from the maintainer's Dls project) and served by nginx. It is also the workflow designer
+(Vue Flow) and manages the Run LLM connections ([ADR 0016](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0016-integrated-workflows-and-llm.md)). It consumes orchestrator HTTP APIs, MQTT report topics over MQTT.js WebSockets, and announces
 itself as a Dashboard node so the orchestrator can send its API base URL.
 
 ## Commands
@@ -21,6 +22,7 @@ npm install
 npm run dev
 npm run lint
 npm test
+npm run new-card -- <kind>
 npm run typecheck
 npm run build
 npm run preview
@@ -28,8 +30,12 @@ docker build -t riot2-ui:local .
 ```
 
 - `npm run dev`: Vite dev server (`vite --force`).
+- `npm run new-card -- <kind> ["Title"]`: a new dashboard card type in `src/dashboard/cards/<kind>/`.
 - `npm run lint`: ESLint over `src/` (`eslint.config.mjs`). Errors fail CI; `any` is an error.
-- `npm test`: offline regressions (`node --test tests/*.test.cjs`). `tests/contracts.test.cjs`
+- `npm test`: Vitest (`vitest.config.ts`). `tests/*.test.mjs` load sources through
+  `tests/source-loader.cjs` (CommonJS, so the code and the test share one Vue and Pinia);
+  `tests/dashboard/*.test.ts` import sources and mount cards in jsdom (`tests/support/mount.ts`).
+  jsdom needs Node.js 22.22 or 24.15+, as CI and the image use. `tests/contracts.test.mjs`
   reads `../RIoT2.Net.Orchestrator/openapi/riot2-orchestrator.json` and
   `../RIoT2.Core/contracts/golden`; check them out next to this repository. Add every new
   orchestrator URL to `src/models/constants.ts` and call it through `httpClient` in
@@ -57,14 +63,20 @@ docker build -t riot2-ui:local .
 | `src/composables/deviceParameters.ts`, `components/devices/DeviceParameterField.vue` | Typed parameter fields from `parameterDefinitions` (provided by `NodeEditorDialog`); free text without them |
 | `src/composables/api/` | Promise-based REST calls per resource; they reject with `ApiError` (`httpClientService.ts`) |
 | `src/composables/statusLook.ts` | Sync, command-delivery and connector-health looks; `commandsStore` follows deliveries, `nodesStore.refreshSync` and `loadConnectors` are the quiet polls the Configure page runs |
-| `src/stores/` | Pinia stores (nodes, templates, variables, dashboard, commands, Matter, backup, system) with `loading`/`error` from `requests.ts` |
+| `src/stores/` | Pinia stores (nodes, templates, variables, dashboard, commands, Matter, backup, system, workflows, llm) with `loading`/`error` from `requests.ts` |
+| `src/views/WorkflowsView.vue`, `WorkflowDesignerView.vue`, `components/workflows/` | The workflow list and designer: `WorkflowPalette`, `WorkflowNode`, `WorkflowInspector`, `ActivityInputEditor`, `RiotSelectorInput`, `WorkflowRunsPanel` |
+| `src/composables/workflowGraph.ts`, `workflowAppearance.ts`, `assets/workflow-designer.css` | Model ⇄ Vue Flow conversion, inputs, the RIoT selector literal, `validateFlow`; activity colours and icons; the canvas styles |
+| `src/views/AiModelsView.vue`, `components/ai/` | Language model connections (`LlmConnectionDialog`) and usage (`LlmUsagePanel`) |
+| `src/plugins/vuetify.ts` | The MD3 blueprint, the Dls light and dark themes (stored as `riot2.theme`), defaults and the hybrid icon set |
 | `src/components/nodes/`, `src/components/devices/` | Parts of the Configure page: node list, editor dialog, device list and template picker; device parameters and template tables |
 | `src/models/` | TypeScript models and constants for REST routes, topics, dashboards, nodes and variables |
 | `src/models/generated/` | `contracts.ts`, generated from the RIoT2.Core contract schema: don't edit |
-| `src/components/dashboardComponents/` | Dashboard widget components |
+| `src/dashboard/` | The dashboard card kit ([README](src/dashboard/README.md)): `sdk/` (defineCard, registry, composables, capabilities, model), `components/` (CardShell, SparkLine, CommandStatus), `cards/<kind>/`, `editor/`, `view/` |
+| `src/views/DashboardView.vue`, `stores/dashboardStore.ts` | The dashboard routes (`/dashboard`, `/dashboard/fullscreen`, `/dash`, `/dashboard/edit`) and its state: load, save, `dirty`, editor operations, import |
+| `src/components/` | Shared parts: `PageHeader`, `IconField`, `ColorField`, `SchemaValueInput` (forms from a value schema), `RelativeTime`, `UnsavedChangesDialog` (with `composables/unsavedChanges.ts`) |
 | `src/views/` | Route-level pages |
 | `src/layout/` | Vuetify app shell and navigation drawer |
-| `tests/` | Node.js regression tests |
+| `tests/` | Vitest tests: `*.test.mjs` (source loader), `dashboard/*.test.ts` (kit, store, cards) |
 | `Dockerfile`, `nginx.conf`, `entrypoint.sh` | Production container build (base images pinned by digest; Renovate updates them), nginx config, runtime env substitution and the `/api` proxy (`ORCHESTRATOR_UPSTREAM`, written to `/etc/nginx/riot2/api.conf`) |
 
 ## Contracts consumed here
@@ -97,9 +109,14 @@ docker build -t riot2-ui:local .
 - Vue components use `<script setup lang="ts">` and Composition API patterns.
 - Elsa 3 is the only workflow engine. Do not reintroduce the retired internal rule editor,
   simulator, `/rules` routes, `/api/rules` helpers or function-template loading.
-- Preserve the workflow-node discovery contract (`useNodesStore().workflowNode`, shown in
-  `src/layout/AppBar.vue`): `GET /api/nodes/online` finds `NodeType.workflow` (`3`) and uses its
-  `nodeBaseUrl` for the external Studio link.
+- Workflows go through the orchestrator's `/api/workflows` only, never to Elsa directly; don't link
+  to an external Studio. The designer must keep every property of the definition model it doesn't
+  edit (`flowToModel` spreads the original activity), and the RIoT selector writes Studio's literal:
+  PascalCase keys in Studio's order, numeric enums (`selectionText`). Saved workflows depend on both.
+- A new activity gets a colour and icon in `workflowAppearance.ts`. Activity inputs are edited from
+  the catalog's `uiHint`; add a case to `ActivityInputEditor` for a new hint.
+- Icons: Vuetify components take `mdi-…` names; dashboards store Material Icons names, which the
+  hybrid icon set in `vuetify.ts` still renders. Keep both working.
 - Dashboard commands use `POST /api/command/execute` with `{ id, value }`. Variable actions load
   `GET /api/nodes/variables`, modify only the value on the selected DTO, and save via
   `POST /api/nodes/variable/save`.
@@ -122,6 +139,10 @@ docker build -t riot2-ui:local .
 - Live state goes through `createRealtimeTransport` (`src/composables/realtime.ts`): `mqtt` today,
   `gateway` only when `/api/security/info` says so (a placeholder until I50).
 - `src/composables/mqttService.ts` hard-codes the broker WebSocket port to 9001.
+- Vue Flow needs its own CSS (`@vue-flow/core/dist/style.css` and the theme) and a sized parent; the
+  designer chunk is large, so keep it lazy-loaded through the router.
+- `<script setup>` can't `export`: shared types and helpers for the designer live in
+  `workflowGraph.ts`, which `tests/workflow-graph.test.mjs` loads directly.
 - MQTT.js automatic resubscription is left enabled. The UI's own reconnect backoff starts at
   4 seconds, then grows to 8, 16 and a maximum of 30 seconds.
 - Type-check with `vue-tsc --build`: the root `tsconfig.json` lists no files, so `vue-tsc --noEmit`
@@ -132,8 +153,15 @@ docker build -t riot2-ui:local .
   format, so only the label says "Persistent".
 - `entrypoint.sh` renders the MQTT settings into `assets/index*.js` only, so `src/app.config.ts`
   must stay in the entry chunk (see `manualChunks` in `vite.config.ts`).
-- The tests load source files into a VM context: errors thrown there aren't `instanceof Error` in
-  the test, and stores need `setActivePinia(createPinia())` first.
+- `tests/*.test.mjs` load source files into a VM context: errors thrown there aren't `instanceof
+  Error` in the test, and stores need `setActivePinia(createPinia())` first. TypeScript 6 turns on
+  `esModuleInterop`, so a mock with a default export needs `__esModule: true`.
+- `src/dashboard/sdk/registry.ts` uses `import.meta.glob`: test it with Vitest imports, not the
+  source loader.
+- The dashboard grid uses container queries on its own width, so the editor's preview frame and an
+  embedded dashboard lay out like a phone at phone width. `DashboardGrid` keeps the add tile out of
+  the sortable items (`draggable=".card-slot--item"`).
+- `package.json` is `"type": "module"`; CommonJS files must be `.cjs`.
 - `nginx.conf` intentionally leaves CSP commented out until the actual orchestrator and MQTT
   endpoints are known.
 - The image runs nginx as UID 101 on port 8080 (`nginx-unprivileged`). `entrypoint.sh` rewrites

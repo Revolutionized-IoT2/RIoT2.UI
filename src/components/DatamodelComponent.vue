@@ -196,11 +196,11 @@ defineExpose({
     <div>
         <v-card-actions class="pl-0 pr-0 h-40" v-if="labeltext != undefined || expandable">
          <v-card-subtitle v-if="labeltext != undefined" class="pl-0 v-label--active">{{labeltext}}
-            <v-icon size="x-small" @click="copyCode" class="ml-4">content_copy</v-icon>
+            <v-icon size="x-small" @click="copyCode" class="ml-4" icon="mdi-content-copy" />
          </v-card-subtitle>
           <v-spacer></v-spacer>
         <v-btn v-if="expandable" icon @click="expandedState = !expandedState" class="pr-0 pl-0" small>
-            <v-icon class="pl-0">{{ expandedState ? 'arrow_drop_up' : 'arrow_drop_down' }}</v-icon>
+            <v-icon class="pl-0" :icon="expandedState ? 'mdi-menu-up' : 'mdi-menu-down'" />
         </v-btn>
         </v-card-actions>
         <v-expand-transition>
@@ -249,12 +249,12 @@ defineExpose({
                 <v-divider></v-divider>
                 <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn v-if="editable" color="blue" variant="text" @click="editModeClick">
-                            <v-icon>edit</v-icon>
+                <v-btn v-if="editable" color="primary" variant="text" @click="editModeClick">
+                            <v-icon icon="mdi-pencil" />
                         {{editMode?'save':'edit'}}
                     </v-btn>
-                <v-btn color="blue" variant="text" @click="closeDialog">
-                    <v-icon>close</v-icon>
+                <v-btn color="primary" variant="text" @click="closeDialog">
+                    <v-icon icon="mdi-close" />
                     close
                 </v-btn>
                 </v-card-actions>

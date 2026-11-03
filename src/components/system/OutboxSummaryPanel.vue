@@ -31,7 +31,7 @@ function time(value: string): string {
 
 <template>
   <div>
-    <div class="text-caption mb-2">Commands to nodes and workflow triggers; delivered messages are kept for 24 hours.</div>
+    <div class="text-body-small mb-2">Commands to nodes and workflow triggers; delivered messages are kept for 24 hours.</div>
     <div class="mb-4">
       <v-chip v-for="[status, count] in statuses" :key="status" :color="statusColor(status)" class="me-2 mb-1" label size="small">
         {{ status }}: {{ count }}
@@ -45,7 +45,7 @@ function time(value: string): string {
     <div v-else class="mb-4">Nothing is waiting.</div>
     <v-data-table :items="outbox?.lastErrors ?? []" :headers="errorHeaders" density="compact" hide-default-footer>
       <template v-slot:top>
-        <div class="text-subtitle-2">Last errors</div>
+        <div class="text-title-small">Last errors</div>
       </template>
       <template v-slot:item.updated="{ item }">{{ time(item.updated) }}</template>
       <template v-slot:no-data>

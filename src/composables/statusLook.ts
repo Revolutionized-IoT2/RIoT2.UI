@@ -41,23 +41,23 @@ export function syncLook(node: NodeSync): StatusLook {
       const failed = node.failedDevices ?? [];
       if (failed.length > 0)
         return {
-          label: 'in sync', color: 'orange', icon: 'warning',
+          label: 'in sync', color: 'orange', icon: 'mdi-alert',
           detail: lines(revision, `${failed.length} device(s) not running:`, ...failed.map(d => `${d.id}: ${d.message ?? ''}`), pluginLine)
         };
-      return { label: 'in sync', color: 'green', icon: 'check_circle', detail: lines(revision, pluginLine) };
+      return { label: 'in sync', color: 'green', icon: 'mdi-check-circle', detail: lines(revision, pluginLine) };
     }
     case 'failed':
-      return { label: 'failed', color: 'red', icon: 'error', detail: lines(node.lastError ?? 'The configuration could not be applied.', revision, pluginLine) };
+      return { label: 'failed', color: 'red', icon: 'mdi-alert-circle', detail: lines(node.lastError ?? 'The configuration could not be applied.', revision, pluginLine) };
     case 'legacy':
-      return { label: 'legacy', color: 'grey', icon: 'help_outline', detail: lines("The node doesn't report its configuration.", pluginLine) };
+      return { label: 'legacy', color: 'grey', icon: 'mdi-help-circle-outline', detail: lines("The node doesn't report its configuration.", pluginLine) };
     case 'pending':
       if (!node.isOnline)
-        return { label: 'offline', color: 'grey', icon: 'cloud_off', detail: lines('The node gets its configuration when it comes online.', revision, pluginLine) };
+        return { label: 'offline', color: 'grey', icon: 'mdi-cloud-off-outline', detail: lines('The node gets its configuration when it comes online.', revision, pluginLine) };
       if (node.configurationState == 'pendingRestart')
-        return { label: 'restarting', color: 'blue', icon: 'restart_alt', detail: lines('The node restarts to install a new plugin package.', revision, pluginLine) };
-      return { label: 'applying', color: 'blue', icon: 'sync', detail: lines(revision, pluginLine) };
+        return { label: 'restarting', color: 'blue', icon: 'mdi-restart', detail: lines('The node restarts to install a new plugin package.', revision, pluginLine) };
+      return { label: 'applying', color: 'blue', icon: 'mdi-sync', detail: lines(revision, pluginLine) };
     default:
-      return { label: 'unknown', color: 'grey', icon: 'help_outline', detail: lines('The orchestrator reports no sync state.') };
+      return { label: 'unknown', color: 'grey', icon: 'mdi-help-circle-outline', detail: lines('The orchestrator reports no sync state.') };
   }
 }
 
@@ -85,26 +85,26 @@ export function spoolLine(connector: ConnectorInfo): string | null {
  */
 export function connectorLook(connector: ConnectorInfo): StatusLook {
   if (connector.nodeBaseUrl == null || connector.nodeBaseUrl === '')
-    return { label: 'online', color: 'green', icon: 'cloud_done', detail: ['Set RIOT2_CONNECTOR_URL on the connector to see its health.'] };
+    return { label: 'online', color: 'green', icon: 'mdi-cloud-check-outline', detail: ['Set RIOT2_CONNECTOR_URL on the connector to see its health.'] };
   const health = connector.health;
   if (health == null)
-    return { label: 'unreachable', color: 'orange', icon: 'cloud_off', detail: lines(connector.healthError ?? 'The connector did not answer.', connector.nodeBaseUrl) };
+    return { label: 'unreachable', color: 'orange', icon: 'mdi-cloud-off-outline', detail: lines(connector.healthError ?? 'The connector did not answer.', connector.nodeBaseUrl) };
   const spool = spoolLine(connector);
   switch (health.status) {
     case 'ok':
-      return { label: 'ok', color: 'green', icon: 'check_circle', detail: [] };
+      return { label: 'ok', color: 'green', icon: 'mdi-check-circle', detail: [] };
     case 'degraded':
       return {
-        label: 'degraded', color: 'orange', icon: 'warning',
+        label: 'degraded', color: 'orange', icon: 'mdi-alert',
         detail: lines(health.sink ? null : "The connector's target doesn't answer.", spool)
       };
     case 'unhealthy':
       return {
-        label: 'unhealthy', color: 'red', icon: 'error',
+        label: 'unhealthy', color: 'red', icon: 'mdi-alert-circle',
         detail: lines(health.mqtt ? null : 'Not connected to MQTT.', health.sink ? null : "The connector's target doesn't answer.", spool)
       };
     default:
-      return { label: 'unknown', color: 'grey', icon: 'help_outline', detail: lines(`Health status "${health.status}"`, spool) };
+      return { label: 'unknown', color: 'grey', icon: 'mdi-help-circle-outline', detail: lines(`Health status "${health.status}"`, spool) };
   }
 }
 
@@ -113,17 +113,17 @@ export function commandLook(delivery: CommandDelivery): StatusLook {
   const error = delivery.error ? [delivery.error] : [];
   switch (delivery.status) {
     case 'pending':
-      return { label: 'sending', color: 'blue', icon: 'schedule', detail: delivery.attempts > 0 ? [`Attempt ${delivery.attempts + 1}`, ...error] : [] };
+      return { label: 'sending', color: 'blue', icon: 'mdi-clock-outline', detail: delivery.attempts > 0 ? [`Attempt ${delivery.attempts + 1}`, ...error] : [] };
     case 'executed':
     case 'duplicate':
-      return { label: 'done', color: 'green', icon: 'check_circle', detail: [] };
+      return { label: 'done', color: 'green', icon: 'mdi-check-circle', detail: [] };
     case 'sent':
-      return { label: 'sent', color: 'grey', icon: 'done', detail: ["The node doesn't report results."] };
+      return { label: 'sent', color: 'grey', icon: 'mdi-check', detail: ["The node doesn't report results."] };
     case 'unknownCommand':
-      return { label: 'unknown command', color: 'red', icon: 'error', detail: ['No device on the node owns the command.', ...error] };
+      return { label: 'unknown command', color: 'red', icon: 'mdi-alert-circle', detail: ['No device on the node owns the command.', ...error] };
     case 'expired':
-      return { label: 'expired', color: 'red', icon: 'error', detail: ["The node didn't answer in time.", ...error] };
+      return { label: 'expired', color: 'red', icon: 'mdi-alert-circle', detail: ["The node didn't answer in time.", ...error] };
     default:
-      return { label: 'failed', color: 'red', icon: 'error', detail: error };
+      return { label: 'failed', color: 'red', icon: 'mdi-alert-circle', detail: error };
   }
 }

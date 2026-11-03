@@ -102,7 +102,7 @@ onMounted(() => {
   <v-container fluid>
     <v-row>
       <v-col cols="12" md="6">
-        <v-card class="elevation-1">
+        <v-card class="border rounded-xl">
           <v-card-title>
             <span class="headline">Configuration backup</span>
           </v-card-title>
@@ -114,8 +114,10 @@ onMounted(() => {
               A backup contains device credentials and the Matter keys. Store it like a password.
             </v-alert>
             Restoring replaces the whole configuration. The current configuration is saved on the
-            orchestrator first, so a restore can be undone from the list below. Workflows (Elsa) and
-            InfluxDB data are not included; the host backup script covers them.
+            orchestrator first, so a restore can be undone from the list below. Workflows and InfluxDB
+            data are not included (export workflows on the Workflows page); the host backup script
+            covers them. Language model connections are included, but their API keys need entering
+            again on another installation.
             <v-alert v-if="restored" type="success" density="compact" class="mt-4" closable @click:close="restored = null">
               Restored the {{ restored.kind }} backup of {{ formatTime(restored.createdAt) }}:
               {{ restored.nodes }} node(s), {{ restored.variables }} variable(s),
@@ -125,10 +127,10 @@ onMounted(() => {
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn color="blue" variant="text" prepend-icon="download" :loading="creating" @click="createBackup">
+            <v-btn color="primary" variant="text" prepend-icon="mdi-download" :loading="creating" @click="createBackup">
               Download backup
             </v-btn>
-            <v-btn color="red" variant="text" prepend-icon="restore" :loading="restoring" @click="chooseFile">
+            <v-btn color="error" variant="text" prepend-icon="mdi-restore" :loading="restoring" @click="chooseFile">
               Restore from file
             </v-btn>
             <input ref="fileInput" type="file" accept=".zip,application/zip" hidden @change="fileChosen" />
@@ -137,7 +139,7 @@ onMounted(() => {
       </v-col>
 
       <v-col cols="12" md="6">
-        <v-card class="elevation-1">
+        <v-card class="border rounded-xl">
           <v-card-title>
             <span class="headline">Scheduled backups</span>
           </v-card-title>
@@ -173,11 +175,11 @@ onMounted(() => {
           class="elevation-1"
         >
           <template v-slot:top>
-            <v-toolbar flat color="white">
+            <v-toolbar flat color="transparent">
               <v-toolbar-title>Saved backups</v-toolbar-title>
               <v-divider class="mx-4" inset vertical />
               <v-spacer />
-              <v-btn variant="text" prepend-icon="refresh" @click="loadSummary">Refresh</v-btn>
+              <v-btn variant="text" prepend-icon="mdi-refresh" @click="loadSummary">Refresh</v-btn>
             </v-toolbar>
           </template>
           <template v-slot:[`item.createdAt`]="{ item }">
@@ -187,11 +189,11 @@ onMounted(() => {
             {{ formatSize(item.sizeBytes) }}
           </template>
           <template v-slot:[`item.actions`]="{ item }">
-            <v-btn variant="text" size="small" icon="download" :href="backups.downloadUrl(item.name)" :download="item.name" />
-            <v-btn variant="text" size="small" icon="restore" :disabled="restoring" @click="chooseSaved(item.name)" />
+            <v-btn variant="text" size="small" icon="mdi-download" :href="backups.downloadUrl(item.name)" :download="item.name" />
+            <v-btn variant="text" size="small" icon="mdi-restore" :disabled="restoring" @click="chooseSaved(item.name)" />
           </template>
           <template v-slot:no-data>
-            <v-alert class="mt-3" :value="true" color="white" icon="info">
+            <v-alert class="mt-3" type="info" variant="tonal">
               <b>No saved backups.</b> Scheduled backups and the copy taken before each restore are kept here.
             </v-alert>
           </template>
@@ -213,7 +215,7 @@ onMounted(() => {
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn color="red" variant="text" @click="restore">Restore</v-btn>
+        <v-btn color="error" variant="text" @click="restore">Restore</v-btn>
         <v-btn color="blue darken-1" variant="text" @click="cancelRestore">Cancel</v-btn>
       </v-card-actions>
     </v-card>

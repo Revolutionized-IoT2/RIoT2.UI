@@ -39,8 +39,8 @@ const flag = computed({
     :hint="hint" :persistent-hint="hint != null" :hide-details="definition == null" :error-messages="error ?? undefined"
     autocomplete="off">
     <template v-slot:append-inner>
-      <v-icon v-if="isSecret" :icon="revealed ? 'visibility_off' : 'visibility'" @click="revealed = !revealed" />
-      <v-icon v-if="definition == null" icon="delete" @click="emit('remove')" />
+      <v-icon v-if="isSecret" :icon="revealed ? 'mdi-eye-off-outline' : 'mdi-eye-outline'" @click="revealed = !revealed" />
+      <v-icon v-if="definition == null" icon="mdi-delete-outline" @click="emit('remove')" />
     </template>
   </v-text-field>
 </template>

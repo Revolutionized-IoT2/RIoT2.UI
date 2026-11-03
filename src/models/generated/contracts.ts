@@ -108,6 +108,27 @@ export interface CommandTemplate {
   address?: string | null;
   model?: JsonValue;
   type: ValueType;
+  schema?: ValueSchema | null;
+}
+/**
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "ValueSchema".
+ */
+export interface ValueSchema {
+  type?: string | null;
+  title?: string | null;
+  description?: string | null;
+  unit?: string | null;
+  semantic?: string | null;
+  minimum?: number | null;
+  maximum?: number | null;
+  multipleOf?: number | null;
+  enum?: unknown[] | null;
+  properties?: {
+    [k: string]: ValueSchema;
+  } | null;
+  items?: ValueSchema | null;
+  readOnly?: boolean | null;
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
@@ -130,6 +151,11 @@ export interface DashboardComponent {
   type: DashboardComponentType;
   size: DashboardComponentSize;
   elements?: DashboardElement[] | null;
+  id?: string | null;
+  kind?: string | null;
+  settings?: {
+    [k: string]: JsonValue;
+  } | null;
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
@@ -162,6 +188,7 @@ export interface ReportTemplate {
   filters?: string[] | null;
   maintainHistory: boolean;
   model?: JsonValue;
+  schema?: ValueSchema | null;
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
@@ -191,6 +218,7 @@ export interface DashboardPage {
   name?: string | null;
   icon?: string | null;
   components?: DashboardComponent[] | null;
+  id?: string | null;
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
@@ -289,6 +317,7 @@ export interface NodeCommandTemplate {
   address: string | null;
   model: JsonValue;
   type: ValueType;
+  schema?: ValueSchema | null;
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
@@ -348,6 +377,7 @@ export interface NodeReportTemplate {
   filters: string[] | null;
   maintainHistory: boolean;
   model: JsonValue;
+  schema?: ValueSchema | null;
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema

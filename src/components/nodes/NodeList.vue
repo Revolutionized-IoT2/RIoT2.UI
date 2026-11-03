@@ -41,7 +41,7 @@ function showDeviceStatuses(node: SystemNode) {
 <template>
   <v-data-table :hide-default-footer="props.nodes.length < 10" :items="props.nodes" :headers="headers" :loading="props.loading" class="elevation-1 mt-2">
     <template v-slot:top>
-      <v-toolbar flat color="white">
+      <v-toolbar flat color="transparent">
         <v-toolbar-title>System nodes</v-toolbar-title>
         <v-divider class="mx-4" inset vertical />
       </v-toolbar>
@@ -106,9 +106,9 @@ function showDeviceStatuses(node: SystemNode) {
     <template v-slot:item.id="{ item }">
       <div class="text-end">
         <v-icon v-if="item.syncState != null && item.syncState != 'legacy'" size="small" class="me-2" :disabled="!item.isOnline"
-          title="Re-apply the configuration" @click="emit('reapply', item.id)">sync</v-icon>
-        <v-icon size="small" class="me-2" @click="emit('edit', item.id, item.name)">edit</v-icon>
-        <v-icon size="small" @click="emit('delete', item.id)">delete</v-icon>
+          title="Re-apply the configuration" @click="emit('reapply', item.id)" icon="mdi-sync" />
+        <v-icon size="small" class="me-2" @click="emit('edit', item.id, item.name)" icon="mdi-pencil" />
+        <v-icon size="small" @click="emit('delete', item.id)" icon="mdi-delete-outline" />
       </div>
     </template>
 

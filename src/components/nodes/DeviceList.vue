@@ -25,7 +25,7 @@ function deleteDevice(deviceId: string) {
 </script>
 
 <template>
-  <div v-if="devices.length > 0" class="text-subtitle-1 mb-2 font-weight-bold">Device configurations
+  <div v-if="devices.length > 0" class="text-body-large mb-2 font-weight-bold">Device configurations
     <v-divider class="border-opacity-100 mb-3" color="black" />
   </div>
   <v-expansion-panels class="mt-6">

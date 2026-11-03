@@ -20,9 +20,9 @@ watch(open, value => {
   <v-dialog v-model="open" max-width="900">
     <v-card>
       <v-toolbar color="primary" density="compact" flat>
-        <v-toolbar-title class="text-body-2 font-weight-bold">Delivery queue</v-toolbar-title>
+        <v-toolbar-title class="text-body-medium font-weight-bold">Delivery queue</v-toolbar-title>
         <v-spacer />
-        <v-btn icon="refresh" variant="text" :loading="loading" @click="commands.loadOutbox()" />
+        <v-btn icon="mdi-refresh" variant="text" :loading="loading" @click="commands.loadOutbox()" />
       </v-toolbar>
       <v-card-text class="pa-4">
         <OutboxSummaryPanel :outbox="outbox" />

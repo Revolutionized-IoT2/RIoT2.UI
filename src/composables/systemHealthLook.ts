@@ -61,12 +61,12 @@ export function nodeSyncLook(node: NodeHealth): StatusLook | null {
 export function deviceLook(device: DeviceHealth): StatusLook {
   const message = device.message ? [device.message] : [];
   switch (device.state) {
-    case DeviceState.running: return { label: 'running', color: 'green', icon: 'check_circle', detail: message };
-    case DeviceState.error: return { label: 'error', color: 'red', icon: 'error', detail: message };
-    case DeviceState.stopped: return { label: 'stopped', color: 'grey', icon: 'stop_circle', detail: message };
-    case DeviceState.initialized: return { label: 'initialized', color: 'blue', icon: 'pending', detail: message };
-    case DeviceState.unknown: return { label: 'unknown', color: 'grey', icon: 'help_outline', detail: message };
-    default: return { label: 'no answer', color: 'grey', icon: 'help_outline', detail: ['The node did not report its devices.'] };
+    case DeviceState.running: return { label: 'running', color: 'green', icon: 'mdi-check-circle', detail: message };
+    case DeviceState.error: return { label: 'error', color: 'red', icon: 'mdi-alert-circle', detail: message };
+    case DeviceState.stopped: return { label: 'stopped', color: 'grey', icon: 'mdi-stop-circle-outline', detail: message };
+    case DeviceState.initialized: return { label: 'initialized', color: 'blue', icon: 'mdi-dots-horizontal-circle-outline', detail: message };
+    case DeviceState.unknown: return { label: 'unknown', color: 'grey', icon: 'mdi-help-circle-outline', detail: message };
+    default: return { label: 'no answer', color: 'grey', icon: 'mdi-help-circle-outline', detail: ['The node did not report its devices.'] };
   }
 }
 

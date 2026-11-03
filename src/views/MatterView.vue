@@ -52,7 +52,7 @@ onMounted(() => {
       <v-col cols="12" md="6">
 
         <!-- Bridge identity -->
-        <v-card class="elevation-1">
+        <v-card class="border rounded-xl">
           <v-card-title>
             <span class="headline">Matter Control Bridge</span>
           </v-card-title>
@@ -108,8 +108,8 @@ onMounted(() => {
               {{ status.running ? 'Running' : 'Stopped' }}
             </v-chip>
             <v-spacer />
-            <v-btn color="blue" variant="text" :loading="saving" @click="saveConfiguration">Save</v-btn>
-            <v-btn color="red" variant="text" @click="resetDialog = true">Reset</v-btn>
+            <v-btn color="primary" variant="text" :loading="saving" @click="saveConfiguration">Save</v-btn>
+            <v-btn color="error" variant="text" @click="resetDialog = true">Reset</v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -117,7 +117,7 @@ onMounted(() => {
       <v-col cols="12" md="6">
 
         <!-- Onboarding -->
-        <v-card class="elevation-1">
+        <v-card class="border rounded-xl">
           <v-card-title>
             <span class="headline">Add to Google Home</span>
           </v-card-title>
@@ -127,19 +127,19 @@ onMounted(() => {
           <v-card-text>
             <div v-if="status.qrCode" class="text-center">
               <img :src="qrCodeUrl" alt="Matter onboarding QR code" class="qrCode" />
-              <div class="text-h6 mt-2">{{ status.formattedManualCode }}</div>
-              <div class="text-caption">Manual pairing code</div>
+              <div class="text-title-large mt-2">{{ status.formattedManualCode }}</div>
+              <div class="text-body-small">Manual pairing code</div>
               <v-chip :color="isPairingOpen ? 'green' : 'grey'" size="small" class="mt-3">
                 {{ isPairingOpen ? 'Pairing window open' : 'Pairing window closed' }}
               </v-chip>
             </div>
-            <v-alert v-else :value="true" color="white" icon="info">
+            <v-alert v-else type="info" variant="tonal">
               <b>The bridge is not running, so it has no onboarding code.</b>
             </v-alert>
 
             <v-divider class="my-4" />
 
-            <div class="text-subtitle-2">Commissioned fabrics</div>
+            <div class="text-title-small">Commissioned fabrics</div>
             <v-list v-if="status.fabrics.length > 0" density="compact">
               <v-list-item
                 v-for="fabric in status.fabrics"
@@ -148,11 +148,11 @@ onMounted(() => {
                 :subtitle="'Vendor ' + toHex(fabric.vendorId, 4) + ' - node ' + fabric.nodeId"
               />
             </v-list>
-            <div v-else class="text-caption">The bridge has not been commissioned yet.</div>
+            <div v-else class="text-body-small">The bridge has not been commissioned yet.</div>
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn color="blue" variant="text" :disabled="!status.running" :loading="loading" @click="openCommissioning">
+            <v-btn color="primary" variant="text" :disabled="!status.running" :loading="loading" @click="openCommissioning">
               Re-open pairing
             </v-btn>
           </v-card-actions>
@@ -174,22 +174,20 @@ onMounted(() => {
           class="elevation-1"
         >
           <template v-slot:top>
-            <v-toolbar flat color="white">
+            <v-toolbar flat color="transparent">
               <v-toolbar-title>Exposed devices</v-toolbar-title>
               <v-divider class="mx-4" inset vertical />
               <v-spacer />
-              <v-btn variant="text" prepend-icon="refresh" :disabled="!status.running" @click="refreshDevices">
+              <v-btn variant="text" prepend-icon="mdi-refresh" :disabled="!status.running" @click="refreshDevices">
                 Refresh
               </v-btn>
             </v-toolbar>
           </template>
           <template v-slot:[`item.reachable`]="{ item }">
-            <v-icon size="small" :color="item.reachable ? 'green' : 'grey'">
-              {{ item.reachable ? 'check_circle' : 'cancel' }}
-            </v-icon>
+            <v-icon size="small" :color="item.reachable ? 'green' : 'grey'" :icon="item.reachable ? 'mdi-check-circle' : 'mdi-close-circle-outline'" />
           </template>
           <template v-slot:no-data>
-            <v-alert class="mt-3" :value="true" color="white" icon="info">
+            <v-alert class="mt-3" type="info" variant="tonal">
               <b>No devices are exposed as Matter endpoints.</b>
               A device is exposed when its node plugin implements IMatterDevice and its configuration
               has been imported in the Configure view.
@@ -212,7 +210,7 @@ onMounted(() => {
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn color="red" variant="text" @click="resetBridge">Reset</v-btn>
+        <v-btn color="error" variant="text" @click="resetBridge">Reset</v-btn>
         <v-btn color="blue darken-1" variant="text" @click="resetDialog = false">Cancel</v-btn>
       </v-card-actions>
     </v-card>

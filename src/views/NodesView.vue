@@ -1,21 +1,13 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import ContextMenu from '@/components/ContextMenuComponent.vue';
+import PageHeader from '@/components/PageHeader.vue';
 import NodeList from '@/components/nodes/NodeList.vue';
 import ConnectorList from '@/components/nodes/ConnectorList.vue';
 import NodeEditorDialog from '@/components/nodes/NodeEditorDialog.vue';
 import OutboxDialog from '@/components/nodes/OutboxDialog.vue';
 import NodeConfiguration from '@/models/nodeConfiguration';
-import type { ContextMenuItem } from '@/models/contextMenuItem';
 import { useNodesStore } from '@/stores/nodesStore';
-
-const contextMenuItems: ContextMenuItem[] = [
-  { "text": "edit dashboard", "action": "edit_dashboard", "disabled": false, "icon": "dashboard" },
-  { "text": "new node", "action": "new_node", "disabled": false, "icon": "add" },
-  { "text": "delivery queue", "action": "outbox", "disabled": false, "icon": "outbox" }
-];
 
 // How often the nodes' configuration sync is refreshed while this page is open (design 7.2 phase 6).
 const syncPollMilliseconds = 3000;
@@ -24,7 +16,6 @@ const connectorPollMilliseconds = 10000;
 
 const store = useNodesStore();
 const { nodes, onlineNodes, connectors, loading } = storeToRefs(store);
-const router = useRouter();
 
 const editorOpen = ref(false);
 const editorData = ref<NodeConfiguration>(new NodeConfiguration());
@@ -40,19 +31,11 @@ const deleteDialog = ref(false);
 const nodeIdToDelete = ref("");
 const deleted = ref(false);
 
-function contextMenuAction(action: string) {
-  if (action == 'new_node') {
-    const node = new NodeConfiguration();
-    node.name = "New Node";
-    editorData.value = node;
-    editorOpen.value = true;
-  }
-
-  if (action == 'edit_dashboard')
-    router.push("dashboard/edit");
-
-  if (action == 'outbox')
-    outboxOpen.value = true;
+function newNode() {
+  const node = new NodeConfiguration();
+  node.name = "New Node";
+  editorData.value = node;
+  editorOpen.value = true;
 }
 
 async function reapply(id: string) {
@@ -112,8 +95,11 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
-    <ContextMenu :items="contextMenuItems" @click="contextMenuAction" />
-    <div class="site-content-contextmenu">
+    <PageHeader title="Nodes" subtitle="Devices and connectors, with their configuration and health." icon="mdi-cog-outline">
+      <v-btn variant="tonal" prepend-icon="mdi-tray-full" class="text-none" @click="outboxOpen = true">Delivery queue</v-btn>
+      <v-btn color="primary" prepend-icon="mdi-plus" class="text-none" @click="newNode">New node</v-btn>
+    </PageHeader>
+    <div>
       <NodeList :nodes="nodes" :loading="loading" @edit="configureNode" @delete="askDelete" @reapply="reapply" />
 
       <ConnectorList :connectors="connectors" />
@@ -125,7 +111,7 @@ onBeforeUnmount(() => {
       <v-dialog v-model="deleteDialog" max-width="400">
         <v-card>
           <v-toolbar color="primary" density="compact" flat>
-            <v-toolbar-title class="text-body-2 font-weight-bold">
+            <v-toolbar-title class="text-body-medium font-weight-bold">
               Delete node?
             </v-toolbar-title>
           </v-toolbar>

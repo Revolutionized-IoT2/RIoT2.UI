@@ -47,6 +47,26 @@ export const Constants = {
     urlRestoreSavedBackup: "/api/v2/backups/{name}/restore",
     urlDownloadBackup: "/api/v2/backups/{name}",
 
+    // The workflow designer (ADR 0016), the same in both workflow modes.
+    urlWorkflows: "/api/workflows",
+    urlWorkflowStatus: "/api/workflows/status",
+    urlWorkflowCatalog: "/api/workflows/catalog",
+    urlWorkflowTemplates: "/api/workflows/templates",
+    urlImportWorkflow: "/api/workflows/import",
+    urlWorkflowRuns: "/api/workflows/runs",
+    urlWorkflowRun: "/api/workflows/runs/{id}",
+    urlCancelWorkflowRun: "/api/workflows/runs/{id}/cancel",
+    urlWorkflow: "/api/workflows/{id}",
+    urlWorkflowVersions: "/api/workflows/{id}/versions",
+    urlExportWorkflow: "/api/workflows/{id}/export",
+    urlPublishWorkflow: "/api/workflows/{id}/publish",
+    urlRetractWorkflow: "/api/workflows/{id}/retract",
+    // Language model connections for the Run LLM step, and their usage.
+    urlLlmConnections: "/api/llm/connections",
+    urlLlmConnection: "/api/llm/connections/{id}",
+    urlTestLlmConnection: "/api/llm/connections/{id}/test",
+    urlLlmUsage: "/api/llm/usage",
+
     topicReport: "riot2/node/+/report",
     topicCommand: "riot2/node/{id}/command",
     topicConfigure: "riot2/node/{id}/configuration",

@@ -1,7 +1,6 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
-import type { QoS } from 'mqtt/dist/mqtt.min';
-import mqtt, { MqttClient } from 'mqtt/dist/mqtt.min';
+import mqtt, { type MqttClient } from 'mqtt';
 import AppError from '@/models/appError';
 import { Constants } from '@/models/constants';
 import { useErrorStore } from '@/stores/errorStore';
@@ -30,7 +29,7 @@ const connection = {
     will: {
       topic:  "",
       payload: offlineMessage,
-      qos: 1 as QoS,
+      qos: 1 as const,
       retain: false
     },
 };

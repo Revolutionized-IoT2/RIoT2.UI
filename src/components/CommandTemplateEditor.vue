@@ -10,7 +10,7 @@ const emit = defineEmits<{
     cancel: [void]
 }>();
 
-const model = defineModel<CommandTemplate>({ default: new CommandTemplate() });
+const model = defineModel<CommandTemplate>({ default: () => new CommandTemplate() });
 const valid = ref(false);
 
 function modelUpdated(m: JsonValue, type: ValueType) {
@@ -71,21 +71,19 @@ function cancel() {
 <v-card-actions>
           <v-spacer />
           <v-btn
-            rounded="0"
             color="error"
             variant="outlined"
             @click="cancel"
           >
-          <v-icon size="small">cancel</v-icon>
+          <v-icon size="small" icon="mdi-close-circle-outline" />
             cancel
           </v-btn>
           <v-btn
-            rounded="0"
             color="primary"
             variant="outlined"
             @click="save"
           >
-          <v-icon size="small">save</v-icon>
+          <v-icon size="small" icon="mdi-content-save-outline" />
             Save
           </v-btn>
         </v-card-actions>

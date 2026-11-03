@@ -7,16 +7,16 @@ export interface StateLook {
   icon: string;
 }
 
-const running: StateLook = { color: 'green', icon: 'check_circle' };
-const unknown: StateLook = { color: 'yellow', icon: 'help' };
+const running: StateLook = { color: 'green', icon: 'mdi-check-circle' };
+const unknown: StateLook = { color: 'yellow', icon: 'mdi-help-circle' };
 
 export function deviceStateLook(state: DeviceState): StateLook {
   if (state == DeviceState.error)
-    return { color: 'red', icon: 'error' };
+    return { color: 'red', icon: 'mdi-alert-circle' };
   if (state == DeviceState.unknown || state == DeviceState.initialized)
     return unknown;
   if (state == DeviceState.stopped)
-    return { color: 'blue', icon: 'cancel' };
+    return { color: 'blue', icon: 'mdi-close-circle-outline' };
   return running;
 }
 

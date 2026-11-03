@@ -1,8 +1,8 @@
 import { Constants } from '@/models/constants';
-import { ComponentElement } from '@/models/componentElement';
 import { useHttpClient } from '@/composables/httpClientService';
 import { useOrchestratorStore } from '@/stores/orchestratorStore';
-import Dashboard from '@/models/dashboard';
+import type { DashboardData } from '@/dashboard/sdk/model';
+import type { IReport } from '@/models/report';
 
 /** The dashboard definition, with each element's report history. */
 export function useDashboardApi() {
@@ -10,30 +10,24 @@ export function useDashboardApi() {
   const httpClient = useHttpClient();
   const orchestratorStore = useOrchestratorStore();
 
-  /** Resolves to an empty dashboard when none is saved yet. */
-  async function getDashboard(): Promise<Dashboard> {
-    const url = orchestratorStore.baseUrl + Constants.urlGetDashboardConfigurationWithHistory;
-    let dashboard = await httpClient.get<Dashboard>(url);
-
-    if (dashboard == null || dashboard.pages == null)
-      dashboard = new Dashboard();
-
-    // ComponentElements must be constructed to work.
-    for (const page of dashboard.pages)
-      for (const component of page.components)
-        component.elements = component.elements.map(element => new ComponentElement(element));
-
-    return dashboard;
+  /** Resolves to null when none is saved yet. */
+  function getDashboard(): Promise<DashboardData | null> {
+    return httpClient.get<DashboardData>(orchestratorStore.baseUrl + Constants.urlGetDashboardConfigurationWithHistory);
   }
 
-  /** Resolves to the saved dashboard's id. */
-  function saveDashboard(dashboard: Dashboard): Promise<string | null> {
-    const url = orchestratorStore.baseUrl + Constants.urlSaveDashboard;
-    return httpClient.post<Dashboard, string>(url, dashboard);
+  /** Saves the definition (toDefinition in src/dashboard/sdk/model.ts); resolves to the dashboard's id. */
+  function saveDashboard(definition: DashboardData): Promise<string | null> {
+    return httpClient.post<DashboardData, string>(orchestratorStore.baseUrl + Constants.urlSaveDashboard, definition);
+  }
+
+  /** A report template's kept reports, newest first; just the latest when it keeps no history. */
+  function getReportHistory(templateId: string): Promise<IReport[] | null> {
+    return httpClient.get<IReport[]>(orchestratorStore.baseUrl + Constants.urlGetReportHistory.replace('{id}', encodeURIComponent(templateId)));
   }
 
   return {
     getDashboard,
-    saveDashboard
+    saveDashboard,
+    getReportHistory
   };
 }

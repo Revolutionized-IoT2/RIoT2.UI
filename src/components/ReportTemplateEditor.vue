@@ -9,7 +9,7 @@ const emit = defineEmits<{
     cancel: [void]
 }>();
 
-const model = defineModel<ReportTemplate>({ default: new ReportTemplate() });
+const model = defineModel<ReportTemplate>({ default: () => new ReportTemplate() });
 const valid = ref(false);
 const newParameterDialog = ref(false);
 const newPropertyValue = ref<nameValueStr>(new nameValueStr("", ""));
@@ -106,7 +106,7 @@ function cancel() {
      <v-row>
           <v-col cols="4" v-for="p in Object.keys(model.parameters)" :key="p">
             <v-text-field v-model="model.parameters[p]" hide-details
-              append-inner-icon="delete"
+              append-inner-icon="mdi-delete-outline"
               @click:append-inner="removeParameter(p)"
               :label="p" />
           </v-col>
@@ -115,12 +115,11 @@ function cancel() {
       <v-btn
       size="small"
           class="mt-6"
-          rounded="0"
-          color="blue-darken-1"
+          color="primary"
           variant="outlined"
           @click="newParameterDialog = true"
         >
-          <v-icon>add</v-icon>
+          <v-icon icon="mdi-plus" />
           new parameter
         </v-btn>
   </v-container>
@@ -129,21 +128,19 @@ function cancel() {
 <v-card-actions>
           <v-spacer />
           <v-btn
-            rounded="0"
             color="error"
             variant="outlined"
             @click="cancel"
           >
-          <v-icon size="small">cancel</v-icon>
+          <v-icon size="small" icon="mdi-close-circle-outline" />
             cancel
           </v-btn>
           <v-btn
-            rounded="0"
             color="primary"
             variant="outlined"
             @click="save"
           >
-          <v-icon size="small">save</v-icon>
+          <v-icon size="small" icon="mdi-content-save-outline" />
             Save
           </v-btn>
         </v-card-actions>
@@ -152,11 +149,11 @@ function cancel() {
   <v-dialog v-model="newParameterDialog" persistent width="400">
       <v-card>
         <v-card-title>
-          <span class="text-h5">New Property</span>
+          <span class="text-headline-small">New Property</span>
         </v-card-title>
         <v-card-text>
           <v-container>
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12">
                 <v-text-field
                   v-model="newPropertyValue.name"
@@ -175,14 +172,14 @@ function cancel() {
         <v-card-actions>
           <v-spacer />
           <v-btn
-            color="blue-darken-1"
+            color="primary"
             variant="text"
             @click="newParameterDialog = false"
           >
             cancel
           </v-btn>
           <v-btn
-            color="blue-darken-1"
+            color="primary"
             variant="text"
             @click="newParameter"
           >

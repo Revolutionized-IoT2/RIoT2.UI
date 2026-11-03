@@ -36,10 +36,10 @@ function time(value: string | null | undefined): string {
         <v-chip size="x-small" label class="me-2">{{ nodeTypeLabel(row.node.nodeType) }}</v-chip>
         <v-chip size="x-small" label :color="row.presence.color" class="me-2">{{ row.presence.label }}</v-chip>
         <v-chip v-if="row.sync" size="x-small" label :color="row.sync.color" :prepend-icon="row.sync.icon" class="me-2">{{ row.sync.label }}</v-chip>
-        <span class="text-caption text-medium-emphasis">{{ row.presence.detail[0] }}</span>
+        <span class="text-body-small text-medium-emphasis">{{ row.presence.detail[0] }}</span>
       </v-expansion-panel-title>
       <v-expansion-panel-text>
-        <div class="text-caption mb-2">
+        <div class="text-body-small mb-2">
           <div>Id: {{ row.node.id }}</div>
           <div v-if="row.node.version">Version {{ row.node.version }}</div>
           <div v-if="row.node.pluginVersion">Plugin {{ row.node.pluginVersion }}</div>
@@ -47,11 +47,11 @@ function time(value: string | null | undefined): string {
           <div v-for="line in row.presence.detail.slice(1)" :key="line">{{ line }}</div>
         </div>
         <div v-if="row.history.length > 0" class="mb-3">
-          <div class="text-subtitle-2">Presence since the orchestrator started</div>
-          <div v-for="(line, index) in row.history" :key="index" class="text-caption">{{ line }}</div>
+          <div class="text-title-small">Presence since the orchestrator started</div>
+          <div v-for="(line, index) in row.history" :key="index" class="text-body-small">{{ line }}</div>
         </div>
         <template v-if="row.node.devices">
-          <div v-if="row.node.devicesUnavailable" class="text-caption mb-2">
+          <div v-if="row.node.devicesUnavailable" class="text-body-small mb-2">
             The node didn't report its devices{{ row.node.isOnline ? ' in time' : ': it is offline' }}; the last errors are what the orchestrator saw before.
           </div>
           <v-data-table :items="row.node.devices" :headers="deviceHeaders" density="compact" hide-default-footer :items-per-page="-1">
@@ -60,7 +60,7 @@ function time(value: string | null | undefined): string {
               <v-chip size="x-small" label :color="deviceLook(item).color">{{ deviceLook(item).label }}</v-chip>
             </template>
             <template v-slot:item.lastError="{ item }">
-              <span v-if="item.lastError">{{ item.lastError }} <span class="text-caption text-medium-emphasis">({{ time(item.lastErrorAt) }})</span></span>
+              <span v-if="item.lastError">{{ item.lastError }} <span class="text-body-small text-medium-emphasis">({{ time(item.lastErrorAt) }})</span></span>
             </template>
             <template v-slot:no-data>
               <div>no devices</div>

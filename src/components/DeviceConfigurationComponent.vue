@@ -8,7 +8,7 @@ import ReportTemplateTable from '@/components/devices/ReportTemplateTable.vue';
 import CommandTemplateTable from '@/components/devices/CommandTemplateTable.vue';
 
 /** One device of a node configuration: its parameters and its report and command templates. */
-const model = defineModel<DeviceConfiguration>({ default: new DeviceConfiguration() });
+const model = defineModel<DeviceConfiguration>({ default: () => new DeviceConfiguration() });
 
 const props = defineProps<{
   state: DeviceStatus | null,
@@ -32,8 +32,8 @@ const titleState = computed(() => props.state == null ? "[new]" : "[" + DeviceSt
       <ReportTemplateTable v-model="model" />
       <CommandTemplateTable v-model="model" />
       <v-spacer />
-      <v-btn size="small" class="mt-4" rounded="0" color="error" variant="outlined" @click="emit('delete', model.id)">
-        <v-icon>delete</v-icon>
+      <v-btn size="small" class="mt-4" color="error" variant="outlined" @click="emit('delete', model.id)">
+        <v-icon icon="mdi-delete-outline" />
         delete {{ model.name }}
       </v-btn>
     </v-expansion-panel-text>

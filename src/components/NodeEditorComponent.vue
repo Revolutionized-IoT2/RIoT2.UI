@@ -8,7 +8,7 @@ import DeviceList from '@/components/nodes/DeviceList.vue';
 import { useNodesStore } from '@/stores/nodesStore';
 import { NodeType } from '@/models/enums';
 
-const model = defineModel<NodeConfiguration>({ default: new NodeConfiguration() });
+const model = defineModel<NodeConfiguration>({ default: () => new NodeConfiguration() });
 const nodes = useNodesStore();
 
 const props = defineProps<{
@@ -54,19 +54,18 @@ onMounted(async () => {
 <template>
   <v-form v-model="valid">
   <v-container>
-    <div class="text-subtitle-1 mb-2 font-weight-bold">Node settings
+    <div class="text-body-large mb-2 font-weight-bold">Node settings
       <v-divider class="border-opacity-100 mb-6" color="black" />
     </div>
     <v-row>
       <v-col cols="4">
-        <v-text-field v-model="model.name" required hide-details variant="solo" dense
+        <v-text-field v-model="model.name" required hide-details density="compact"
           label="Node Name" />
       </v-col>
       <v-col cols="4">
         <v-combobox
-          dense
+          density="compact"
           required
-          variant="solo"
           :return-object="false"
           item-value="id"
           item-title="id"
@@ -74,31 +73,31 @@ onMounted(async () => {
           :items="nodeIdOptions"
           label="Node Id"
         >
-        <template v-slot:selection="{ item }">
+        <template v-slot:selection="{ internalItem }">
         <v-chip
           size="small"
           variant="flat"
           label
           color="secondary"
         >
-        {{ item.value }}
+        {{ internalItem.value }}
       </v-chip>
       </template>
 
       <template v-slot:item="{ props, item }">
-         <v-list-item @click="props.onClick as MouseEventInit">
+         <v-list-item v-bind="props" title="">
           <v-chip
             color="secondary"
             variant="flat"
             label
-          >{{ item.raw.manifest != null?item.raw.manifest.name +" ("+item.raw.id+")" : item.raw.id }}</v-chip>
+          >{{ item.manifest != null?item.manifest.name +" ("+item.id+")" : item.id }}</v-chip>
         </v-list-item>
       </template>
       </v-combobox>
       </v-col>
   
       <v-col cols="4">
-        <v-text-field v-model="model.pluginPackageUrl" hide-details variant="solo" dense
+        <v-text-field v-model="model.pluginPackageUrl" hide-details density="compact"
           :append-inner-icon="(isPluginValid != null)?isPluginValid?'check':'error' : ''"
           label="Plugin package Url" @update:focused="validatePluginUrl"> 
         <template v-slot:loader>

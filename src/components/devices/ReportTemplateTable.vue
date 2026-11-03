@@ -7,7 +7,7 @@ import ReportTemplateEditor from '@/components/ReportTemplateEditor.vue';
 import Datamodel from '@/components/DatamodelComponent.vue';
 import { useCommandsStore } from '@/stores/commandsStore';
 
-const model = defineModel<DeviceConfiguration>({ default: new DeviceConfiguration() });
+const model = defineModel<DeviceConfiguration>({ default: () => new DeviceConfiguration() });
 
 const commands = useCommandsStore();
 
@@ -78,10 +78,10 @@ function deleteTemplate(id: string) {
     :items="model.reportTemplates" :headers="headers" density="compact" class="mt-4">
     <template v-slot:top>
       <v-toolbar flat>
-        <v-toolbar-title class="text-subtitle-1">Report templates - {{ model.name }}</v-toolbar-title>
+        <v-toolbar-title class="text-body-large">Report templates - {{ model.name }}</v-toolbar-title>
         <v-spacer />
-        <v-btn size="small" rounded="0" color="blue-darken-1" variant="outlined" @click="newTemplate">
-          <v-icon>add</v-icon>
+        <v-btn size="small" color="primary" variant="outlined" @click="newTemplate">
+          <v-icon icon="mdi-plus" />
           new report template
         </v-btn>
       </v-toolbar>
@@ -101,8 +101,8 @@ function deleteTemplate(id: string) {
     </template>
     <template v-slot:item.maintainHistory="{ item }">
       <div class="text-center">
-        <v-icon color="success" v-if="item.maintainHistory">check_circle</v-icon>
-        <v-icon color="warning" v-else>block</v-icon>
+        <v-icon color="success" v-if="item.maintainHistory" icon="mdi-check-circle" />
+        <v-icon color="warning" v-else icon="mdi-cancel" />
       </div>
     </template>
     <template v-slot:header.id="{ column }">
@@ -112,17 +112,17 @@ function deleteTemplate(id: string) {
       <div class="text-end">
         <v-tooltip text="Get current value or default" location="top">
           <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="small" class="me-3" @click="showValue(item)">speed</v-icon>
+            <v-icon v-bind="props" size="small" class="me-3" @click="showValue(item)" icon="mdi-speedometer" />
           </template>
         </v-tooltip>
         <v-tooltip text="Edit report template" location="top">
           <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="small" class="me-2" @click="editTemplate(item)">edit</v-icon>
+            <v-icon v-bind="props" size="small" class="me-2" @click="editTemplate(item)" icon="mdi-pencil" />
           </template>
         </v-tooltip>
         <v-tooltip text="Delete report" location="top">
           <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="small" @click="deleteTemplate(item.id)">delete</v-icon>
+            <v-icon v-bind="props" size="small" @click="deleteTemplate(item.id)" icon="mdi-delete-outline" />
           </template>
         </v-tooltip>
       </div>
@@ -140,14 +140,14 @@ function deleteTemplate(id: string) {
     <v-progress-circular v-if="loadingValue" :size="70" :width="7" color="primary" indeterminate />
     <v-card width="600px" v-else>
       <v-toolbar :title="editing.name"></v-toolbar>
-      <v-card-subtitle class="pb-1 text-subtitle-1">{{ editing.device }}</v-card-subtitle>
+      <v-card-subtitle class="pb-1 text-body-large">{{ editing.device }}</v-card-subtitle>
       <v-card-text>
         <Datamodel :datamodel="currentValue" labeltext="Value" :expanded="true" :editable="false" />
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn @click="valueOpen = false" color="blue">
-          <v-icon>close</v-icon>
+        <v-btn @click="valueOpen = false" color="primary">
+          <v-icon icon="mdi-close" />
           close
         </v-btn>
       </v-card-actions>

@@ -10,6 +10,3 @@
   import DefaultBar from './AppBar.vue'
   import DefaultView from './View.vue'
 </script>
-<v-app id="inspire">
-  
-</v-app>

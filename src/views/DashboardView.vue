@@ -1,470 +1,338 @@
 <script setup lang="ts">
-  import { computed, onMounted, ref, watch } from 'vue'
-  import { storeToRefs } from 'pinia';
+import { computed, onMounted, ref, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useRoute, useRouter } from 'vue-router';
+import { useDisplay } from 'vuetify';
+import UnsavedChangesDialog from '@/components/UnsavedChangesDialog.vue';
+import { useUnsavedChanges } from '@/composables/unsavedChanges';
+import type Dashboard from '@/models/dashboard';
+import type { DashboardCard } from '@/models/dashboard';
+import type { ComponentSize } from '@/models/enums';
+import { useDashboardStore } from '@/stores/dashboardStore';
+import DashboardGrid from '@/dashboard/view/DashboardGrid.vue';
+import PageNavigation from '@/dashboard/view/PageNavigation.vue';
+import CardEditorDialog from '@/dashboard/editor/CardEditorDialog.vue';
+import PageEditorDialog from '@/dashboard/editor/PageEditorDialog.vue';
+import ImportExportDialog from '@/dashboard/editor/ImportExportDialog.vue';
+import EditorToolbar, { type PreviewWidth } from '@/dashboard/editor/EditorToolbar.vue';
 
-  import DashboardComponent from '@/components/DashboardComponent.vue'
-  import { ComponentSize, ComponentType } from '@/models/enums';
-  import type Dashboard from '@/models/dashboard';
-  import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
-  import Page from '@/models/page';
-  import ContextMenu from '@/components/ContextMenuComponent.vue';
-  import Component from '@/models/component';
-  import { v4 as uuidv4 } from 'uuid';
-  import { useDashboardStore } from '@/stores/dashboardStore';
+/**
+ * The dashboard. /dashboard (also /dashboard/fullscreen, which RIoT2.Mobile opens) is the dashboard
+ * alone, for phones and wall displays; /dash shows it in the app; /dashboard/edit edits it.
+ * `?page=` opens a page by id, name or number; `?theme=` sets the theme (src/plugins/vuetify.ts).
+ */
+const route = useRoute();
+const router = useRouter();
+const { smAndDown } = useDisplay();
+const store = useDashboardStore();
+const { dashboard, dirty, loading } = storeToRefs(store);
 
-  const contextMenuItems = computed(() => [
-        { text: "save dashboard", action: "save", disabled: !isDirty.value, icon: "save" },
-        { text: "new page", action: "new_page", disabled: false, icon: "add" },
-        { text: "edit page", action: "edit_page", disabled: false, icon: "edit" },
-        { text: "delete page", action: "delete_page", disabled: deletePageDisabled.value, icon: "delete" },
-    ]
-  );
+const editing = computed(() => route.meta.dashboardEdit === true);
+const standalone = computed(() => route.meta.dashboardStandalone === true);
+const pages = computed(() => dashboard.value?.pages ?? []);
+const pageIndex = ref(0);
+const page = computed(() => pages.value[pageIndex.value]);
 
-  const componentTypes = [{name: "Button", value: ComponentType.button},
-                    {name: "Chart: Bar", value: ComponentType.chart_bar},
-                    {name: "Chart: Doughnut", value: ComponentType.chart_doughnut},
-                    {name: "Chart: Line", value: ComponentType.chart_line},
-                    {name: "Chart: Pie", value: ComponentType.chart_pie},
-                    {name: "Image", value: ComponentType.image},
-                    {name: "Numeric Display", value: ComponentType.numericValue},
-                    {name: "Slide Button", value: ComponentType.slideButton},
-                    {name: "Timeline", value: ComponentType.timeline},
-                    {name: "Switch", value: ComponentType.switch},
-                    {name: "State", value: ComponentType.state}
-                  ];
+const previewing = ref(false);
+const previewWidth = ref<PreviewWidth>('phone');
+const frameWidths = { phone: '390px', tablet: '820px', full: '100%' };
 
-const componentSizes = [{name: "Small", value: ComponentSize.small},
-                    {name: "Medium", value: ComponentSize.half},
-                    {name: "Large", value: ComponentSize.large},
-                    {name: "Full", value: ComponentSize.full}];
-                  
+/** The page `?page=` names: an id, a name, or a number from 1. */
+function pageFromQuery(): number {
+  const wanted = String(route.query.page ?? '').trim();
+  if (!wanted)
+    return 0;
+  const byId = pages.value.findIndex(p => p.id === wanted);
+  if (byId !== -1)
+    return byId;
+  const byName = pages.value.findIndex(p => p.name.toLowerCase() === wanted.toLowerCase());
+  if (byName !== -1)
+    return byName;
+  const number = Number(wanted);
+  return Number.isInteger(number) && number >= 1 && number <= pages.value.length ? number - 1 : 0;
+}
 
-  function contextMenuAction(action: string) {
-    if(dashboardConfiguration.value == null)
-      return;
-
-    if(action == 'save')
-      saveDashboard();
-
-    if(action == 'new_page') { 
-      addPage();
-    } 
-
-    if(action == 'edit_page') { 
-      const e = dashboardConfiguration.value.pages[selectedPage.value];
-      editPage.value = {
-        id: e.id,
-        name: e.name,
-        icon: e.icon,
-        components: [] //this can be empty as we do not edit it in dialog
-      }
-      
-      editPageDialog.value = true;
-    } 
-
-    if(action == 'delete_page') { 
-      deletePage();
-    } 
-  }
-  
-  const selectedPage = ref<number>(0);
-  const store = useDashboardStore();
-  // The store applies every report the UI receives to the elements bound to its template.
-  const { dashboard: dashboardConfiguration } = storeToRefs(store);
-  const isDirty = ref(false);
-
-  const route = useRoute();
-  const router = useRouter();
-
-  const editPage = ref<Page>(new Page());
-  const editMode = ref(false);
-  const editPageDialog = ref(false);
-  const saveDashboardSnackbar = ref(false);
-
-  const editComponent = ref<Component>(new Component());
-  const editComponentDialog = ref(false);
-
-  onMounted(async () => {
-
-    await router.isReady()
-    //once its ready we can access the query params
-    //console.dir(route)
-    if(route.path.endsWith('edit'))
-      editMode.value = true;
-
+onMounted(async () => {
+  if (dashboard.value == null || !editing.value)
     await store.load();
-    isDirty.value = false;
-  });
-
-  async function saveDashboard() {
-    if (await store.save()) {
-      saveDashboardSnackbar.value = true;
-      isDirty.value = false;
-    }
-  }
-
-  const deletePageDisabled = computed(() => {
-    if(dashboardConfiguration.value == null || dashboardConfiguration.value.pages == null)
-      return true;
-
-    if(dashboardConfiguration.value.pages.length < 2)
-      return true;
-
-    return false;
-  });
-
-
-  watch<Dashboard |null>(dashboardConfiguration, (n, o) => {
-    if(o != null && editMode.value)
-      isDirty.value = true;
-
-  },  { immediate: false, deep: true });
-
-  function getMdSize(size: ComponentSize) {
-    if(size == ComponentSize.full)
-      return 12;
-    else
-      return 6;
-  }
-
-  function getLgSize(size: ComponentSize) : number {
-    return size;
-  }
-
-function changePage(i: number) {
-  selectedPage.value = i;
-}
-
-function addPage() {
-
-  editPage.value = {
-    id: "",
-    name: "page",
-    components: [],
-    icon: "add"
-  };
-
-  editPageDialog.value = true;
-}
-
-function savePage() {
-  if(dashboardConfiguration.value == null)
-    return;
-
-  const idx = dashboardConfiguration.value.pages.findIndex(x => x.id == editPage.value.id);
-
-  if(idx == -1) {
-    editPage.value.id = uuidv4();
-    dashboardConfiguration.value.pages.push(editPage.value);
-  } else {
-    dashboardConfiguration.value.pages[idx].name = editPage.value.name;
-    dashboardConfiguration.value.pages[idx].icon = editPage.value.icon;
-    changePage(idx);
-  }
-    
-  editPageDialog.value = false;
-}
-
-function deletePage() {
-  if(dashboardConfiguration.value == null)
-    return;
-
-  if(dashboardConfiguration.value.pages.length > 1) 
-    dashboardConfiguration.value.pages.splice(selectedPage.value, 1);
-
-  selectedPage.value = Math.min(selectedPage.value, dashboardConfiguration.value.pages.length - 1);
-  editPageDialog.value = false;
-}
-
-function addNewComponent() {
-  editComponent.value = {
-    id: "",
-    name: "",
-    description: "",
-    icon: "",
-    size: ComponentSize.small,
-    type: ComponentType.button,
-    elements: []
-  }
-
-  editComponentDialog.value = true;
-}
-
-function editComponentAction(c: Component) {
-    editComponent.value = {
-        id: c.id,
-        name: c.name,
-        description: c.description,
-        icon: c.icon,
-        size: c.size,
-        type: c.type,
-        elements: [] //this can be empty as we do not edit it in dialog
-      }
-      
-      editComponentDialog.value = true;
-}
-
-function deleteComponent(c: Component) {
-  if(dashboardConfiguration.value == null)
-      return;
-
-  const idx = dashboardConfiguration.value.pages[selectedPage.value].components.findIndex(x => x.id == c.id);
-  if(idx != -1) {
-    dashboardConfiguration.value.pages[selectedPage.value].components.splice(idx, 1);
-  }
-
-  editComponentDialog.value = false;
-}
-
-function saveComponent() {
-  if(dashboardConfiguration.value == null)
-    return;
-
-  const idx = dashboardConfiguration.value.pages[selectedPage.value].components.findIndex(x => x.id == editComponent.value.id);
-  if(idx > -1) {
-    const targetComponent = dashboardConfiguration.value.pages[selectedPage.value].components[idx];
-    if(targetComponent.type != editComponent.value.type) //if component type is changed all elements are cleared.
-      targetComponent.elements = [];
-
-    targetComponent.name = editComponent.value.name;
-    targetComponent.description = editComponent.value.description;
-    targetComponent.icon = editComponent.value.icon;
-    targetComponent.size = editComponent.value.size;
-    targetComponent.type = editComponent.value.type;
-  } else {
-    editComponent.value.id = uuidv4();
-    dashboardConfiguration.value.pages[selectedPage.value].components.push(editComponent.value);
-  }
-
-  editComponentDialog.value = false;
-}
-
-onBeforeRouteLeave(() => {
-  if(isDirty.value) {
-    //TODO Use dialog 
-    const answer = window.confirm('Do you really want to leave? you have unsaved changes!')
-
-  if (!answer) return false
-  }
+  pageIndex.value = pageFromQuery();
 });
 
+// Keeps the page in the URL, so a reload (or RIoT2.Mobile's refresh) stays on it.
+watch(pageIndex, index => {
+  const id = pages.value[index]?.id;
+  if (id != null && route.query.page !== id)
+    router.replace({ query: { ...route.query, page: id } });
+});
+
+watch(() => pages.value.length, length => {
+  if (pageIndex.value >= length)
+    pageIndex.value = Math.max(0, length - 1);
+});
+
+const saved = ref(false);
+async function save(): Promise<boolean> {
+  const ok = await store.save();
+  saved.value = ok;
+  return ok;
+}
+
+const guard = useUnsavedChanges({ dirty, save, discard: () => store.discard() });
+
+// Cards
+const cardDialog = ref(false);
+const editedCard = ref<DashboardCard | null>(null);
+
+function addCard() {
+  editedCard.value = null;
+  cardDialog.value = true;
+}
+
+function editCard(card: DashboardCard) {
+  editedCard.value = card;
+  cardDialog.value = true;
+}
+
+function saveCard(card: DashboardCard) {
+  if (page.value != null)
+    store.putCard(page.value.id, card);
+}
+
+function resize(card: DashboardCard, size: ComponentSize) {
+  card.size = size;
+}
+
+function reorder(cards: DashboardCard[]) {
+  if (page.value != null)
+    page.value.components = cards;
+}
+
+// Pages
+const pageDialog = ref(false);
+const pageEdited = ref(false);
+
+function newPage() {
+  pageEdited.value = false;
+  pageDialog.value = true;
+}
+
+function editPage() {
+  pageEdited.value = true;
+  pageDialog.value = true;
+}
+
+function savePage(values: { name: string, icon: string | null }) {
+  if (pageEdited.value && page.value != null) {
+    store.updatePage(page.value.id, values);
+    return;
+  }
+  store.addPage(values.name, values.icon);
+  pageIndex.value = pages.value.length - 1;
+}
+
+function movePage(offset: number) {
+  if (page.value == null)
+    return;
+  store.movePage(page.value.id, offset);
+  pageIndex.value = Math.min(pages.value.length - 1, Math.max(0, pageIndex.value + offset));
+}
+
+// To the editor first: adding the page here would make leaving this view ask about unsaved changes.
+async function startDashboard() {
+  if (!editing.value)
+    await router.push('/dashboard/edit');
+  store.addPage('Home', 'mdi-home-outline');
+}
+
+// Import and export
+const transferDialog = ref(false);
+function imported(value: Dashboard, mode: 'replace' | 'append') {
+  const before = pages.value.length;
+  store.importDashboard(value, mode);
+  pageIndex.value = mode === 'append' ? before : 0;
+}
+
+function done() {
+  router.push({ path: '/dash', query: { page: page.value?.id } });
+}
+
+const navigation = computed(() => pages.value.length > 1 ? (smAndDown.value ? 'bottom' : 'top') : undefined);
 </script>
 
-<style>
-.v-application__wrap {
-  background-color: lightgray !important;
-}
-
-.mqtt-status {
-  position: fixed !important;
-  bottom: 20px;
-  right: 10px;
-  z-index: 10000
-}
-
-.editCard{
-  opacity: 0.5;
-}
-
-.navBtn {
-  text-transform: capitalize !important;
-  padding: 16px !important;
-  font-size: 0.9em !important;
-}
-
-.fixedBottomBar {
-    position: fixed !important;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    margin-top: 0px;
-    z-index: 100;
-}
-</style>
-
 <template>
-   <div>
-    <ContextMenu v-if="editMode" :items="contextMenuItems" @click="contextMenuAction" />
-  <!--<v-avatar class="mqtt-status" size="16" :color="mqttService.status.value?'green':'red'"></v-avatar>-->
-  <v-window v-model="selectedPage" :touch="false">
-    <v-window-item v-for="page in dashboardConfiguration?.pages" :key="page.id">
-      <v-container :class="editMode?'mt-9' : 'mt-1'" fluid>
-        <v-row class="mb-9">
-          <template v-for="comp in page.components" :key="comp.id">
-            <v-col cols="12" sm="12" :md="getMdSize(comp.size)" :lg="getLgSize(comp.size)" class="d-flex" style="flex-direction:column">
-              <DashboardComponent :data="comp" :editMode="editMode" @editComponent="editComponentAction" @deleteComponent="deleteComponent" />
-            </v-col>
-          </template>
-          <v-col v-if="editMode" cols="12" sm="12" :md="getMdSize(ComponentSize.small)" :lg="getLgSize(ComponentSize.small)" class="d-flex" style="flex-direction:column">
-            <v-card class="d-flex align-center editCard" height="100%" variant="flat">
-              <v-card-text class="text-center">
-                <div class="d-flex flex-column flex-grow-1 text-center">
-                    <div class="align-center"> 
-                      <v-btn 
-                          rounded="xl"
-                          color="success"
-                          icon="add"
-                          @click="addNewComponent()">
-                      </v-btn>
-                    </div>
-                  </div>
-              </v-card-text>
-              <!--
-              <v-card-actions>
-                <v-spacer />
-                    <v-btn rounded="0"
-                      color="error"
-                      @click="deletePage()">
-                    <v-icon size="small">delete</v-icon>
-                  </v-btn>
-              </v-card-actions>-->
-              </v-card>
-            </v-col>
-        </v-row>
-      </v-container>
-    </v-window-item>
-  </v-window>
+  <div class="dashboard" :class="{ 'dashboard--standalone': standalone, 'dashboard--with-bar': navigation === 'bottom' }">
+    <EditorToolbar
+      v-if="editing"
+      v-model:previewing="previewing"
+      v-model:preview-width="previewWidth"
+      :dirty="dirty"
+      :saving="loading"
+      :has-page="!!page"
+      @new-page="newPage"
+      @edit-page="editPage"
+      @transfer="transferDialog = true"
+      @discard="store.discard()"
+      @save="save"
+      @done="done"
+    />
 
-  <v-bottom-navigation class="fixedBottomBar" height="60" fixed v-if="dashboardConfiguration != null && dashboardConfiguration?.pages?.length > 1" v-model="selectedPage">
-    <v-slide-group show-arrows>
-      <v-slide-group-item v-for="page, i in dashboardConfiguration?.pages" :key="page.id" v-slot="{ isSelected }">
-        <v-btn class="navBtn" :color="isSelected ? undefined : 'blue'" @click="changePage(i)">
-          <v-icon v-if="page.icon != null">{{page.icon}}</v-icon>
-          {{page.name}}
-        </v-btn>
-      </v-slide-group-item>
-    </v-slide-group>
-  </v-bottom-navigation>
+    <div v-if="navigation === 'top' || (editing && pages.length > 0)" class="dashboard__pages">
+      <PageNavigation v-model="pageIndex" :pages="pages" placement="top" />
+      <v-btn v-if="editing" icon="mdi-plus" size="small" variant="text" aria-label="New page" @click="newPage" />
+      <v-btn v-if="!editing && !standalone" class="dashboard__edit" variant="text" prepend-icon="mdi-pencil-outline" :to="{ path: '/dashboard/edit', query: { page: page?.id } }">Edit</v-btn>
+    </div>
+    <div v-else-if="!editing && !standalone && pages.length > 0" class="dashboard__pages dashboard__pages--plain">
+      <v-spacer />
+      <v-btn class="dashboard__edit text-none" variant="text" prepend-icon="mdi-pencil-outline" :to="{ path: '/dashboard/edit', query: { page: page?.id } }">Edit</v-btn>
+    </div>
 
-  <v-dialog v-model="editPageDialog" max-width="800" scrollable width="90%">
-    <v-card>
-      <v-toolbar dark color="primary" dense flat>
-        <v-toolbar-title class="text-body-2 font-weight-bold grey--text">
-          {{ editPage.id == '' ? 'New page' : 'Edit page' }}
-        </v-toolbar-title>
-      </v-toolbar>
-      <v-card-text class="pa-4 black--text">
-        <v-row>
-            <v-col cols="6">
-            <v-text-field v-model="editPage.name" required hide-details
-              label="Name" />
-          </v-col>
-          <v-col cols="6">
-            <v-text-field v-model="editPage.icon" required hide-details :append-inner-icon="editPage.icon"
-              label="Icon" />
-          </v-col>
-        </v-row>
-      </v-card-text>
-      <v-card-actions class="pt-3">
-        <v-spacer></v-spacer>
-        <v-btn
-            rounded="0"
-            color="error"
-            variant="outlined"
-            @click="deletePage()"
-          >
-          <v-icon size="small">delete</v-icon>
-            delete
-          </v-btn>
-        <v-btn
-            rounded="0"
-            color="warning"
-            variant="outlined"
-            @click="editPageDialog = false"
-          >
-          <v-icon size="small">cancel</v-icon>
-            cancel
-          </v-btn>
-          <v-btn
-            rounded="0"
-            color="success"
-            variant="outlined"
-            @click="savePage()"
-          >
-          <v-icon size="small">check_circle</v-icon>
-            ok
-          </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    <div v-if="loading && dashboard == null" class="dashboard__loading">
+      <v-skeleton-loader v-for="i in 4" :key="i" type="article" class="dashboard__skeleton" />
+    </div>
 
-  <v-dialog v-model="editComponentDialog" max-width="800" scrollable width="90%">
-    <v-card>
-      <v-toolbar dark color="primary" dense flat>
-        <v-toolbar-title class="text-body-2 font-weight-bold grey--text">
-          {{ editComponent.id == '' ? 'New component' : 'Edit component' }}
-        </v-toolbar-title>
-      </v-toolbar>
-      <v-card-text class="pa-4 black--text">
-        <v-row>
-          <v-col cols="6">
-            <v-text-field v-model="editComponent.name" required hide-details
-              label="Name" />
-          </v-col>
-          <v-col cols="6">
-            <v-text-field v-model="editComponent.description" required hide-details
-              label="Description" />
-          </v-col>
-          <v-col cols="6">
-            <v-text-field v-model="editComponent.icon" required hide-details :append-inner-icon="editComponent.icon"
-              label="Icon" />
-          </v-col>
+    <div v-else-if="pages.length === 0" class="dashboard__welcome">
+      <v-icon icon="mdi-view-dashboard-variant-outline" size="56" color="primary" />
+      <h2>No dashboard yet</h2>
+      <p>Add a page, then cards that show and control your devices.</p>
+      <v-btn v-if="!standalone" class="text-none" color="primary" variant="flat" prepend-icon="mdi-plus" @click="startDashboard">Create the dashboard</v-btn>
+    </div>
 
-          <v-col cols="6">
-            <v-select
-              v-model="editComponent.type"
-              :items="componentTypes"
-              item-title="name"
-              item-value="value"
-              label="Type"
-            />
-          </v-col>
-          <v-col cols="6">
-            <v-select
-              v-model="editComponent.size"
-              :items="componentSizes"
-              item-title="name"
-              item-value="value"
-              label="Size"
-            />
-          </v-col>
-        </v-row>
-      </v-card-text>
-      <v-card-actions class="pt-3">
-        <v-spacer></v-spacer>
-        <v-btn
-            rounded="0"
-            color="warning"
-            variant="outlined"
-            @click="editComponentDialog = false"
+    <div v-else-if="page" class="dashboard__canvas" :class="{ 'dashboard__canvas--framed': editing && previewing && previewWidth !== 'full' }">
+      <div class="dashboard__frame" :style="editing && previewing ? { width: frameWidths[previewWidth] } : undefined">
+        <v-fade-transition mode="out-in">
+          <DashboardGrid
+            :key="page.id"
+            :page="page"
+            :pages="pages"
+            :editing="editing && !previewing"
+            @add="addCard"
+            @edit="editCard"
+            @remove="card => store.removeCard(card.id)"
+            @duplicate="card => store.duplicateCard(card.id)"
+            @move="(card, pageId) => store.moveCardToPage(card.id, pageId)"
+            @resize="resize"
+            @reorder="reorder"
           >
-          <v-icon size="small">cancel</v-icon>
-            cancel
-          </v-btn>
-          <v-btn
-            rounded="0"
-            color="success"
-            variant="outlined"
-            @click="saveComponent()"
-          >
-          <v-icon size="small">check_circle</v-icon>
-            ok
-          </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+            <template v-if="!standalone" #empty>
+              <v-btn class="text-none mt-2" variant="tonal" color="primary" prepend-icon="mdi-plus" :to="{ path: '/dashboard/edit', query: { page: page.id } }">Add cards</v-btn>
+            </template>
+          </DashboardGrid>
+        </v-fade-transition>
+      </div>
+    </div>
 
-  <v-snackbar v-model="saveDashboardSnackbar" color="success">
-      Dashboard saved succesfully
-      <template v-slot:actions>
-        <v-btn
-          color="white"
-          variant="text"
-          @click="saveDashboardSnackbar = false"
-        >
-          Close
-        </v-btn>
-      </template>
+    <PageNavigation v-if="navigation === 'bottom'" v-model="pageIndex" :pages="pages" placement="bottom" />
+
+    <CardEditorDialog v-model="cardDialog" :card="editedCard" @save="saveCard" />
+    <PageEditorDialog
+      v-model="pageDialog"
+      :page="pageEdited ? page ?? null : null"
+      :can-delete="pages.length > 1"
+      :first="pageIndex === 0"
+      :last="pageIndex === pages.length - 1"
+      @save="savePage"
+      @remove="page && store.removePage(page.id)"
+      @move="movePage"
+    />
+    <ImportExportDialog v-model="transferDialog" :dashboard="dashboard" @import="imported" />
+    <UnsavedChangesDialog v-model="guard.dialog.value" :saving="guard.saving.value" what="dashboard changes" @choose="guard.choose" />
+
+    <v-snackbar v-model="saved" color="success" timeout="2500" location="bottom">
+      <v-icon icon="mdi-check-circle-outline" class="mr-2" />Dashboard saved
     </v-snackbar>
   </div>
 </template>
+
+<style scoped>
+.dashboard {
+  min-height: 100%;
+  padding: 12px;
+  background: rgb(var(--v-theme-dashboard-background));
+}
+
+@media (min-width: 600px) {
+  .dashboard {
+    padding: 16px 20px 24px;
+  }
+}
+
+.dashboard--standalone {
+  min-height: 100dvh;
+  padding-top: max(12px, env(safe-area-inset-top, 0px));
+  padding-left: max(12px, env(safe-area-inset-left, 0px));
+  padding-right: max(12px, env(safe-area-inset-right, 0px));
+  overscroll-behavior-y: contain;
+}
+
+.dashboard--with-bar {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+
+.dashboard__pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.dashboard__pages > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard__pages--plain {
+  margin-bottom: 4px;
+}
+
+.dashboard__edit {
+  flex: none;
+}
+
+.dashboard__loading {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+}
+
+.dashboard__skeleton {
+  border-radius: 20px;
+}
+
+.dashboard__welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 420px;
+  margin: 12vh auto 0;
+  text-align: center;
+}
+
+.dashboard__welcome h2 {
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+.dashboard__welcome p {
+  opacity: 0.75;
+}
+
+.dashboard__canvas--framed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dashboard__frame {
+  max-width: 100%;
+  margin-inline: auto;
+  transition: width 0.25s ease;
+}
+
+.dashboard__canvas--framed .dashboard__frame {
+  padding: 16px 12px;
+  border-radius: 28px;
+  border: 8px solid rgb(var(--v-theme-surface-container-highest));
+  background: rgb(var(--v-theme-dashboard-background));
+}
+</style>

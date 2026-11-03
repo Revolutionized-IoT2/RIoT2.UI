@@ -1,18 +1,13 @@
 <script setup lang="ts">
 
 import Datamodel from '@/components/DatamodelComponent.vue';
-import ContextMenu from '@/components/ContextMenuComponent.vue';
-import type { ContextMenuItem } from '@/models/contextMenuItem';
+import PageHeader from '@/components/PageHeader.vue';
 import { ValueType } from '@/models/enums';
 import { Variable } from '@/models/variable';
 import { useVariablesStore } from '@/stores/variablesStore';
 import { storeToRefs } from 'pinia';
 import { onMounted, ref } from 'vue';
 import type { JsonValue } from '@/models/generated/contracts';
-
-const contextMenuItems: ContextMenuItem[] = [
-  { "text": "new", "action": "new_variable", "disabled": false, "icon": "add" }
-];
 
 const store = useVariablesStore();
 // The store keeps the values current from the reports the UI receives.
@@ -39,11 +34,9 @@ const headers = [
   { title: 'Actions', value: 'action', sortable: false },
 ];
 
-function contextMenuAction(action : string){
-  if(action == 'new_variable') {
-    selectedVariable.value = new Variable();
-    editVariableDialog.value = true;
-  }
+function newVariable() {
+  selectedVariable.value = new Variable();
+  editVariableDialog.value = true;
 }
 
 // The dialog edits a copy, so Close leaves the listed variable as it was.
@@ -92,11 +85,10 @@ onMounted(() => {
 
 <template>
   <div>
-    <context-menu
-      :items="contextMenuItems"
-      @click="contextMenuAction"
-    />
-    <div class="site-content-contextmenu">
+    <PageHeader title="Variables" subtitle="Values the orchestrator keeps, for workflows and the dashboard." icon="mdi-variable">
+      <v-btn color="primary" prepend-icon="mdi-plus" class="text-none" @click="newVariable">New variable</v-btn>
+    </PageHeader>
+    <div>
     <v-data-table
         :hide-default-footer="variables.length < 10" 
         item-value="id"
@@ -111,7 +103,7 @@ onMounted(() => {
       <template v-slot:top>
           <v-toolbar
             flat
-            color="white"
+            color="transparent"
           >
             <v-toolbar-title>Orchestrator Variables</v-toolbar-title>
             <v-divider
@@ -122,7 +114,7 @@ onMounted(() => {
           <v-spacer />
          <!--   <v-text-field
             v-model="search"
-            append-icon="search"
+            append-icon="mdi-magnify"
             label="filter"
             single-line
             hide-details />-->
@@ -133,16 +125,12 @@ onMounted(() => {
             small
             class="mr-2"
             @click="editItem(item)"
-          >
-            edit
-          </v-icon>
+           icon="mdi-pencil" />
           <v-icon
             small
             class="mr-2"
             @click="deleteItem(item)"
-          >
-            delete
-          </v-icon>
+           icon="mdi-delete-outline" />
         </template>
         <template v-slot:item.type="{ item }">
           {{ ValueType[item.type] }}
@@ -152,9 +140,8 @@ onMounted(() => {
         <template v-slot:no-data>
           <v-alert
             class="mt-3"
-            :value="true"
-            color="white"
-            icon="info"
+           
+            type="info" variant="tonal"
           >
             <b>No variables found from the system</b>
           </v-alert>
@@ -230,7 +217,7 @@ onMounted(() => {
             <v-card-actions>
               <v-spacer />
               <v-btn
-               color="blue" 
+               color="primary" 
                variant="text"
     
                :loading="saving"
@@ -253,7 +240,7 @@ onMounted(() => {
    <v-dialog v-model="deleteVariableDialog" max-width="400">
     <v-card>
       <v-toolbar color="primary" density="compact" flat>
-        <v-toolbar-title class="text-body-2 font-weight-bold">
+        <v-toolbar-title class="text-body-medium font-weight-bold">
           Delete variable?
         </v-toolbar-title>
       </v-toolbar>

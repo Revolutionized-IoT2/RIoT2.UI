@@ -1,4 +1,5 @@
 import type * as Contract from './generated/contracts';
+import type { ValueSchema } from './valueSchema';
 import type { JsonValue } from './generated/contracts';
 import { ValueType } from "./enums";
 import type { ITemplate } from "./itemplate";
@@ -32,4 +33,6 @@ export class ReportTemplate implements ITemplate, Contract.NodeReportTemplate {
     parameters: Record<string, string> | null;
     maintainHistory: boolean;
     model!: JsonValue;
+    /** Declared by the device plugin (Core 2.2.0); the UI infers one from `model` when null. */
+    schema?: ValueSchema | null;
 }

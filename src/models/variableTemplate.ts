@@ -1,4 +1,5 @@
 import type * as Contract from './generated/contracts';
+import type { ValueSchema } from './valueSchema';
 import type { JsonValue } from './generated/contracts';
 import type { ValueType } from './enums';
 import type { ITemplate } from './itemplate';
@@ -14,4 +15,6 @@ export default class VariableTemplate implements ITemplate, Contract.NodeCommand
     address!: string;
     model!: JsonValue;
     type!: ValueType;
+    /** Declared by the device plugin (Core 2.2.0); the UI infers one from `model` when null. */
+    schema?: ValueSchema | null;
 }

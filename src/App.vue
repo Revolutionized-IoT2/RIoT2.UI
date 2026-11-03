@@ -101,22 +101,12 @@ function mqttMessageReceived(topic: string, message: string, retained = false) {
   <v-app>
     <ConnectionBanner v-if="orchestratorStore.isInitialized"/>
     <RouterView v-if="orchestratorStore.isInitialized"/>
-    <v-container v-else>
-      <v-row class="fill-height" align-content="center" justify="center">
-        <v-col class="text-subtitle-1 text-center" cols="12">
-          Connecting...
-        </v-col>
-        <v-col cols="6">
-          <v-progress-linear
-            color="deep-purple-accent-4"
-            indeterminate
-            rounded
-            height="6"
-          ></v-progress-linear>
-        </v-col>
-      </v-row>
-    </v-container>
-    <v-snackbar v-model="errorHandler.showSnackbar" color="error">
+    <div v-else class="app-connecting">
+      <img src="@/assets/riot_logo.png" alt="" class="app-connecting__logo" />
+      <div class="text-title-medium">Connecting to RIoT2?</div>
+      <v-progress-linear color="primary" indeterminate rounded height="4" class="app-connecting__bar" />
+    </div>
+    <v-snackbar v-model="errorHandler.showSnackbar" color="error" location="top" max-width="560">
       {{errorHandler.error?.text}}<template v-if="errorHandler.error?.message">: {{errorHandler.error.message}}</template>
       <template v-slot:actions>
         <v-btn
@@ -130,3 +120,24 @@ function mqttMessageReceived(topic: string, message: string, retained = false) {
     </v-snackbar>
   </v-app>
 </template>
+
+<style scoped>
+.app-connecting {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+}
+
+.app-connecting__logo {
+  height: 56px;
+  opacity: 0.9;
+}
+
+.app-connecting__bar {
+  width: min(240px, 60vw);
+}
+</style>
