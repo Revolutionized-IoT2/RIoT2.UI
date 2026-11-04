@@ -24,6 +24,7 @@
       <v-divider class="my-2" />
       <v-list-subheader v-if="!rail || mobile">Automation</v-list-subheader>
       <v-list-item to="/workflows" title="Workflows" prepend-icon="mdi-sitemap-outline" rounded="xl" />
+      <v-list-item to="/plans" title="Plans" prepend-icon="mdi-calendar-clock" rounded="xl" />
       <v-list-item to="/ai" exact title="AI models" prepend-icon="mdi-robot-outline" rounded="xl" />
       <v-list-item to="/ai/access" title="AI access" prepend-icon="mdi-connection" rounded="xl" />
       <v-divider class="my-2" />

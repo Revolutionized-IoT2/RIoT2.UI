@@ -218,14 +218,15 @@ export function splitList(value: string): string[] {
 
 // ---------------------------------------------------------------- the RIoT selector
 
-/** The selector's settings from the catalog: the kinds of templates and whether the value editor shows. */
-export function selectorSettings(input: WorkflowInputDefinition): { types: TemplateType[]; hideEditor: boolean } {
+/** The selector's settings from the catalog: the kinds of templates, whether the value editor shows, and whether only forecast reports are offered. */
+export function selectorSettings(input: WorkflowInputDefinition): { types: TemplateType[]; hideEditor: boolean; forecastOnly: boolean } {
   const settings = isJsonObject(input.options) ? input.options[SelectorHint] : undefined;
   const names = isJsonObject(settings) && Array.isArray(settings.templateTypes) ? settings.templateTypes : [];
   const types = names.map(x => TemplateType[x as keyof typeof TemplateType]).filter((x): x is TemplateType => typeof x === 'number' && x !== TemplateType.Unknown);
   return {
     types: types.length ? types : [TemplateType.Report, TemplateType.Command, TemplateType.Variable],
-    hideEditor: isJsonObject(settings) && settings.hideEditor === true
+    hideEditor: isJsonObject(settings) && settings.hideEditor === true,
+    forecastOnly: isJsonObject(settings) && settings.forecastOnly === true
   };
 }
 

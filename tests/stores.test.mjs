@@ -191,3 +191,33 @@ test('the dashboard editors list variables with the report and command templates
   assert.deepEqual(plain(store.readableTemplates), [{ id: 'r' }, { id: 'v' }]);
   assert.deepEqual(plain(store.writableTemplates), [{ id: 'c' }, { id: 'v' }]);
 });
+
+test('the plans store lists plans and forecasts, and an ended plan leaves the active list', async t => {
+  setActivePinia(createPinia());
+  const errors = errorRecorder();
+  const asked = [];
+  const api = {
+    getPlans: async active => { asked.push(active); return [{ id: 'p1', status: 'active' }, { id: 'p2', status: 'active' }]; },
+    getForecasts: async () => [{ id: 'prices', points: 48 }],
+    cancelPlan: async id => (id === 'p1' ? { id: 'p1', status: 'cancelled' } : null),
+  };
+  const module = loadSource('src/stores/plansStore.ts', { mocks: { ...errors.mock, '@/composables/api/planApi': { usePlanApi: () => api } } });
+  t.after(module.dispose);
+  const store = module.usePlansStore();
+
+  await store.load();
+  assert.deepEqual(asked, [true], 'active plans by default');
+  assert.equal(store.plans.length, 2);
+  assert.equal(store.forecasts[0].id, 'prices');
+
+  assert.equal(await store.cancel('p1'), true);
+  assert.deepEqual(plain(store.plans.map(x => x.id)), ['p2']);
+  assert.equal(await store.cancel('p2'), false, 'no answer is no change');
+  assert.equal(store.plans.length, 1);
+
+  store.activeOnly = false;
+  await store.load();
+  assert.equal(await store.cancel('p1'), true);
+  assert.equal(store.plans.find(x => x.id === 'p1').status, 'cancelled', 'with every plan listed, the ended plan stays');
+  assert.equal(errors.reported.length, 0);
+});

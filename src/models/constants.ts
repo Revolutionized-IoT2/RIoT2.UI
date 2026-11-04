@@ -70,6 +70,10 @@ export const Constants = {
     urlMcpStatus: "/api/v2/mcp/status",
     urlMcpConfiguration: "/api/v2/mcp/configuration",
     urlMcpActivity: "/api/v2/mcp/activity",
+    // Forecasts and command plans (ADR 0019).
+    urlForecasts: "/api/v2/forecasts",
+    urlCommandPlans: "/api/v2/command-plans",
+    urlCommandPlan: "/api/v2/command-plans/{id}",
 
     topicReport: "riot2/node/+/report",
     topicCommand: "riot2/node/{id}/command",

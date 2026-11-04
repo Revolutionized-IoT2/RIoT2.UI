@@ -87,7 +87,7 @@ function setLanguage(next: string) {
           <v-list-item v-bind="itemProps" :subtitle="`${item.provider} · ${item.model}${item.enabled ? '' : ' · disabled'}`" />
         </template>
       </v-select>
-      <v-select v-else-if="hint === 'riot-llm-tools'" :model-value="splitList(value)" :items="['ReadValues', 'SendCommands']" multiple chips
+      <v-select v-else-if="hint === 'riot-llm-tools'" :model-value="splitList(value)" :items="['ReadValues', 'SendCommands', 'PlanCommands']" multiple chips
                 closable-chips :aria-label="label" placeholder="No tools: the model only answers" density="compact" hide-details="auto"
                 :readonly="readOnly" @update:model-value="set(($event as string[]).join(', '))" />
       <v-autocomplete v-else-if="hint === 'riot-command-list'" :model-value="splitList(value)" :items="commands" item-title="name" item-value="id"

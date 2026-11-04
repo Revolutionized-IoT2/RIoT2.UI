@@ -19,7 +19,9 @@ const kindIcons = ['mdi-help', 'mdi-export', 'mdi-flash-outline', 'mdi-variable'
 
 onMounted(async () => {
   loadingItems.value = true;
-  items.value = await workflows.loadTemplates(settings.value.types);
+  const loaded = await workflows.loadTemplates(settings.value.types);
+  // RIoT Forecast's selector offers only reports whose value is a forecast series (ADR 0019).
+  items.value = settings.value.forecastOnly ? loaded.filter(x => x.forecast === true) : loaded;
   loadingItems.value = false;
 });
 

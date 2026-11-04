@@ -113,6 +113,8 @@ export interface WorkflowTemplateItem {
   device: string | null;
   model: JsonValue;
   templateType: TemplateType;
+  /** The report's value is a forecast series (Orchestrator 1.23.0). */
+  forecast?: boolean | null;
 }
 
 // ---------------------------------------------------------------- the activity catalog

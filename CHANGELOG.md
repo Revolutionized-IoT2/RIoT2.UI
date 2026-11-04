@@ -5,6 +5,23 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-11-04
+
+Forecasts and command plans ([ADR 0019](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0019-forecasts-and-command-plans.md)).
+Needs Orchestrator 1.23.0.
+
+- Added: the **Forecast** dashboard card (`kind` `forecast`). It shows a forecast report's series, such as a weather
+  forecast or today's and tomorrow's electricity prices, as bars or a line, with the value now, the range, an optional
+  dashed limit line, and all, today, tomorrow or the next 24 hours. It suits reports whose schema has the semantic
+  `forecast`.
+- Added: the **Plans** page (`/plans`, under Automation). It lists the command plans made by workflows, Run LLM steps
+  and AI assistants, with each step's time, value and delivery status, and can end a plan
+  (`/api/v2/command-plans`). It also lists the forecasts the orchestrator keeps (`/api/v2/forecasts`).
+- Added (designer): the RIoT Forecast and RIoT Command Plan activities' look. RIoT Forecast's selector lists only
+  forecast reports (the selector setting `forecastOnly`, the templates' `forecast` flag). Run LLM's tools include
+  `PlanCommands`.
+- Changed: the generated contract models include `ForecastSeries`, `ForecastPoint` and `ForecastSummary` (Core 2.3.0).
+
 ## [1.12.0] - 2026-11-03
 
 The AI access page ([I57](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i57-mcp-server-and-remote-ai-access-m),

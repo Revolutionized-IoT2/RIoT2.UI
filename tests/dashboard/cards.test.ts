@@ -102,6 +102,26 @@ describe('controls', () => {
   });
 });
 
+describe('forecast', () => {
+  test('shows the value now and the range of the forecast', async () => {
+    const start = new Date();
+    start.setMinutes(0, 0, 0);
+    const point = (i: number, value: number | null) => ({
+      start: new Date(start.getTime() + i * 3600000).toISOString(), end: new Date(start.getTime() + (i + 1) * 3600000).toISOString(), value,
+    });
+    const series = { issuedAt: start.toISOString(), kind: 'forecast', unit: '°C', points: [point(0, 2.5), point(1, -1), point(2, null), point(3, 4)] };
+    const { wrapper } = await show(bound('forecast', ValueType.Entity, [series]));
+    const format = (n: number) => new Intl.NumberFormat(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(n);
+    expect(wrapper.find('.forecast__number').text()).toBe(format(2.5));
+    expect(wrapper.find('.forecast__range').text()).toBe(`${format(-1)} – ${format(4)} °C`);
+  });
+
+  test('waits for a value that is not a forecast', async () => {
+    const { wrapper } = await show(bound('forecast', ValueType.Number, [21]));
+    expect(wrapper.find('.forecast__number').exists()).toBe(false);
+  });
+});
+
 test('a note shows Markdown without scripts', async () => {
   const card = createCard(findCard('markdown')!);
   card.settings = { content: '# Hello\n<img src="x" onerror="alert(1)"><script>alert(2)</script>', tone: 'plain' };

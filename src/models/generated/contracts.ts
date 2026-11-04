@@ -305,6 +305,48 @@ export interface FailedDevice {
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "ForecastPoint".
+ */
+export interface ForecastPoint {
+  start: string;
+  end: string;
+  value: number | null;
+}
+/**
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "ForecastSeries".
+ */
+export interface ForecastSeries {
+  issuedAt: string;
+  kind: string | null;
+  unit?: string | null;
+  resolution?: string | null;
+  points: ForecastPoint[] | null;
+}
+/**
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "ForecastSummary".
+ */
+export interface ForecastSummary {
+  id?: string | null;
+  issuedAt: string;
+  kind: string | null;
+  unit?: string | null;
+  from: string;
+  to: string;
+  complete: boolean;
+  count: number;
+  min?: number | null;
+  max?: number | null;
+  average?: number | null;
+  sum?: number | null;
+  current?: ForecastPoint | null;
+  points: ForecastPoint[] | null;
+  lowest: ForecastPoint[] | null;
+  highest: ForecastPoint[] | null;
+}
+/**
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
  * via the `definition` "NodeCommandTemplate".
  */
 export interface NodeCommandTemplate {

@@ -28,4 +28,6 @@ export type SchemaType = 'boolean' | 'number' | 'integer' | 'string' | 'object' 
 export type Semantic =
     | 'temperature' | 'humidity' | 'pressure' | 'illuminance' | 'power' | 'energy' | 'voltage' | 'current'
     | 'battery' | 'co2' | 'motion' | 'occupancy' | 'contact' | 'door' | 'window' | 'light' | 'switch'
-    | 'brightness' | 'color' | 'colorTemperature' | 'image' | 'text';
+    | 'brightness' | 'color' | 'colorTemperature' | 'image' | 'text'
+    /** A forecast series (Core 2.3.0): values over time ahead. */
+    | 'forecast';

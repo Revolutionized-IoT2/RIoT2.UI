@@ -35,6 +35,8 @@ const router = createRouter({
     // The workflow designer and the Run LLM step's connections (ADR 0016), in place of Elsa Studio.
     withLayout('/workflows', 'workflows', 'Workflows', () => import('@/views/WorkflowsView.vue')),
     withLayout('/workflows/:id', 'workflow', 'Workflow designer', () => import('@/views/WorkflowDesignerView.vue')),
+    // Command plans and forecasts (ADR 0019).
+    withLayout('/plans', 'plans', 'Plans', () => import('@/views/PlansView.vue')),
     withLayout('/ai', 'ai', 'AI models', () => import('@/views/AiModelsView.vue')),
     // The MCP server's tool policy and activity (ADR 0018).
     withLayout('/ai/access', 'ai access', 'AI access', () => import('@/views/AiAccessView.vue')),

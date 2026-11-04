@@ -92,8 +92,9 @@ test('the RIoT selector reads and writes the literal as Studio did', t => {
   assert.equal(selectionText(parseSelection(text)), text);
   assert.equal(parseSelection('not json'), null);
   assert.equal(parseSelection(' '), null);
-  assert.deepEqual(plain(selectorSettings(selectorInput)), { types: [2], hideEditor: true });
-  assert.deepEqual(plain(selectorSettings({ key: 'x' })), { types: [2, 1, 3], hideEditor: false });
+  assert.deepEqual(plain(selectorSettings(selectorInput)), { types: [2], hideEditor: true, forecastOnly: false });
+  assert.deepEqual(plain(selectorSettings({ key: 'x' })), { types: [2, 1, 3], hideEditor: false, forecastOnly: false });
+  assert.equal(selectorSettings({ key: 'f', options: { 'riot-output-selector': { templateTypes: ['Report'], hideEditor: true, forecastOnly: true } } }).forecastOnly, true);
 
   assert.equal(defaultCommandScript('Living room lamp', 0, true), 'let livingRoomLamp = true;\nreturn livingRoomLamp;');
   assert.equal(defaultCommandScript('Text', 1, "it's"), "let text = 'it\\'s';\nreturn text;");
