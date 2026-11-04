@@ -5,6 +5,19 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+Device accounts ("Connect to Netatmo"). Needs an Orchestrator with `POST /api/Nodes/{nodeId}/devices/{deviceId}/authorization`
+and `/api/oauth/callback`, and a Node and device plugins on Core 2.4.0.
+
+- Added: an **Account** section in the device editor for a device class whose template declares an `authorization`
+  (Netatmo first). It shows the sign-in status (connected as the account, not connected, expired, not configured,
+  or "Save the device first"), the provider's instructions and setup link, the exact redirect URI to register with
+  a copy button, and a **Connect to {provider}** button. The button opens a sign-in window, starts the sign-in at
+  the orchestrator, and takes the result from the orchestrator's callback page (only from the API's origin); while
+  the window is open it also reloads the device statuses every 3 seconds, for at most 5 minutes.
+- Changed: a failed request's reason also comes from a `{ "message": ... }` body.
+- Changed: the generated contract models include `DeviceAuthorization`, `DeviceAuthorizationStatus`,
+  `DeviceAuthorizationState` and the start and completion bodies (Core 2.4.0).
+
 ## [1.13.0] - 2026-11-04
 
 Forecasts and command plans ([ADR 0019](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0019-forecasts-and-command-plans.md)).

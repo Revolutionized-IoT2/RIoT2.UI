@@ -1,5 +1,5 @@
 import type * as Contract from './generated/contracts';
-import type { DeviceParameterDefinition, MatterEndpointTemplate } from './generated/contracts';
+import type { DeviceAuthorization, DeviceParameterDefinition, MatterEndpointTemplate } from './generated/contracts';
 import CommandTemplate from "./commandTemplate";
 import { ReportTemplate } from "./reportTemplate"
 
@@ -17,4 +17,6 @@ export default class DeviceConfiguration implements Contract.DeviceConfiguration
     hash?: string | null;
     /** Templates only: the node describes the parameters; the editor reads them, the orchestrator doesn't store them. */
     parameterDefinitions?: DeviceParameterDefinition[] | null;
+    /** Templates only: the provider the device signs in to (Core 2.4.0); the editor reads it, the orchestrator doesn't store it. */
+    authorization?: DeviceAuthorization | null;
 }

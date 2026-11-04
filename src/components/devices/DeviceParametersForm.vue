@@ -8,6 +8,7 @@ import type { CronValidationResult } from '@/models/cronValidationResult';
 import { useNodesStore } from '@/stores/nodesStore';
 import { parameterDefinitionsKey, parameterFields, type ParameterDefinitionMap } from '@/composables/deviceParameters';
 import DeviceParameterField from './DeviceParameterField.vue';
+import DeviceAuthorizationSection from './DeviceAuthorizationSection.vue';
 
 const model = defineModel<DeviceConfiguration>({ default: () => new DeviceConfiguration() });
 
@@ -144,6 +145,8 @@ onMounted(() => {
       </v-col>
     </v-row>
   </div>
+
+  <DeviceAuthorizationSection :device="model" :state="state" />
 
   <v-dialog v-model="newParameterDialog" persistent width="400">
     <v-card>

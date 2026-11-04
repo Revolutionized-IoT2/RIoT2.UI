@@ -60,6 +60,14 @@ export enum DeviceParameterType {
     boolean = 3
 }
 
+/** A device's sign-in with its provider (`DeviceStatus.authorization.state`, Core 2.4.0). */
+export enum DeviceAuthorizationState {
+    notConfigured = 0,
+    notConnected = 1,
+    connected = 2,
+    expired = 3
+}
+
 // The enums above keep the UI's member names; their values must be the contract's
 // (src/models/generated/contracts.ts). A mismatch fails the type check here.
 type SameValues<A extends number, B extends number> = [`${A}`] extends [`${B}`] ? ([`${B}`] extends [`${A}`] ? true : false) : false;
@@ -71,4 +79,5 @@ export type EnumsMatchTheContract = [
     Assert<SameValues<DeviceState, Contract.DeviceState>>,
     Assert<SameValues<NodeType, Contract.NodeType>>,
     Assert<SameValues<DeviceParameterType, Contract.DeviceParameterType>>,
+    Assert<SameValues<DeviceAuthorizationState, Contract.DeviceAuthorizationState>>,
 ];

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import NodeConfiguration from '@/models/nodeConfiguration';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, provide, ref } from 'vue';
 import type SystemNode from '@/models/systemNode';
 import type { PluginFile } from '@/models/pluginFile';
 import type DeviceStatus from '@/models/deviceStatus';
 import DeviceList from '@/components/nodes/DeviceList.vue';
 import { useNodesStore } from '@/stores/nodesStore';
 import { NodeType } from '@/models/enums';
+import { deviceStatusContextKey } from '@/composables/deviceAuthorization';
 
 const model = defineModel<NodeConfiguration>({ default: () => new NodeConfiguration() });
 const nodes = useNodesStore();
@@ -21,6 +22,20 @@ const emit = defineEmits<{
 
 const valid = ref(false);
 const deviceStatuses = ref<DeviceStatus[] | null>(null);
+// The node the statuses were read for: a device's account section signs in on that node only.
+const statusNodeId = ref<string | null>(null);
+
+/** Reloads the device statuses quietly (the account section's refresh and poll). */
+async function refreshDeviceStatuses() {
+  const id = statusNodeId.value;
+  if (id == null)
+    return;
+  const statuses = await nodes.pollDeviceStatuses(id);
+  if (statuses != null && statusNodeId.value == id)
+    deviceStatuses.value = statuses;
+}
+
+provide(deviceStatusContextKey, { nodeId: statusNodeId, refresh: refreshDeviceStatuses });
 
 // Online device nodes without a name have no configuration yet, so their ids can be chosen; connectors,
 // workflow engines and dashboards are never configured here.
@@ -46,8 +61,10 @@ const isPluginValid = computed(() => {
 });
 
 onMounted(async () => {
-  if (model.value.id != null)
+  if (model.value.id != null) {
+    statusNodeId.value = model.value.id;
     deviceStatuses.value = await nodes.getDeviceStatuses(model.value.id);
+  }
 });
 </script>
 

@@ -24,6 +24,10 @@ export function responseDetail(error: unknown): string | null {
         return data;
     if (data != null && typeof data === 'object' && typeof (data as { detail?: unknown }).detail === 'string')
         return (data as { detail: string }).detail;
+    // A refused device sign-in passes the node's { message }.
+    if (data != null && typeof data === 'object' && typeof (data as { message?: unknown }).message === 'string'
+        && (data as { message: string }).message.trim() !== '')
+        return (data as { message: string }).message;
     // A refused workflow save or LLM connection lists its problems.
     const errors = (data as { errors?: unknown } | null)?.errors;
     if (Array.isArray(errors) && errors.length > 0 && errors.every(x => typeof x === 'string'))

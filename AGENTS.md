@@ -61,6 +61,7 @@ docker build -t riot2-ui:local .
 | `src/composables/connectionState.ts`, `components/ConnectionBanner.vue` | The UI's own MQTT and API state (`App.vue` sets MQTT, `httpClientService` records every request) and the banner, shown after a 5 s grace; the banner pings `/api/security/info` every 15 s |
 | `src/views/SystemView.vue`, `components/system/`, `composables/systemHealthLook.ts` | The System page (`GET /api/v2/system/health`, polled every 10 s through `systemStore`) |
 | `src/composables/deviceParameters.ts`, `components/devices/DeviceParameterField.vue` | Typed parameter fields from `parameterDefinitions` (provided by `NodeEditorDialog`); free text without them |
+| `src/composables/deviceAuthorization.ts`, `components/devices/DeviceAuthorizationSection.vue` | "Connect to <provider>" for a template with `authorization`: `NodeEditorDialog` provides the descriptors, `NodeEditorComponent` the statuses' node and refresh; the callback page's message is read only from the API origin |
 | `src/composables/api/` | Promise-based REST calls per resource; they reject with `ApiError` (`httpClientService.ts`) |
 | `src/composables/statusLook.ts` | Sync, command-delivery and connector-health looks; `commandsStore` follows deliveries, `nodesStore.refreshSync` and `loadConnectors` are the quiet polls the Configure page runs |
 | `src/stores/` | Pinia stores (nodes, templates, variables, dashboard, commands, Matter, backup, system, workflows, llm, mcp) with `loading`/`error` from `requests.ts` |

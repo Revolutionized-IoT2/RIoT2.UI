@@ -5,6 +5,7 @@ import DeviceTemplatePicker from './DeviceTemplatePicker.vue';
 import { useNodesStore } from '@/stores/nodesStore';
 import { blankDevice, mergeDeviceTemplates } from '@/composables/deviceTemplates';
 import { parameterDefinitionsKey, takeParameterDefinitions, type ParameterDefinitionMap } from '@/composables/deviceParameters';
+import { deviceAuthorizationsKey, takeDeviceAuthorizations, type DeviceAuthorizationMap } from '@/composables/deviceAuthorization';
 import NodeConfiguration from '@/models/nodeConfiguration';
 import type DeviceConfiguration from '@/models/deviceConfiguration';
 import type SystemNode from '@/models/systemNode';
@@ -33,25 +34,33 @@ const hasNodeId = computed(() => configuration.value.id != null && configuration
 // leaves them as free text.
 const parameterDefinitions = ref<ParameterDefinitionMap>({});
 provide(parameterDefinitionsKey, parameterDefinitions);
+// The providers the node's devices sign in to ("Connect to Netatmo", Core 2.4.0), likewise from its templates.
+const deviceAuthorizations = ref<DeviceAuthorizationMap>({});
+provide(deviceAuthorizationsKey, deviceAuthorizations);
 
 /**
- * The node's device templates, with their parameter definitions moved into the editor's map. The map is
- * replaced, not merged, so another node's definitions never apply; a response for a node no longer
- * being edited is ignored.
+ * The node's device templates, with their parameter definitions and authorization descriptors moved into the
+ * editor's maps. The maps are replaced, not merged, so another node's definitions never apply; a response for a
+ * node no longer being edited is ignored.
  */
 async function deviceTemplates(): Promise<DeviceConfiguration[]> {
   const id = configuration.value.id!;
   const templates = await nodes.getDeviceTemplates(id);
   const definitions: ParameterDefinitionMap = {};
+  const authorizations: DeviceAuthorizationMap = {};
   takeParameterDefinitions(templates, definitions);
-  if (configuration.value.id == id)
+  takeDeviceAuthorizations(templates, authorizations);
+  if (configuration.value.id == id) {
     parameterDefinitions.value = definitions;
+    deviceAuthorizations.value = authorizations;
+  }
   return templates;
 }
 
 // The dialog is reused for every node: start each one with free text until its templates arrive.
 watch(() => [open.value, configuration.value.id], async () => {
   parameterDefinitions.value = {};
+  deviceAuthorizations.value = {};
   if (open.value && hasNodeId.value)
     await deviceTemplates();
 }, { immediate: true });

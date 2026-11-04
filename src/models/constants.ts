@@ -16,6 +16,8 @@ export const Constants = {
     urlSaveVariable: "/api/nodes/variable/save",
     urlDeleteVariable: "/api/v2/variables/{id}",
     urlGetNodeDeviceTemplates: "/api/nodes/{id}/device/templates",
+    // A device's sign-in with its provider ("Connect to Netatmo"); the provider returns to the orchestrator's /api/oauth/callback.
+    urlStartDeviceAuthorization: "/api/nodes/{nodeId}/devices/{deviceId}/authorization",
     urlCheckPlugin: "/api/nodes/checkplugin",
     urlValidateCron: "/api/nodes/validatecron",
     // Commands with a delivery status and the outbox (design 7.1).

@@ -27,6 +27,7 @@ function loadSource(relativePath, { props = {}, model, models = {}, expose = [],
     const context = {
       exports,
       console,
+      URL,
       setTimeout,
       clearTimeout,
       setInterval,

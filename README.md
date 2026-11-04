@@ -17,7 +17,8 @@ How this UI fits into the platform: [architecture overview](https://github.com/R
   on phones and wall displays, and in RIoT2.Mobile (`/dashboard/fullscreen`). The editor has a card
   gallery, a live preview, import and export; see [Dashboard](#dashboard).
 - Manages nodes, device configuration, variables and Matter bridge settings through the
-  orchestrator API.
+  orchestrator API. A device that signs in to a provider's account (such as Netatmo) gets a
+  *Connect* button in the device editor.
 - Downloads and restores configuration backups, and lists the orchestrator's saved backups
   (*Backup* page, orchestrator 1.7.0 or later).
 - Shows the health of the system on the *System* page (orchestrator 1.20.0 or later): every node,
@@ -145,6 +146,7 @@ Important implementation files:
 | `src/composables/realtime.ts`, `securityInfo.ts` | The realtime transport (`mqtt`, `gateway` placeholder) and the `/api/security/info` probe. |
 | `src/composables/presence.ts` | The camelCase presence and last will, and when to announce again. |
 | `src/composables/deviceParameters.ts` | Typed device parameters: fields from the node's `parameterDefinitions`, checks, the editor's definition map. |
+| `src/composables/deviceAuthorization.ts`, `components/devices/DeviceAuthorizationSection.vue` | A device's account sign-in ("Connect to Netatmo"): the redirect URI, the status chip, the sign-in window and the callback page's message. |
 | `src/stores/` | Pinia stores: the data each page shows, with `loading` and `error`; failures reach the snackbar. |
 | `src/composables/api/` | Promise-based REST calls per resource (nodes, templates, commands, variables, dashboard, Matter, backup, system). |
 | `src/composables/statusLook.ts` | How a node's configuration sync, a command's delivery and a connector's health are shown (label, color, icon, tooltip lines). |

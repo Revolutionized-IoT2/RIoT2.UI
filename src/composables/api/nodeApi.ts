@@ -9,6 +9,8 @@ import type { PluginFile } from '@/models/pluginFile';
 import type { CronValidationResult } from '@/models/cronValidationResult';
 import type { NodeSync } from '@/models/nodeSync';
 import type { ConnectorInfo } from '@/models/connectorInfo';
+import type { DeviceAuthorizationRequest } from '@/models/deviceAuthorizationRequest';
+import type { DeviceAuthorizationStartResult } from '@/models/generated/contracts';
 
 /** Node configurations, online nodes and the checks the node editor runs. */
 export function useNodeApi() {
@@ -53,6 +55,17 @@ export function useNodeApi() {
     return httpClient.get<DeviceConfiguration[]>(url);
   }
 
+  /**
+   * Starts a device's sign-in with its provider (Admin). Resolves to the provider's sign-in address; rejects with
+   * 404 (no such node or device), 409 (the device lacks settings, with the node's message), 429 or 502.
+   */
+  function startDeviceAuthorization(nodeId: string, deviceId: string, request: DeviceAuthorizationRequest): Promise<DeviceAuthorizationStartResult | null> {
+    const url = orchestratorStore.baseUrl + Constants.urlStartDeviceAuthorization
+      .replace('{nodeId}', encodeURIComponent(nodeId))
+      .replace('{deviceId}', encodeURIComponent(deviceId));
+    return httpClient.post<DeviceAuthorizationRequest, DeviceAuthorizationStartResult>(url, request);
+  }
+
   function checkPlugin(plugin: PluginFile): Promise<PluginFile | null> {
     const url = orchestratorStore.baseUrl + Constants.urlCheckPlugin;
     return httpClient.post<PluginFile, PluginFile>(url, plugin);
@@ -87,6 +100,7 @@ export function useNodeApi() {
     deleteNode,
     getNodeDevicesStatus,
     getDeviceTemplates,
+    startDeviceAuthorization,
     checkPlugin,
     validateCron,
     getSync,

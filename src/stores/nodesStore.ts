@@ -12,6 +12,7 @@ import type { PluginFile } from '@/models/pluginFile';
 import type { CronValidationResult } from '@/models/cronValidationResult';
 import type { NodeSync } from '@/models/nodeSync';
 import type { ConnectorInfo } from '@/models/connectorInfo';
+import type { DeviceAuthorizationRequest } from '@/models/deviceAuthorizationRequest';
 
 /** Configured and online nodes, and the node editor's requests. */
 export const useNodesStore = defineStore('nodes', () => {
@@ -65,6 +66,29 @@ export const useNodesStore = defineStore('nodes', () => {
 
   async function getDeviceStatuses(nodeId: string): Promise<DeviceStatus[]> {
     return await run(() => api.getNodeDevicesStatus(nodeId)) ?? [];
+  }
+
+  /**
+   * A node's device statuses for the account section's refresh and poll: it doesn't set `loading`, and a
+   * failure resolves to null without a snackbar.
+   */
+  async function pollDeviceStatuses(nodeId: string): Promise<DeviceStatus[] | null> {
+    try {
+      return await api.getNodeDevicesStatus(nodeId) ?? [];
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Starts a device's sign-in with its provider and resolves to the provider's sign-in address. It rejects with
+   * the `ApiError` instead of showing the snackbar: the device's account section shows the reason.
+   */
+  async function startDeviceAuthorization(nodeId: string, deviceId: string, request: DeviceAuthorizationRequest): Promise<string> {
+    const result = await api.startDeviceAuthorization(nodeId, deviceId, request);
+    if (result?.authorizeUrl == null || result.authorizeUrl == '')
+      throw new Error('The orchestrator returned no sign-in address.');
+    return result.authorizeUrl;
   }
 
   async function checkPlugin(url: string): Promise<PluginFile | null> {
@@ -130,6 +154,6 @@ export const useNodesStore = defineStore('nodes', () => {
   return {
     nodes, onlineNodes, connectors, workflowNode, loading, error,
     load, loadOnline, loadConnectors, getConfiguration, saveConfiguration, deleteNode,
-    getDeviceTemplates, getDeviceStatuses, checkPlugin, validateCron, refreshSync, reapply
+    getDeviceTemplates, getDeviceStatuses, pollDeviceStatuses, startDeviceAuthorization, checkPlugin, validateCron, refreshSync, reapply
   };
 });

@@ -60,6 +60,7 @@ test('errors carry the detail of the orchestrator\'s answer', () => {
   assert.equal(responseDetail(failed({ title: 'The backup can\'t be restored', detail: 'v.json is not valid JSON.' })), 'v.json is not valid JSON.');
   assert.equal(responseDetail(failed('No backup x')), 'No backup x');
   assert.equal(responseDetail(failed({ title: 'no detail' })), null);
+  assert.equal(responseDetail(failed({ message: 'Set the client id and secret first.' })), 'Set the client id and secret first.');
   assert.equal(responseDetail(new Error('network')), null);
 });
 

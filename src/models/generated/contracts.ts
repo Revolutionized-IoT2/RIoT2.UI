@@ -34,6 +34,13 @@ export type DashboardComponentType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
  */
 export type DashboardComponentSize = 3 | 6 | 9 | 12;
 /**
+ * 0 = NotConfigured, 1 = NotConnected, 2 = Connected, 3 = Expired
+ *
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "DeviceAuthorizationState".
+ */
+export type DeviceAuthorizationState = 0 | 1 | 2 | 3;
+/**
  * 21 = ContactSensor, 256 = OnOffLight, 257 = DimmableLight, 262 = LightSensor, 263 = OccupancySensor, 266 = OnOffPlugInUnit, 267 = DimmablePlugInUnit, 268 = ColorTemperatureLight, 269 = ExtendedColorLight, 769 = Thermostat, 770 = TemperatureSensor, 775 = HumiditySensor
  *
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
@@ -222,6 +229,47 @@ export interface DashboardPage {
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "DeviceAuthorization".
+ */
+export interface DeviceAuthorization {
+  provider: string | null;
+  setupUrl?: string | null;
+  instructions?: string | null;
+}
+/**
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "DeviceAuthorizationCompletion".
+ */
+export interface DeviceAuthorizationCompletion {
+  code: string | null;
+  redirectUri: string | null;
+}
+/**
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "DeviceAuthorizationStart".
+ */
+export interface DeviceAuthorizationStart {
+  redirectUri: string | null;
+  state: string | null;
+}
+/**
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "DeviceAuthorizationStartResult".
+ */
+export interface DeviceAuthorizationStartResult {
+  authorizeUrl: string | null;
+}
+/**
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
+ * via the `definition` "DeviceAuthorizationStatus".
+ */
+export interface DeviceAuthorizationStatus {
+  state: DeviceAuthorizationState;
+  account?: string | null;
+  message?: string | null;
+}
+/**
+ * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
  * via the `definition` "DeviceConfiguration".
  */
 export interface DeviceConfiguration {
@@ -237,6 +285,7 @@ export interface DeviceConfiguration {
   matterEndpoints: MatterEndpointTemplate[] | null;
   hash?: string | null;
   parameterDefinitions?: DeviceParameterDefinition[] | null;
+  authorization?: DeviceAuthorization | null;
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
@@ -294,6 +343,7 @@ export interface DeviceStatus {
   name: string | null;
   message: string | null;
   state: DeviceState;
+  authorization?: DeviceAuthorizationStatus | null;
 }
 /**
  * This interface was referenced by `RIoT2Contracts`'s JSON-Schema
