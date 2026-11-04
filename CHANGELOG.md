@@ -5,8 +5,10 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-11-03
+
 The AI access page ([I57](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-3-4.md#i57-mcp-server-and-remote-ai-access-m),
-[ADR 0018](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0018-mcp-server-and-remote-ai-access.md)). Planned as 1.12.0; needs
+[ADR 0018](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0018-mcp-server-and-remote-ai-access.md)). Needs
 Orchestrator 1.22.0.
 
 - Added: the *AI access* page (`/ai/access`, under Automation): the MCP server's local and public URLs, the switches
