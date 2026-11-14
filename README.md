@@ -102,6 +102,7 @@ The browser-side MQTT settings are Vite variables read by `src/app.config.ts`:
 | `VITE_MQTT_USER` | Optional MQTT user name. |
 | `VITE_MQTT_PASSWORD` | Optional MQTT password. |
 | `ORCHESTRATOR_UPSTREAM` | Optional (image only): the orchestrator as the container reaches it, such as `http://orchestrator:8080`. nginx then proxies `/api/` and `/realtime` there, and the UI calls the API on its own origin ([design 7.5](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/design/security-mode.md)). |
+| `RIOT2_UI_PORT` | Optional (image only, 1.15.0): the port nginx listens on, default `8080`. A port below 1024 also needs the container's sysctl `net.ipv4.ip_unprivileged_port_start` at or below it, because nginx doesn't run as root. |
 
 Do not commit real broker credentials. These values are visible to anyone who can load the UI.
 The platform source of truth for environment variables and ports is
@@ -110,7 +111,7 @@ The platform source of truth for environment variables and ports is
 ## Container deployment
 
 `Dockerfile` builds the app on Node 24 (active LTS) with `npm ci` and serves `dist/` from
-`nginx-unprivileged` on port 8080, as the non-root user `nginx` (UID 101). Since 1.1.0; earlier
+`nginx-unprivileged` on port 8080 (`RIOT2_UI_PORT` changes it), as the non-root user `nginx` (UID 101). Since 1.1.0; earlier
 images listened on port 80. At container startup, `entrypoint.sh` renders `VITE_MQTT_SERVER`, `VITE_MQTT_USER` and
 `VITE_MQTT_PASSWORD` into the built JavaScript from pristine template copies, so a container restart
 is enough to change MQTT settings. It also writes the `/api` and `/realtime` proxy from

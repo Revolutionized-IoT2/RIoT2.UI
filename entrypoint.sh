@@ -40,6 +40,25 @@ do
   done
 done
 
+# The port nginx listens on: RIOT2_UI_PORT, default 8080. nginx runs as UID 101, so a port below
+# 1024 also needs the container's sysctl net.ipv4.ip_unprivileged_port_start at or below it.
+LISTEN_CONF=${LISTEN_CONF:-/etc/nginx/riot2/listen.conf}
+port=${RIOT2_UI_PORT:-8080}
+case "$port" in
+  '' | *[!0-9]*) port_ok= ;;
+  *) port_ok=$( [ "$port" -ge 1 ] && [ "$port" -le 65535 ] && echo 1 ) ;;
+esac
+if [ -z "$port_ok" ]; then
+  echo "ERROR: RIOT2_UI_PORT must be a port number from 1 to 65535, for example 8080" >&2
+  exit 1
+fi
+mkdir -p "$(dirname "$LISTEN_CONF")"
+echo "Listening on port $port"
+cat > "$LISTEN_CONF" <<EOF
+listen $port default_server;
+listen [::]:$port default_server;
+EOF
+
 # The /api and /realtime proxy to the orchestrator (design 7.5). With ORCHESTRATOR_UPSTREAM, for
 # example http://orchestrator:8080, the browser reaches the API on the UI's own origin; the UI
 # finds it through /api/security/info. Without it, both paths answer 404 and the UI calls the

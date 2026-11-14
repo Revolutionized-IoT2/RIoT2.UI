@@ -82,7 +82,7 @@ docker build -t riot2-ui:local .
 | `src/views/` | Route-level pages |
 | `src/layout/` | Vuetify app shell and navigation drawer |
 | `tests/` | Vitest tests: `*.test.mjs` (source loader), `dashboard/*.test.ts` (kit, store, cards) |
-| `Dockerfile`, `nginx.conf`, `entrypoint.sh` | Production container build (base images pinned by digest; Renovate updates them), nginx config, runtime env substitution and the `/api` proxy (`ORCHESTRATOR_UPSTREAM`, written to `/etc/nginx/riot2/api.conf`) |
+| `Dockerfile`, `nginx.conf`, `entrypoint.sh` | Production container build (base images pinned by digest; Renovate updates them), nginx config, runtime env substitution, the port (`RIOT2_UI_PORT`) and the `/api` proxy (`ORCHESTRATOR_UPSTREAM`), written to `/etc/nginx/riot2/` |
 
 ## Contracts consumed here
 
@@ -171,7 +171,8 @@ docker build -t riot2-ui:local .
   endpoints are known.
 - The image runs nginx as UID 101 on port 8080 (`nginx-unprivileged`). `entrypoint.sh` rewrites
   files under `/usr/share/nginx/html/assets`, so the Dockerfile must keep those directories owned
-  by UID 101. Don't add a `listen` below 1024 or write anywhere else at runtime.
+  by UID 101. Only `entrypoint.sh` writes `listen` (`RIOT2_UI_PORT`); keep the default 8080, and
+  don't write anywhere else at runtime.
 
 ## Related work
 

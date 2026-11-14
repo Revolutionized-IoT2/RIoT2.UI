@@ -28,7 +28,7 @@ function findShell() {
 const shell = findShell();
 const nginx = spawnSync('nginx', ['-v']).error ? null : 'nginx';
 
-function runEntrypoint(t, upstream) {
+function runEntrypoint(t, upstream, extraEnv = {}) {
   const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'riot2-ui-entrypoint-'));
   t.after(() => fs.rmSync(folder, { recursive: true, force: true }));
   fs.mkdirSync(path.join(folder, 'html', 'assets'), { recursive: true });
@@ -38,20 +38,25 @@ function runEntrypoint(t, upstream) {
     ROOT_DIR: path.join(folder, 'html').replace(/\\/g, '/'),
     TEMPLATE_DIR: path.join(folder, 'templates').replace(/\\/g, '/'),
     PROXY_CONF: path.join(folder, 'riot2', 'api.conf').replace(/\\/g, '/'),
+    LISTEN_CONF: path.join(folder, 'riot2', 'listen.conf').replace(/\\/g, '/'),
     SKIP_NGINX: '1',
     VITE_MQTT_SERVER: 'broker.lan',
   };
+  delete env.RIOT2_UI_PORT;
+  Object.assign(env, extraEnv);
   if (upstream === undefined)
     delete env.ORCHESTRATOR_UPSTREAM;
   else
     env.ORCHESTRATOR_UPSTREAM = upstream;
   const result = spawnSync(shell, [path.join(root, 'entrypoint.sh').replace(/\\/g, '/')], { env, encoding: 'utf8' });
   const conf = path.join(folder, 'riot2', 'api.conf');
+  const listen = path.join(folder, 'riot2', 'listen.conf');
   return {
     folder,
     status: result.status,
     output: result.stdout + result.stderr,
     proxy: fs.existsSync(conf) ? fs.readFileSync(conf, 'utf8') : null,
+    listen: fs.existsSync(listen) ? fs.readFileSync(listen, 'utf8') : null,
     bundle: fs.readFileSync(path.join(folder, 'html', 'assets', 'index-test.js'), 'utf8'),
   };
 }
@@ -106,3 +111,27 @@ test('an upstream with a path is refused', { skip: !shell && 'no sh' }, t => {
   assert.equal(run.status, 1);
   assert.match(run.output, /ORCHESTRATOR_UPSTREAM must be http\(s\):\/\/host\[:port\]/);
 });
+
+test('nginx listens on 8080 unless RIOT2_UI_PORT says otherwise', { skip: !shell && 'no sh' }, t => {
+  const standard = runEntrypoint(t, undefined);
+  assert.equal(standard.status, 0, standard.output);
+  assert.equal(standard.listen, 'listen 8080 default_server;\nlisten [::]:8080 default_server;\n');
+
+  const lan = runEntrypoint(t, 'http://orchestrator:8080', { RIOT2_UI_PORT: '80' });
+  assert.equal(lan.status, 0, lan.output);
+  assert.equal(lan.listen, 'listen 80 default_server;\nlisten [::]:80 default_server;\n');
+  if (nginx) {
+    const check = nginxTest(lan.folder);
+    assert.equal(check.status, 0, check.stderr);
+  }
+});
+
+for (const port of ['http', '0', '65536', '80 ssl']) {
+  test(`RIOT2_UI_PORT=${port} is refused`, { skip: !shell && 'no sh' }, t => {
+    const run = runEntrypoint(t, undefined, { RIOT2_UI_PORT: port });
+
+    assert.equal(run.status, 1);
+    assert.match(run.output, /RIOT2_UI_PORT must be a port number/);
+    assert.equal(run.listen, null);
+  });
+}

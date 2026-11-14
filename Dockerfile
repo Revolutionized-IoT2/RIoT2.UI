@@ -22,7 +22,7 @@ RUN mkdir -p /usr/share/nginx/runtime-templates/assets /etc/nginx/riot2 \
     && chmod -R g+w /usr/share/nginx/html /usr/share/nginx/runtime-templates /etc/nginx/riot2
 USER 101
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD wget -q --spider http://127.0.0.1:8080/ || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD wget -q --spider "http://127.0.0.1:${RIOT2_UI_PORT:-8080}/" || exit 1
 ENTRYPOINT ["/entrypoint.sh"]
 
 ENV TZ=Europe/Helsinki
@@ -31,3 +31,5 @@ ENV VITE_MQTT_USER=
 ENV VITE_MQTT_PASSWORD=
 # The orchestrator for the /api and /realtime proxy, for example http://orchestrator:8080; empty: no proxy.
 ENV ORCHESTRATOR_UPSTREAM=
+# The port nginx listens on; below 1024 needs the sysctl net.ipv4.ip_unprivileged_port_start.
+ENV RIOT2_UI_PORT=8080

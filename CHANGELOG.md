@@ -5,6 +5,12 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+Static LAN addresses ([I61](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-4b.md#i61-site-configuration-and-installer-m)).
+
+- Added: `RIOT2_UI_PORT`, the port nginx listens on (default `8080`, as before). `entrypoint.sh` writes the `listen`
+  directives to `/etc/nginx/riot2/listen.conf` on every start and refuses a value that isn't a port number; the
+  health check follows the port. `deploy/compose.lan.yml` uses it to serve the UI on port 80 of its own LAN address.
+
 ## [1.14.0] - 2026-11-14
 
 Device accounts ("Connect to Netatmo"). Needs an Orchestrator with `POST /api/Nodes/{nodeId}/devices/{deviceId}/authorization`
