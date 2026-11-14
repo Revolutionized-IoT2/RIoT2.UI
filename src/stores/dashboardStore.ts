@@ -21,7 +21,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const dashboard = ref<Dashboard | null>(null);
   const saved = ref(snapshot(null));
-  /** The newest dashboard version when it was loaded; null before Orchestrator 1.24.0. */
+  /** The newest dashboard version when it was loaded; null before Orchestrator 1.25.0. */
   const loadedVersion = ref<string | null>(null);
   const changedElsewhere = ref(false);
   // Loads and saves in progress; a notice that arrives meanwhile is checked when they end.

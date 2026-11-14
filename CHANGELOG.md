@@ -5,6 +5,8 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-11-14
+
 Device accounts ("Connect to Netatmo"). Needs an Orchestrator with `POST /api/Nodes/{nodeId}/devices/{deviceId}/authorization`
 and `/api/oauth/callback`, and a Node and device plugins on Core 2.4.0.
 
@@ -19,7 +21,7 @@ and `/api/oauth/callback`, and a Node and device plugins on Core 2.4.0.
   `DeviceAuthorizationState` and the start and completion bodies (Core 2.4.0).
 
 Dashboard editing by AI assistants ([I60](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-4b.md#i60-dashboard-and-workflow-building-over-mcp-m)).
-Needs Orchestrator 1.24.0 for the new parts; with an older one they stay quiet.
+Needs Orchestrator 1.25.0 for the new parts; with an older one they stay quiet.
 
 - Added: the UI uploads its card catalog (every card kind with its settings, defaults, element slots and sample;
   `src/dashboard/sdk/catalog.ts`) to `PUT /api/v2/dashboard/cards` when the orchestrator has an older or different
