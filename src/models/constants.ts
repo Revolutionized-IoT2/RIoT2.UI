@@ -72,6 +72,9 @@ export const Constants = {
     urlMcpStatus: "/api/v2/mcp/status",
     urlMcpConfiguration: "/api/v2/mcp/configuration",
     urlMcpActivity: "/api/v2/mcp/activity",
+    urlDashboardCards: "/api/v2/dashboard/cards",
+    urlDashboardVersions: "/api/v2/dashboard/versions",
+    urlDashboardVersionRestore: "/api/v2/dashboard/versions/{id}/restore",
     // Forecasts and command plans (ADR 0019).
     urlForecasts: "/api/v2/forecasts",
     urlCommandPlans: "/api/v2/command-plans",
@@ -82,6 +85,8 @@ export const Constants = {
     topicConfigure: "riot2/node/{id}/configuration",
     topicOnline: "riot2/node/{id}/online",
     topicOrchestratorOnline: "riot2/orchestrator/online",
+    /** The orchestrator's notice after every dashboard change (I60): { versionId, savedAt, source }. */
+    topicDashboardChanged: "riot2/orchestrator/dashboard",
     //https://github.com/json-editor/json-editor
     nodeConfigurationSchema: {
         type: "object",

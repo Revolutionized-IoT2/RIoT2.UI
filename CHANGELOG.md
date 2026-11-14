@@ -18,6 +18,19 @@ and `/api/oauth/callback`, and a Node and device plugins on Core 2.4.0.
 - Changed: the generated contract models include `DeviceAuthorization`, `DeviceAuthorizationStatus`,
   `DeviceAuthorizationState` and the start and completion bodies (Core 2.4.0).
 
+Dashboard editing by AI assistants ([I60](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-4b.md#i60-dashboard-and-workflow-building-over-mcp-m)).
+Needs Orchestrator 1.24.0 for the new parts; with an older one they stay quiet.
+
+- Added: the UI uploads its card catalog (every card kind with its settings, defaults, element slots and sample;
+  `src/dashboard/sdk/catalog.ts`) to `PUT /api/v2/dashboard/cards` when the orchestrator has an older or different
+  one, so the MCP dashboard tools can build cards.
+- Added: **History** in the dashboard editor's menu: the last saved versions, who saved them (the editor, an AI
+  assistant, a restore) and what changed, with **Restore**.
+- Added: the dashboard reloads when the orchestrator says it changed elsewhere (`riot2/orchestrator/dashboard`);
+  with unsaved changes the editor asks first (Reload or Keep editing).
+- Added: the **Dashboard** tool group on the AI access page.
+- Changed: `package.json`'s version is the UI's version (1.14.0), built in as `__UI_VERSION__`; set it before tagging.
+
 ## [1.13.0] - 2026-11-04
 
 Forecasts and command plans ([ADR 0019](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0019-forecasts-and-command-plans.md)).

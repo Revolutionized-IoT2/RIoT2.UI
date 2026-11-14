@@ -49,6 +49,8 @@ docker build -t riot2-ui:local .
 - Every push runs `.github/workflows/ci.yml` (`npm run lint`, `npm test`, `npm run build`, image
   build, secret scan). Release is tag-driven: push a `*.*.*` tag. `release.yml` validates, then pushes
   `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>` ([CI guide](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/guides/ci.md)).
+  Before tagging, set `package.json`'s version to the tag (`npm version x.y.z --no-git-tag-version`): it is the
+  UI version the card catalog carries (`__UI_VERSION__`).
 
 ## Layout
 
@@ -69,6 +71,7 @@ docker build -t riot2-ui:local .
 | `src/composables/workflowGraph.ts`, `workflowAppearance.ts`, `assets/workflow-designer.css` | Model ⇄ Vue Flow conversion, inputs, the RIoT selector literal, `validateFlow`; activity colours and icons; the canvas styles |
 | `src/views/AiModelsView.vue`, `components/ai/` | Language model connections (`LlmConnectionDialog`) and usage (`LlmUsagePanel`) |
 | `src/views/AiAccessView.vue`, `stores/mcpStore.ts`, `models/mcp.ts` | The AI access page (`/ai/access`, [ADR 0018](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/adr/0018-mcp-server-and-remote-ai-access.md), [mcp.md](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/mcp.md)): the MCP tool policy and activity through `/api/v2/mcp` |
+| `src/dashboard/sdk/catalog.ts`, `composables/cardCatalog.ts` | The card catalog uploaded for the MCP dashboard tools ([dashboard.md](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/contracts/dashboard.md#card-catalog-orchestrator-1240)); `dashboardStore` reloads on `riot2/orchestrator/dashboard` |
 | `src/plugins/vuetify.ts` | The MD3 blueprint, the Dls light and dark themes (stored as `riot2.theme`), defaults and the hybrid icon set |
 | `src/components/nodes/`, `src/components/devices/` | Parts of the Configure page: node list, editor dialog, device list and template picker; device parameters and template tables |
 | `src/models/` | TypeScript models and constants for REST routes, topics, dashboards, nodes and variables |

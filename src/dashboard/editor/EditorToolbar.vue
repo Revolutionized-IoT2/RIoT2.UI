@@ -6,12 +6,12 @@ export type PreviewWidth = 'phone' | 'tablet' | 'full';
 
 /**
  * The dashboard editor's toolbar: preview (at phone, tablet or full width), page actions, import
- * and export, discard, save (also Ctrl+S) and done.
+ * and export, history, discard, save (also Ctrl+S) and done.
  */
 const props = defineProps<{ dirty: boolean, saving: boolean, hasPage: boolean }>();
 const previewing = defineModel<boolean>('previewing', { required: true });
 const previewWidth = defineModel<PreviewWidth>('previewWidth', { required: true });
-const emit = defineEmits<{ newPage: [], editPage: [], transfer: [], discard: [], save: [], done: [] }>();
+const emit = defineEmits<{ newPage: [], editPage: [], transfer: [], history: [], discard: [], save: [], done: [] }>();
 
 const { smAndDown } = useDisplay();
 
@@ -57,6 +57,7 @@ onBeforeUnmount(() => globalThis.removeEventListener('keydown', onKey));
         <v-list-item title="New page" prepend-icon="mdi-file-plus-outline" @click="emit('newPage')" />
         <v-list-item title="Edit page" prepend-icon="mdi-file-edit-outline" :disabled="!hasPage" @click="emit('editPage')" />
         <v-list-item title="Import and export" prepend-icon="mdi-swap-vertical" @click="emit('transfer')" />
+        <v-list-item title="History" prepend-icon="mdi-history" @click="emit('history')" />
         <v-list-item title="Discard changes" prepend-icon="mdi-undo-variant" :disabled="!dirty" @click="emit('discard')" />
       </v-list>
     </v-menu>

@@ -33,7 +33,7 @@ export interface McpToolInfo {
   write: boolean;
 }
 
-export type McpToolGroup = 'read' | 'health' | 'commands' | 'variables' | 'workflows' | 'workflowControl' | 'admin';
+export type McpToolGroup = 'read' | 'health' | 'commands' | 'variables' | 'workflows' | 'workflowControl' | 'dashboard' | 'admin';
 
 /** The tool policy (StoredObjects/McpConfiguration); no MCP tool can change it. */
 export interface McpConfiguration {

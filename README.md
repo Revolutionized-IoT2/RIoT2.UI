@@ -31,6 +31,9 @@ How this UI fits into the platform: [architecture overview](https://github.com/R
   *AI models* page.
 - Sets what AI assistants may do through the orchestrator's MCP server (tool groups, allowed commands,
   the local and internet listeners), and shows their tool calls, on the *AI access* page (orchestrator 1.22.0).
+- Tells the orchestrator its dashboard card kinds, so assistants can build cards; keeps the dashboard's
+  last versions under *Edit dashboard > History*, and reloads the dashboard when an assistant or
+  another browser changes it (orchestrator 1.24.0).
 - Subscribes to live report messages over MQTT, and announces itself as a dashboard node on every
   connection and whenever the orchestrator comes back online.
 

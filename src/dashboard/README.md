@@ -49,6 +49,11 @@ Then:
 Keep a released card's `kind`, and its setting keys, unchanged: dashboards store them. Rename a
 setting by reading the old key in `upgrade`.
 
+AI assistants build cards from the same definitions: the UI uploads them as a card catalog
+([sdk/catalog.ts](sdk/catalog.ts)), without the functions. Write each card's `description`, setting
+`label`s and `hint`s for them too, and give a `sample`: it is their worked example. A `legacyType`
+function may depend on one `select` setting only (the catalog lists the type for each of its values).
+
 ### Setting fields
 
 | Type | Edits |

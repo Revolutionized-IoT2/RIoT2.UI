@@ -1,6 +1,6 @@
 {
   "name": "riot2-ui",
-  "version": "0.0.0",
+  "version": "1.14.0",
   "scripts": {
     "dev": "vite --force",
     "generate": "node scripts/generate-models.mjs",

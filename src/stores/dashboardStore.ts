@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import { useDashboardApi } from '@/composables/api/dashboardApi';
+import { useDashboardApi, type DashboardVersionInfo } from '@/composables/api/dashboardApi';
 import { useRequests } from './requests';
 import type Dashboard from '@/models/dashboard';
 import type { DashboardCard, DashboardPage } from '@/models/dashboard';
@@ -11,7 +11,9 @@ const snapshot = (dashboard: Dashboard | null) => JSON.stringify(toDefinition(da
 
 /**
  * The dashboard: its pages and cards, kept current by the reports the UI receives. The editor
- * changes it here; `dirty` says whether it differs from what was loaded or saved.
+ * changes it here; `dirty` says whether it differs from what was loaded or saved. When the
+ * orchestrator says the dashboard changed elsewhere (an AI assistant, another browser), it reloads,
+ * or with unsaved changes sets `changedElsewhere` for the editor to ask.
  */
 export const useDashboardStore = defineStore('dashboard', () => {
   const api = useDashboardApi();
@@ -19,34 +21,115 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const dashboard = ref<Dashboard | null>(null);
   const saved = ref(snapshot(null));
+  /** The newest dashboard version when it was loaded; null before Orchestrator 1.24.0. */
+  const loadedVersion = ref<string | null>(null);
+  const changedElsewhere = ref(false);
+  // Loads and saves in progress; a notice that arrives meanwhile is checked when they end.
+  let busy = 0;
+  let pendingNotice: string | null = null;
 
   // Reads only the definition (not reports), so a report doesn't recompute it.
   const dirty = computed(() => dashboard.value != null && snapshot(dashboard.value) !== saved.value);
 
+  async function latestVersion(): Promise<string | null> {
+    try {
+      return (await api.getVersions())?.[0]?.id ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function settle(): Promise<void> {
+    busy--;
+    if (busy === 0 && pendingNotice != null) {
+      const versionId = pendingNotice;
+      pendingNotice = null;
+      await changed(versionId);
+    }
+  }
+
   async function load(): Promise<void> {
-    const loaded = await run(() => api.getDashboard());
-    if (loaded === undefined)
-      return;
-    dashboard.value = normalizeDashboard(loaded);
-    saved.value = snapshot(dashboard.value);
+    busy++;
+    try {
+      // The version first: a change between the two requests then reloads once more.
+      const version = await latestVersion();
+      const loaded = await run(() => api.getDashboard());
+      if (loaded === undefined)
+        return;
+      dashboard.value = normalizeDashboard(loaded);
+      saved.value = snapshot(dashboard.value);
+      loadedVersion.value = version;
+      changedElsewhere.value = false;
+    } finally {
+      await settle();
+    }
   }
 
   /** Saves the dashboard, then reloads it (with each element's history). Resolves to success. */
   async function save(): Promise<boolean> {
     if (dashboard.value == null)
       return false;
-    const definition = toDefinition(dashboard.value);
-    const id = await run(() => api.saveDashboard(definition));
-    if (id == null)
-      return false;
-    saved.value = JSON.stringify(definition);
-    await load();
-    return true;
+    busy++;
+    try {
+      const definition = toDefinition(dashboard.value);
+      const id = await run(() => api.saveDashboard(definition));
+      if (id == null)
+        return false;
+      saved.value = JSON.stringify(definition);
+      await load();
+      return true;
+    } finally {
+      await settle();
+    }
   }
 
   /** Drops the unsaved changes. */
   function discard(): Promise<void> {
     return load();
+  }
+
+  /** The orchestrator's riot2/orchestrator/dashboard notice: `{ versionId, savedAt, source }`. */
+  function noticeReceived(message: string): Promise<void> {
+    let versionId: unknown;
+    try {
+      versionId = (JSON.parse(message) as { versionId?: unknown })?.versionId;
+    } catch {
+      return Promise.resolve();
+    }
+    return typeof versionId === 'string' ? changed(versionId) : Promise.resolve();
+  }
+
+  async function changed(versionId: string): Promise<void> {
+    if (dashboard.value == null || versionId === loadedVersion.value)
+      return;
+    if (busy > 0) {
+      pendingNotice = versionId;
+      return;
+    }
+    if (dirty.value) {
+      changedElsewhere.value = true;
+      return;
+    }
+    await load();
+  }
+
+  /** Keeps the unsaved changes after a change elsewhere; saving them replaces that change. */
+  function keepEditing(): void {
+    changedElsewhere.value = false;
+  }
+
+  /** The dashboard's saved versions, newest first. */
+  async function versions(): Promise<DashboardVersionInfo[]> {
+    return await run(() => api.getVersions()) ?? [];
+  }
+
+  /** Makes a version the dashboard again (a new version), and loads it. Unsaved changes are lost. */
+  async function restore(versionId: string): Promise<boolean> {
+    const restored = await run(() => api.restoreVersion(versionId));
+    if (restored == null)
+      return false;
+    await load();
+    return true;
   }
 
   /** A report template's kept reports, newest first, for the editor's preview. */
@@ -152,8 +235,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
   }
 
   return {
-    dashboard, dirty, loading, error,
+    dashboard, dirty, loading, error, loadedVersion, changedElsewhere,
     load, save, discard, applyReport, reportHistory,
+    noticeReceived, keepEditing, versions, restore,
     addPage, updatePage, removePage, movePage,
     putCard, removeCard, duplicateCard, moveCardToPage, importDashboard,
   };

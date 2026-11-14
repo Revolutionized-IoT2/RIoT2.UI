@@ -20,6 +20,7 @@ const groupInfo: Record<McpToolGroup, { title: string, text: string, icon: strin
   variables: { title: 'Variables', text: 'Set variable values; workflows that watch them run.', icon: 'mdi-variable' },
   workflows: { title: 'Workflows', text: 'Read workflow definitions and runs.', icon: 'mdi-sitemap-outline' },
   workflowControl: { title: 'Workflow control', text: 'Cancel workflow runs.', icon: 'mdi-stop-circle-outline' },
+  dashboard: { title: 'Dashboard', text: 'Read and change the dashboard\'s pages and cards, and restore its earlier versions.', icon: 'mdi-view-dashboard-edit-outline' },
   admin: { title: 'Configuration', text: 'Change node configurations, variables and workflows. Device parameters are always hidden.', icon: 'mdi-cog-outline' },
 };
 
@@ -147,6 +148,8 @@ const time = (value: string) => new Date(value).toLocaleString();
         </v-row>
         <v-alert v-if="draft.groups.includes('admin')" type="warning" variant="tonal" density="compact" class="mt-3"
                  text="Configuration tools let an assistant change devices and automations. Remote callers need the Admin role as well (RIOT2_MCP_REMOTE_MAX_ROLE=admin)." />
+        <v-alert v-if="draft.groups.includes('dashboard')" type="info" variant="tonal" density="compact" class="mt-3"
+                 text="Dashboard changes are kept as versions: Edit dashboard > History restores an earlier one. Remote callers need the Admin role (RIOT2_MCP_REMOTE_MAX_ROLE=admin)." />
       </v-card-text>
     </v-card>
 

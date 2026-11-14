@@ -1,4 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
+import { readFileSync } from 'node:fs'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -9,8 +10,14 @@ import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 // for example ORCHESTRATOR_UPSTREAM=http://localhost:8080 (design 7.5).
 const orchestratorUpstream = process.env.ORCHESTRATOR_UPSTREAM
 
+// The UI's version is package.json's: it goes with the card catalog the UI uploads (src/dashboard/sdk/catalog.ts).
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
+
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __UI_VERSION__: JSON.stringify(version),
+  },
   server: orchestratorUpstream ? {
     proxy: {
       '/api': { target: orchestratorUpstream },

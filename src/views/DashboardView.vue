@@ -14,6 +14,7 @@ import PageNavigation from '@/dashboard/view/PageNavigation.vue';
 import CardEditorDialog from '@/dashboard/editor/CardEditorDialog.vue';
 import PageEditorDialog from '@/dashboard/editor/PageEditorDialog.vue';
 import ImportExportDialog from '@/dashboard/editor/ImportExportDialog.vue';
+import HistoryDialog from '@/dashboard/editor/HistoryDialog.vue';
 import EditorToolbar, { type PreviewWidth } from '@/dashboard/editor/EditorToolbar.vue';
 
 /**
@@ -25,7 +26,7 @@ const route = useRoute();
 const router = useRouter();
 const { smAndDown } = useDisplay();
 const store = useDashboardStore();
-const { dashboard, dirty, loading } = storeToRefs(store);
+const { dashboard, dirty, loading, changedElsewhere } = storeToRefs(store);
 
 const editing = computed(() => route.meta.dashboardEdit === true);
 const standalone = computed(() => route.meta.dashboardStandalone === true);
@@ -152,6 +153,13 @@ function imported(value: Dashboard, mode: 'replace' | 'append') {
   pageIndex.value = mode === 'append' ? before : 0;
 }
 
+// History (I60)
+const historyDialog = ref(false);
+const restored = ref(false);
+async function restoreVersion(versionId: string) {
+  restored.value = await store.restore(versionId);
+}
+
 function done() {
   router.push({ path: '/dash', query: { page: page.value?.id } });
 }
@@ -171,10 +179,21 @@ const navigation = computed(() => pages.value.length > 1 ? (smAndDown.value ? 'b
       @new-page="newPage"
       @edit-page="editPage"
       @transfer="transferDialog = true"
+      @history="historyDialog = true"
       @discard="store.discard()"
       @save="save"
       @done="done"
     />
+
+    <v-alert v-if="editing && changedElsewhere" type="info" variant="tonal" density="compact" class="mb-3"
+             icon="mdi-sync-alert" text="The dashboard was changed elsewhere, for example by an AI assistant or in another browser. Reload it, or keep your changes and save them over it.">
+      <template #append>
+        <div class="d-flex ga-2">
+          <v-btn class="text-none" variant="text" size="small" @click="store.keepEditing()">Keep editing</v-btn>
+          <v-btn class="text-none" color="primary" variant="flat" size="small" @click="store.load()">Reload</v-btn>
+        </div>
+      </template>
+    </v-alert>
 
     <div v-if="navigation === 'top' || (editing && pages.length > 0)" class="dashboard__pages">
       <PageNavigation v-model="pageIndex" :pages="pages" placement="top" />
@@ -235,10 +254,14 @@ const navigation = computed(() => pages.value.length > 1 ? (smAndDown.value ? 'b
       @move="movePage"
     />
     <ImportExportDialog v-model="transferDialog" :dashboard="dashboard" @import="imported" />
+    <HistoryDialog v-model="historyDialog" :load="store.versions" :dirty="dirty" @restore="restoreVersion" />
     <UnsavedChangesDialog v-model="guard.dialog.value" :saving="guard.saving.value" what="dashboard changes" @choose="guard.choose" />
 
     <v-snackbar v-model="saved" color="success" timeout="2500" location="bottom">
       <v-icon icon="mdi-check-circle-outline" class="mr-2" />Dashboard saved
+    </v-snackbar>
+    <v-snackbar v-model="restored" color="success" timeout="2500" location="bottom">
+      <v-icon icon="mdi-history" class="mr-2" />Version restored
     </v-snackbar>
   </div>
 </template>

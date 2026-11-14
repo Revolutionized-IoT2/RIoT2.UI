@@ -113,6 +113,7 @@ function loadApp(store, reports) {
       './stores/templatesStore': { useTemplatesStore: () => ({ load() {} }) },
       './stores/dashboardStore': { useDashboardStore: () => ({ applyReport: report => reports.push(report) }) },
       './stores/variablesStore': { useVariablesStore: () => ({ applyReport() {} }) },
+      '@/composables/cardCatalog': { syncCardCatalog: async () => 'current' },
     },
   });
 }

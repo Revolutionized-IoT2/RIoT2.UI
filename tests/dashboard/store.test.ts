@@ -8,6 +8,8 @@ const api = vi.hoisted(() => ({
   getDashboard: vi.fn(),
   saveDashboard: vi.fn(),
   getReportHistory: vi.fn(),
+  getVersions: vi.fn(),
+  restoreVersion: vi.fn(),
 }));
 vi.mock('@/composables/api/dashboardApi', () => ({ useDashboardApi: () => api }));
 
@@ -28,6 +30,8 @@ beforeEach(() => {
   setActivePinia(createPinia());
   api.getDashboard.mockReset().mockImplementation(async () => stored());
   api.saveDashboard.mockReset().mockResolvedValue('dash');
+  api.getVersions.mockReset().mockResolvedValue([{ id: 'v1' }]);
+  api.restoreVersion.mockReset();
 });
 
 test('a report reaches every element bound to its template, and is not an unsaved change', async () => {
@@ -102,5 +106,65 @@ describe('editing', () => {
     store.importDashboard(normalizeDashboard({ id: 'other', pages: [{ name: 'Only', components: [] }] }), 'replace');
     expect(store.dashboard!.id).toBe('dash');
     expect(store.dashboard!.pages.map(p => p.name)).toEqual(['Only']);
+  });
+});
+
+describe('changes elsewhere (I60)', () => {
+  const notice = (versionId: string) => JSON.stringify({ versionId, savedAt: '2026-11-14T12:00:00Z', source: 'mcp' });
+
+  test('a notice of another version reloads; the loaded version is ignored', async () => {
+    const store = useDashboardStore();
+    await store.load();
+    await store.noticeReceived(notice('v1'));
+    expect(api.getDashboard).toHaveBeenCalledTimes(1);
+
+    api.getVersions.mockResolvedValue([{ id: 'v2' }, { id: 'v1' }]);
+    await store.noticeReceived(notice('v2'));
+    expect(api.getDashboard).toHaveBeenCalledTimes(2);
+    expect(store.loadedVersion).toBe('v2');
+  });
+
+  test('with unsaved changes, a notice asks instead of reloading', async () => {
+    const store = useDashboardStore();
+    await store.load();
+    store.removeCard('c1');
+    await store.noticeReceived(notice('v2'));
+    expect(store.changedElsewhere).toBe(true);
+    expect(api.getDashboard).toHaveBeenCalledTimes(1);
+    store.keepEditing();
+    expect(store.changedElsewhere).toBe(false);
+    expect(store.dirty).toBe(true);
+  });
+
+  test('the notice of its own save, arriving during the save, reloads nothing more', async () => {
+    const store = useDashboardStore();
+    await store.load();
+    store.removeCard('c1');
+    api.saveDashboard.mockImplementation(async () => {
+      api.getVersions.mockResolvedValue([{ id: 'v2' }, { id: 'v1' }]);
+      await store.noticeReceived(notice('v2'));
+      return 'dash';
+    });
+    expect(await store.save()).toBe(true);
+    expect(api.getDashboard).toHaveBeenCalledTimes(2);
+    expect(store.loadedVersion).toBe('v2');
+    expect(store.changedElsewhere).toBe(false);
+  });
+
+  test('restoring a version reloads the dashboard', async () => {
+    const store = useDashboardStore();
+    await store.load();
+    api.restoreVersion.mockResolvedValue({ id: 'v3' });
+    expect(await store.restore('v1')).toBe(true);
+    expect(api.restoreVersion).toHaveBeenCalledWith('v1');
+    expect(api.getDashboard).toHaveBeenCalledTimes(2);
+  });
+
+  test('an orchestrator without versions still loads', async () => {
+    api.getVersions.mockRejectedValue(new Error('404'));
+    const store = useDashboardStore();
+    await store.load();
+    expect(store.dashboard?.pages).toHaveLength(2);
+    expect(store.loadedVersion).toBeNull();
   });
 });

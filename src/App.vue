@@ -17,6 +17,7 @@ import { useErrorStore } from './stores/errorStore';
 import { useTemplatesStore } from './stores/templatesStore';
 import { useDashboardStore } from './stores/dashboardStore';
 import { useVariablesStore } from './stores/variablesStore';
+import { syncCardCatalog } from '@/composables/cardCatalog';
 
 const errorHandler = useErrorStore();
 const orchestratorStore = useOrchestratorStore();
@@ -53,6 +54,7 @@ onMounted(async () => {
   realtime.subscribe(Constants.topicReport);
   realtime.subscribe(configureDashboardTopic);
   realtime.subscribe(Constants.topicOrchestratorOnline);
+  realtime.subscribe(Constants.topicDashboardChanged);
 });
 
 onUnmounted(() => {
@@ -82,9 +84,13 @@ function mqttMessageReceived(topic: string, message: string, retained = false) {
       orchestratorStore.baseUrl = orchestratorStore.sameOrigin ? "" : configurationCmd.apiBaseUrl;
       orchestratorStore.configured = true;
       templates.load();
+      // The MCP dashboard tools build cards from this UI's card kinds (I60).
+      void syncCardCatalog();
     } else if (topic == Constants.topicOrchestratorOnline) {
       if (orchestratorCameOnline(message, retained))
         announce();
+    } else if (topic == Constants.topicDashboardChanged) {
+      void dashboard.noticeReceived(message);
     } else {
       const report = new Report(JSON.parse(message, toCamelCase));
       dashboard.applyReport(report);

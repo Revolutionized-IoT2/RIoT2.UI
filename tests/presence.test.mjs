@@ -53,6 +53,7 @@ async function loadApp(t, securityInfo = null) {
       './stores/templatesStore': { useTemplatesStore: () => ({ load() {} }) },
       './stores/dashboardStore': { useDashboardStore: () => ({ applyReport() {} }) },
       './stores/variablesStore': { useVariablesStore: () => ({ applyReport() {} }) },
+      '@/composables/cardCatalog': { syncCardCatalog: async () => 'current' },
     },
   });
   t.after(app.dispose);
