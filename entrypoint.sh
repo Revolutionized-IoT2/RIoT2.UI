@@ -86,6 +86,8 @@ else
   resolver=$(awk '/^nameserver/ { print $2; exit }' /etc/resolv.conf 2>/dev/null)
   case "$resolver" in *:*) resolver="[$resolver]" ;; esac
   if [ -n "$resolver" ]; then
+    # nginx's variable, written to the configuration as is.
+    # shellcheck disable=SC2016
     target='$riot2_orchestrator'
     preamble="resolver $resolver valid=30s;
 set \$riot2_orchestrator $upstream;"
