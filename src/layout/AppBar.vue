@@ -30,6 +30,12 @@
       <v-divider class="my-2" />
       <v-list-subheader v-if="!rail || mobile">Administration</v-list-subheader>
       <v-list-item v-for="item in administration" :key="item.to" :to="item.to" :title="item.title" :prepend-icon="item.icon" rounded="xl" />
+      <template v-if="monitoring.length > 0">
+        <v-divider class="my-2" />
+        <v-list-subheader v-if="!rail || mobile">Monitoring</v-list-subheader>
+        <v-list-item v-for="item in monitoring" :key="item.url" :href="item.url" target="_blank" rel="noopener noreferrer"
+                     :title="item.title" :prepend-icon="item.icon" append-icon="mdi-open-in-new" rounded="xl" />
+      </template>
     </v-list>
   </v-navigation-drawer>
 </template>
@@ -38,6 +44,8 @@
 import { computed, ref, watch } from 'vue';
 import { useDisplay, useTheme } from 'vuetify';
 import { themeStorageKey, type ThemeChoice } from '@/plugins/vuetify';
+import { monitoringUrls } from '@/app.config';
+import { monitoringLinks } from '@/composables/monitoringLinks';
 
 // The shell of Dls (ADR 0016): a flat app bar, and a navigation drawer that shrinks to a rail on wide screens and
 // overlays the page on narrow ones.
@@ -58,6 +66,8 @@ const administration = [
   { to: '/backup', title: 'Backup', icon: 'mdi-backup-restore' },
   { to: '/system', title: 'System', icon: 'mdi-heart-pulse' },
 ];
+// Grafana, InfluxDB and Prometheus when the installation runs them (VITE_GRAFANA_URL, …): they open in a new tab.
+const monitoring = monitoringLinks(monitoringUrls);
 
 const themeOptions: { value: ThemeChoice, title: string, icon: string }[] = [
   { value: 'light', title: 'Light', icon: 'mdi-weather-sunny' },

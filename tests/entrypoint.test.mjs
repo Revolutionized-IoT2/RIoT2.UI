@@ -28,11 +28,11 @@ function findShell() {
 const shell = findShell();
 const nginx = spawnSync('nginx', ['-v']).error ? null : 'nginx';
 
-function runEntrypoint(t, upstream, extraEnv = {}) {
+function runEntrypoint(t, upstream, extraEnv = {}, bundleSource = 'const server = "VITE_MQTT_SERVER";') {
   const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'riot2-ui-entrypoint-'));
   t.after(() => fs.rmSync(folder, { recursive: true, force: true }));
   fs.mkdirSync(path.join(folder, 'html', 'assets'), { recursive: true });
-  fs.writeFileSync(path.join(folder, 'html', 'assets', 'index-test.js'), 'const server = "VITE_MQTT_SERVER";');
+  fs.writeFileSync(path.join(folder, 'html', 'assets', 'index-test.js'), bundleSource);
   const env = {
     ...process.env,
     ROOT_DIR: path.join(folder, 'html').replace(/\\/g, '/'),
@@ -43,6 +43,8 @@ function runEntrypoint(t, upstream, extraEnv = {}) {
     VITE_MQTT_SERVER: 'broker.lan',
   };
   delete env.RIOT2_UI_PORT;
+  for (const key of ['VITE_GRAFANA_URL', 'VITE_INFLUXDB_URL', 'VITE_PROMETHEUS_URL'])
+    delete env[key];
   Object.assign(env, extraEnv);
   if (upstream === undefined)
     delete env.ORCHESTRATOR_UPSTREAM;
@@ -110,6 +112,15 @@ test('an upstream with a path is refused', { skip: !shell && 'no sh' }, t => {
 
   assert.equal(run.status, 1);
   assert.match(run.output, /ORCHESTRATOR_UPSTREAM must be http\(s\):\/\/host\[:port\]/);
+});
+
+test('the monitoring links are rendered, and an empty one is left out without a warning', { skip: !shell && 'no sh' }, t => {
+  const run = runEntrypoint(t, undefined, { VITE_GRAFANA_URL: 'http://192.168.0.35:3000' },
+    'const links = ["VITE_GRAFANA_URL", "VITE_INFLUXDB_URL", "VITE_PROMETHEUS_URL"];');
+
+  assert.equal(run.status, 0, run.output);
+  assert.equal(run.bundle, 'const links = ["http://192.168.0.35:3000", "", ""];');
+  assert.doesNotMatch(run.output, /WARNING: VITE_(GRAFANA|INFLUXDB|PROMETHEUS)_URL/);
 });
 
 test('nginx listens on 8080 unless RIOT2_UI_PORT says otherwise', { skip: !shell && 'no sh' }, t => {

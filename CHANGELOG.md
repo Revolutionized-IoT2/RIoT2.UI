@@ -22,6 +22,10 @@ Static LAN addresses ([I61](https://github.com/Revolutionized-IoT2/.github/blob/
   `riot-logo` in `site.css`). The JSON viewer (`DatamodelComponent`) styled every `<code>` in the app red on white once
   loaded, which showed in the workflow designer's activity panel: its styles are scoped and use the theme's colors
   now. The workflow designer's mini map masks the area outside the view in the theme's color instead of light gray.
+- Added: a Monitoring group in the menu with links to Grafana, InfluxDB and Prometheus, opened in a new tab, from
+  `VITE_GRAFANA_URL`, `VITE_INFLUXDB_URL` and `VITE_PROMETHEUS_URL`. A link shows only when its setting is an
+  `http(s)://` address, so an installation without these tools looks as before. `deploy/compose.influx.yml`,
+  `compose.observability.yml` and their `compose.lan.*` files set them.
 
 ## [1.14.0] - 2026-11-14
 

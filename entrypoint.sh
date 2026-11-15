@@ -8,6 +8,10 @@ echo "Replacing env constants in JS"
 keys="VITE_MQTT_SERVER
 VITE_MQTT_USER
 VITE_MQTT_PASSWORD"
+# The menu's Monitoring links: an empty one is simply left out.
+optional_keys="VITE_GRAFANA_URL
+VITE_INFLUXDB_URL
+VITE_PROMETHEUS_URL"
 
 mkdir -p "$TEMPLATE_DIR"
 
@@ -28,10 +32,10 @@ do
   file="$ROOT_DIR/assets/$(basename "$template")"
   cp "$template" "$file"
   echo "Processing $file ...";
-  for key in $keys
+  for key in $keys $optional_keys
   do
     value=$(printenv "$key")
-    if [ -z "$value" ]; then
+    if [ -z "$value" ] && ! printf '%s\n' "$optional_keys" | grep -qx "$key"; then
       echo "WARNING: $key is empty"
     fi
     escaped_value=$(printf '%s' "$value" | sed 's/[\\#&]/\\&/g')
