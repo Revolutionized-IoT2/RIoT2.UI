@@ -8,3 +8,9 @@
 html {
   overscroll-behavior-y: none;
 }
+
+/* Stacked fields: an outlined field's floating label rises about 9 px above the field, into the hint of the field
+   above it. The space keeps them apart. Fields in grid columns are first children and keep their place. */
+.v-input + .v-input.v-text-field {
+  margin-top: 12px;
+}

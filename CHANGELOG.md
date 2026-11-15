@@ -16,6 +16,8 @@ Static LAN addresses ([I61](https://github.com/Revolutionized-IoT2/.github/blob/
   instead of the logo. The home page shows only the logo, larger and centered, and inverted in a dark theme.
 - Changed: the browser tab and home screen icon is RIoT2.Mobile's app icon (`favicon.svg`, with `favicon.ico` and
   `apple-touch-icon.png` drawn from it).
+- Fixed: in forms with stacked fields (Matter, dialogs), a field's floating label overlapped the hint of the field
+  above it. A field that follows another gets 12 px more space (`src/assets/site.css`).
 
 ## [1.14.0] - 2026-11-14
 
