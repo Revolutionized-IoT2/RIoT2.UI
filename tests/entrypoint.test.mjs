@@ -120,8 +120,13 @@ test('nginx listens on 8080 unless RIOT2_UI_PORT says otherwise', { skip: !shell
   const lan = runEntrypoint(t, 'http://orchestrator:8080', { RIOT2_UI_PORT: '80' });
   assert.equal(lan.status, 0, lan.output);
   assert.equal(lan.listen, 'listen 80 default_server;\nlisten [::]:80 default_server;\n');
+
+  // `nginx -t` binds the port, and the CI runner's user may not bind one below 1024.
+  const custom = runEntrypoint(t, 'http://orchestrator:8080', { RIOT2_UI_PORT: '18080' });
+  assert.equal(custom.status, 0, custom.output);
+  assert.equal(custom.listen, 'listen 18080 default_server;\nlisten [::]:18080 default_server;\n');
   if (nginx) {
-    const check = nginxTest(lan.folder);
+    const check = nginxTest(custom.folder);
     assert.equal(check.status, 0, check.stderr);
   }
 });
