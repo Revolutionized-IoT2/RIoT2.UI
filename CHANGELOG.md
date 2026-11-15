@@ -14,6 +14,8 @@ Static LAN addresses ([I61](https://github.com/Revolutionized-IoT2/.github/blob/
   health check follows the port. `deploy/compose.lan.yml` uses it to serve the UI on port 80 of its own LAN address.
 - Changed: the app bar shows "RIoT2 Controller" and "Flexible and scalable IoT system" (the tagline from 600 px up)
   instead of the logo. The home page shows only the logo, larger and centered, and inverted in a dark theme.
+- Changed: the browser tab and home screen icon is RIoT2.Mobile's app icon (`favicon.svg`, with `favicon.ico` and
+  `apple-touch-icon.png` drawn from it).
 
 ## [1.14.0] - 2026-11-14
 
