@@ -5,6 +5,8 @@ git tag; CI publishes `ghcr.io/revolutionized-iot2/riot2-ui:latest` and `:<tag>`
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-11-15
+
 Static LAN addresses ([I61](https://github.com/Revolutionized-IoT2/.github/blob/main/docs/increments/phase-4b.md#i61-site-configuration-and-installer-m)).
 
 - Added: `RIOT2_UI_PORT`, the port nginx listens on (default `8080`, as before). `entrypoint.sh` writes the `listen`
