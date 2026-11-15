@@ -3,8 +3,8 @@
     <v-app-bar-nav-icon aria-label="Toggle navigation" @click="mobile ? (drawer = !drawer) : (rail = !rail)" />
     <v-app-bar-title>
       <router-link to="/" class="brand" aria-label="RIoT2 home">
-        <img src="../assets/riot_logo.png" alt="" class="brand__logo" />
-        <span class="brand__name">RIoT2</span>
+        <span class="brand__name">RIoT2 Controller</span>
+        <span class="brand__tagline text-medium-emphasis d-none d-sm-inline">Flexible and scalable IoT system</span>
       </router-link>
     </v-app-bar-title>
     <v-menu location="bottom end">
@@ -85,16 +85,17 @@ function setTheme(next: ThemeChoice | undefined) {
   color: inherit;
   text-decoration: none;
   display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.brand__logo {
-  height: 32px;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.2;
 }
 
 .brand__name {
   font-weight: 600;
   letter-spacing: 0.02em;
+}
+
+.brand__tagline {
+  font-size: 0.75rem;
 }
 </style>
