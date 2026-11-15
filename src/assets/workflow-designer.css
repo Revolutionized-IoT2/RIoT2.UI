@@ -67,6 +67,8 @@
 .wf-canvas .vue-flow__controls { overflow: hidden; border: var(--pane-border); border-radius: 10px; }
 .wf-canvas .vue-flow__controls-button { border-bottom: var(--pane-border); background: rgb(var(--v-theme-surface-container-low)); fill: rgb(var(--v-theme-on-surface)); }
 .wf-canvas .vue-flow__minimap { overflow: hidden; border: var(--pane-border); border-radius: 10px; background: rgb(var(--v-theme-surface-container-low)); }
+/* The area outside the view: the library's light gray would frame a dark theme's mini map in white. */
+.wf-canvas .vue-flow__minimap-mask { fill: rgba(var(--v-theme-surface-container-highest), 0.6); }
 
 .wf-node {
   --wf-radius: 12px; position: relative; width: 232px; padding: 10px 12px; border: 1px solid rgb(var(--v-theme-outline-variant));

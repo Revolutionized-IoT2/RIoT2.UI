@@ -108,8 +108,8 @@ function mqttMessageReceived(topic: string, message: string, retained = false) {
     <ConnectionBanner v-if="orchestratorStore.isInitialized"/>
     <RouterView v-if="orchestratorStore.isInitialized"/>
     <div v-else class="app-connecting">
-      <img src="@/assets/riot_logo.png" alt="" class="app-connecting__logo" />
-      <div class="text-title-medium">Connecting to RIoT2?</div>
+      <img src="@/assets/riot_logo.png" alt="" class="app-connecting__logo riot-logo" />
+      <div class="text-title-medium">Connecting to RIoT2&hellip;</div>
       <v-progress-linear color="primary" indeterminate rounded height="4" class="app-connecting__bar" />
     </div>
     <v-snackbar v-model="errorHandler.showSnackbar" color="error" location="top" max-width="560">

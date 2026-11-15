@@ -262,74 +262,54 @@ defineExpose({
             </v-dialog>
     </div>
 </template>
-<style>
-.h-40{
-  height:40px;
-}
-span.key {
-    color: #7D9029;
-}
-
-span.string {
-    color: #BA2121;
+<style scoped>
+/* Scoped: this used to style every <code> in the app, red on white even in a dark theme. The JSON comes in
+   through v-html, so its spans need :deep. Theme colors keep it readable in light and dark themes. */
+.h-40 {
+  height: 40px;
 }
 
-code {
-    background-color: #f7f7f8 !important;
-    color: #bd4147 !important;
-    -webkit-box-shadow: none !important; 
-    box-shadow:none !important;
-    left: 0;
-    margin-top: .425rem;
-        display: block !important; 
+pre.highlight {
+  background: rgb(var(--v-theme-surface-container-high));
+  color: rgb(var(--v-theme-on-surface));
+  border-radius: 4px;
+  word-wrap: break-word;
+  font-size: .8125em;
 }
 
-p a > code:hover{
-    color: rgba(0,0,0,.9);
+pre.highlight code {
+  display: block;
+  margin-top: .425rem;
+  background: transparent;
+  color: inherit;
 }
 
-code[data-lang]:before{
-    position: absolute;
-    top: .425rem;
-    right: .5rem;
-    display: none;
-    color: #999;
-    content: attr(data-lang);
-    text-transform: uppercase;
-    font-size: .75em;
-    line-height: 1;
+pre.highlight :deep(span.key) {
+  color: rgb(var(--v-theme-primary));
 }
 
-.model-code:hover code[data-lang]:before{
-    display: block;
+pre.highlight :deep(span.string) {
+  color: rgb(var(--v-theme-success));
 }
 
-.code-block pre{
-    background: #f7f7f8;
-    -webkit-border-radius: 4px;
-            border-radius: 4px;
-    word-wrap: break-word;
-    font-size: .8125em;
+.code-block > .content {
+  position: relative;
+  line-height: .6rem;
 }
 
-.code-block > .content{
-    position: relative;
-    line-height: .6rem;
+code[data-lang]:before {
+  position: absolute;
+  top: .425rem;
+  right: .5rem;
+  display: none;
+  color: rgb(var(--v-theme-on-surface-variant));
+  content: attr(data-lang);
+  text-transform: uppercase;
+  font-size: .9em;
+  line-height: 1;
 }
 
-.code-block code[data-lang]:before{
-    position: absolute;
-    top: .425rem;
-    right: .5rem;
-    display: none;
-    color: #999;
-    content: attr(data-lang);
-    text-transform: uppercase;
-    font-size: .9em;
-    line-height: 1;
-}
-
-.code-block:hover code[data-lang]:before{
-    display: block;
+.code-block:hover code[data-lang]:before {
+  display: block;
 }
 </style>

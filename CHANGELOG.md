@@ -18,6 +18,10 @@ Static LAN addresses ([I61](https://github.com/Revolutionized-IoT2/.github/blob/
   `apple-touch-icon.png` drawn from it).
 - Fixed: in forms with stacked fields (Matter, dialogs), a field's floating label overlapped the hint of the field
   above it. A field that follows another gets 12 px more space (`src/assets/site.css`).
+- Fixed: dark themes. The "Connecting to RIoT2…" screen shows the logo inverted like the home page (both use
+  `riot-logo` in `site.css`). The JSON viewer (`DatamodelComponent`) styled every `<code>` in the app red on white once
+  loaded, which showed in the workflow designer's activity panel: its styles are scoped and use the theme's colors
+  now. The workflow designer's mini map masks the area outside the view in the theme's color instead of light gray.
 
 ## [1.14.0] - 2026-11-14
 

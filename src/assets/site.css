@@ -14,3 +14,15 @@ html {
 .v-input + .v-input.v-text-field {
   margin-top: 12px;
 }
+
+/* riot_logo.png is dark on an opaque, nearly white (#fafafa) background: brightness makes that white, and multiply
+   drops it into the page's background. A dark theme inverts it to light on black, and screen drops the black. */
+.riot-logo {
+  filter: brightness(1.03);
+  mix-blend-mode: multiply;
+}
+
+.v-theme--dark .riot-logo {
+  filter: brightness(1.03) invert(1);
+  mix-blend-mode: screen;
+}
